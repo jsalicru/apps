@@ -13,9 +13,10 @@ HEX = [963, 141, 341, 580, 302, 438, 357]   # centre x, y top, widest, bottom; h
 TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for two, for three, height: BMW's speed, right-aligned at about x 630, stops above its line
 # the race scales: the band's middle is at this rpm, and each thousand gets wider towards the top
 REV_CURVES = {name: math.log(0.5) / math.log(rpm / 8000) for name, rpm in (('race', 5000), ('race55', 5500))}
-BAR_A = [60, 473, 320, 13]   # oil
-BAR_C = [60, 553, 320, 13]   # boost
-BAR_B = [60, 633, 320, 13]   # fuel
+BAR_C = [60, 553, 320, 13]     # boost, left
+BAR_B = [60, 633, 320, 13]     # fuel, left
+BAR_A = [1540, 553, 320, 13]   # oil, right
+BAR_D = [1540, 633, 320, 13]   # water, right
 
 
 def f_to_c(f):
@@ -44,6 +45,8 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
                         dict(signal='oil', below=f_to_c(140), color='cold')],
                 zonesB=[dict(signal='range', below=round(50 * 1.609344, 2), color='low')],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
+                barD=BAR_D, signalD='coolant', rangeD=[0, 150],
+                zonesD=[dict(signal='coolant', above=f_to_c(230), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
                 hex=HEX, tab=TAB, holeWhen='mapWindow')]
 for i in range(9):
     for name, curve in [('even', 1)] + list(REV_CURVES.items()):
@@ -55,20 +58,22 @@ widgets += [
     text('speed_hero', 960, 505, 620, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),
     text('hero_unit', 960, 625, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow'),
     text('gear_top', 960, 205, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
-    text('oil_label', 60, 450, 160, 'OIL', 't_label', 'dim'),
-    text('oil_val', 340, 450, 100, '{{oil}}', 't_label', align='right'),
-    text('oil_unit', 345, 450, 40, '{{u:temp}}', 't_label', 'dim'),
     text('boost_label', 60, 530, 140, 'BOOST', 't_label', 'dim', toggle='showBoost'),
     text('boost_val', 332, 530, 100, '{{boost}}', 't_label', align='right', toggle='showBoost'),
     text('boost_unit', 337, 530, 48, '{{u:boost}}', 't_label', 'dim', toggle='showBoost'),
-    text('fuel_label', 60, 610, 160, 'FUEL', 't_label', 'dim'),
+    text('fuel_label', 60, 610, 140, 'FUEL', 't_label', 'dim'),
+    text('range_val', 332, 610, 100, '{{range}}', 't_label', align='right'),
+    text('range_unit', 337, 610, 48, '{{u:distLc}}', 't_label', 'dim'),
+    text('oil_label', 1540, 530, 140, 'OIL', 't_label', 'dim'),
+    text('oil_val', 1820, 530, 100, '{{oil}}', 't_label', align='right'),
+    text('oil_unit', 1825, 530, 40, '{{u:temp}}', 't_label', 'dim'),
+    text('water_label', 1540, 610, 140, 'WATER', 't_label', 'dim'),
+    text('water_val', 1820, 610, 100, '{{coolant}}', 't_label', align='right'),
+    text('water_unit', 1825, 610, 40, '{{u:temp}}', 't_label', 'dim'),
+    text('ambient_label', 1540, 450, 140, 'OUTSIDE', 't_label', 'dim'),
+    text('ambient', 1820, 450, 100, '{{ambient}}', 't_label', align='right'),
+    text('ambient_unit', 1825, 450, 40, '{{u:temp}}', 't_label', 'dim'),
     text('gear', 1880, 300, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome', toggle='mapWindow'),
-    text('time', 1800, 455, 190, '{{time}}', 'm_val', align='right'),
-    text('ampm', 1806, 462, 50, '{{ampmLc}}', 'm_unit', 'dim'),
-    text('range', 1800, 535, 150, '{{range}}', 'm_val', align='right'),
-    text('range_unit', 1806, 542, 50, '{{u:distLc}}', 'm_unit', 'dim'),
-    text('ambient', 1800, 615, 150, '{{ambient}}', 'm_val', align='right'),
-    text('ambient_unit', 1806, 622, 40, '{{u:temp}}', 'm_unit', 'dim'),
 ]
 layout = dict(schemaVersion=2, name='Sweep', theme='sweep',
               _about='A digital dash with a rev sweep along the hood line and a map window. Written by tools/gen_sweep_layout.py.',

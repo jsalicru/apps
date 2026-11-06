@@ -88,7 +88,7 @@
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
- *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "zonesA" / "zonesB" [{ signal, below | above,
+ *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
  *             color }], the first that matches colours that bar; "hex" [centre x, y top, y widest, y bottom, half width
  *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on, joined to the
  *             optional soft "tab" [right x, y, left x for one digit, for two, for three, h], room for BMW's own speed.
@@ -988,8 +988,9 @@ class HudApp {
             c.uniform(ref, 'u_barB', w.barB);
             c.uniform(ref, 'u_barC', w.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? w.barC : [0, 0, 0, 0]);
             c.uniform(ref, 'u_curve', [isNum((w.revCurves || {})[this.setting('revScale')]) ? w.revCurves[this.setting('revScale')] : 1]);
+            c.uniform(ref, 'u_barD', w.barD || [0, 0, 0, 0]);
             c.uniform(ref, 'u_rpm', [0]);
-            c.uniform(ref, 'u_lvl', [0, 0, 0]);
+            c.uniform(ref, 'u_lvl', [0, 0, 0, 0]);
             const hexOn = Array.isArray(w.hex) && w.holeWhen && this.setting(w.holeWhen) === true;
             c.uniform(ref, 'u_hex', hexOn ? w.hex.slice(0, 4) : [0, 0, 0, 0]);
             c.uniform(ref, 'u_hexW', hexOn ? w.hex.slice(4, 7) : [0, 0, 0]);
@@ -1223,7 +1224,7 @@ class HudApp {
             const rpm = this._raw('rpm');
             const lvl = (sig, r) => { const v = this._raw(sig); return isNum(v) ? Math.round(Math.min(1, Math.max(0, (v - r[0]) / (r[1] - r[0]))) * 200) / 200 : 0; };
             const vals = [isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (w.max || 8000))) * 800) / 800 : 0,
-                lvl(w.signalA, w.rangeA), lvl(w.signalB, w.rangeB), w.barC ? lvl(w.signalC, w.rangeC) : 0];
+                lvl(w.signalA, w.rangeA), lvl(w.signalB, w.rangeB), w.barC ? lvl(w.signalC, w.rangeC) : 0, w.barD ? lvl(w.signalD, w.rangeD) : 0];
             // the tab opens only as far as BMW's speed needs: a little early, BMW's reading runs above the signal
             const sp = this._raw('speed');
             const shown = isNum(sp) ? (this.setting('units') === 'us' ? sp * 0.621371 : sp) : 0;
@@ -1236,15 +1237,16 @@ class HudApp {
                 })[0];
                 return hit ? hit.color : x.barColor;
             };
-            const colA = zone(w.zonesA), colB = zone(w.zonesB);
-            const key = vals.join('|') + '|' + left + '|' + colA + '|' + colB;
+            const colA = zone(w.zonesA), colB = zone(w.zonesB), colD = zone(w.zonesD);
+            const key = vals.join('|') + '|' + left + '|' + colA + '|' + colB + '|' + colD;
             if (!force && key === x.last) return;
             x.last = key;
             x.c.uniform(x.ref, 'u_colA', rgb(color(this.theme, colA)));
             x.c.uniform(x.ref, 'u_colB', rgb(color(this.theme, colB)));
+            x.c.uniform(x.ref, 'u_colD', rgb(color(this.theme, colD)));
             x.c.uniform(x.ref, 'u_tab', left === null ? [0, 0, 0, 0] : [left, w.tab[1], w.tab[0] - left, w.tab[5]]);
             x.c.uniform(x.ref, 'u_rpm', [vals[0]]);
-            x.c.uniform(x.ref, 'u_lvl', [vals[1], vals[2], vals[3]]);
+            x.c.uniform(x.ref, 'u_lvl', [vals[1], vals[2], vals[3], vals[4]]);
         } else if (w.type === 'twinneedle') {
             const us = this.setting('units') === 'us';
             const vals = [0, 1, 2, 3].map((i) => {

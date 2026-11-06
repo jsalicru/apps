@@ -953,15 +953,15 @@ void main() {
 `;
 
 const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL ES 1.00): black, a segmented rev sweep along the top
-// of the cluster that follows the hood line, three level bars, and a see-through six-sided map window.
+// of the cluster that follows the hood line, four level bars, and a see-through six-sided map window.
 //   u_arc    y of the sweep's top at the middle, the centre x, the curve's radius, the band's height (target px)
 //   u_span   x at 0 rpm, x at the top of the scale
 //   u_segs   segments in the sweep
 //   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
 //   u_metal  1: a machined look for the silver colour, a sheen across the segments and a bright leading edge
 //   u_curve  how the scale is spread along the band: 1 = even, above 1 = the top of the rev range gets more of the band
-//   u_barA, u_barB, u_barC, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C)
-//   u_colA, u_colB  the colours of bars A and B (C is u_amber)
+//   u_barA, u_barB, u_barC, u_barD, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C, w: D)
+//   u_colA, u_colB, u_colD  the colours of bars A, B and D (C is u_amber)
 //   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
 //   u_tab    a soft tab joined to the window: x, y, w, h (w 0 = none). What shows through it is dimmed and fades out at
 //            its edges, so BMW's grey panel under it has no hard edge.
@@ -982,9 +982,11 @@ uniform float u_metal;
 uniform vec4 u_barA;
 uniform vec4 u_barB;
 uniform vec4 u_barC;
-uniform vec3 u_lvl;
+uniform vec4 u_barD;
+uniform vec4 u_lvl;
 uniform vec3 u_colA;
 uniform vec3 u_colB;
+uniform vec3 u_colD;
 uniform vec4 u_hex;
 uniform vec3 u_hexW;
 uniform vec4 u_tab;
@@ -1056,6 +1058,7 @@ void main() {
     c = bar(c, p, u_barA, u_lvl.x, u_colA);
     c = bar(c, p, u_barB, u_lvl.y, u_colB);
     c = bar(c, p, u_barC, u_lvl.z, u_amber);
+    c = bar(c, p, u_barD, u_lvl.w, u_colD);
     float a = 1.0;
     if (u_hexW.x > 0.0) {
         vec2 q = vec2(abs(p.x - u_hex.x), p.y);

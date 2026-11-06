@@ -29,8 +29,8 @@
         "race55": 1.8499
       },
       "barA": [
-        60,
-        473,
+        1540,
+        553,
         320,
         13
       ],
@@ -86,6 +86,29 @@
         2.0684
       ],
       "toggleC": "showBoost",
+      "barD": [
+        1540,
+        633,
+        320,
+        13
+      ],
+      "signalD": "coolant",
+      "rangeD": [
+        0,
+        150
+      ],
+      "zonesD": [
+        {
+          "signal": "coolant",
+          "above": 110.0,
+          "color": "hot"
+        },
+        {
+          "signal": "coolant",
+          "below": 60.0,
+          "color": "cold"
+        }
+      ],
       "hex": [
         963,
         141,
@@ -529,45 +552,6 @@
       "toggle": "!mapWindow"
     },
     {
-      "id": "oil_label",
-      "type": "text",
-      "z": 5,
-      "x": 60,
-      "y": 432,
-      "w": 160,
-      "h": 35,
-      "text": "OIL",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "oil_val",
-      "type": "text",
-      "z": 5,
-      "x": 240,
-      "y": 432,
-      "w": 100,
-      "h": 35,
-      "text": "{{oil}}",
-      "font": "t_label",
-      "color": "fg",
-      "align": "right"
-    },
-    {
-      "id": "oil_unit",
-      "type": "text",
-      "z": 5,
-      "x": 345,
-      "y": 432,
-      "w": 40,
-      "h": 35,
-      "text": "{{u:temp}}",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
-    },
-    {
       "id": "boost_label",
       "type": "text",
       "z": 5,
@@ -615,9 +599,152 @@
       "z": 5,
       "x": 60,
       "y": 592,
-      "w": 160,
+      "w": 140,
       "h": 35,
       "text": "FUEL",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left"
+    },
+    {
+      "id": "range_val",
+      "type": "text",
+      "z": 5,
+      "x": 232,
+      "y": 592,
+      "w": 100,
+      "h": 35,
+      "text": "{{range}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right"
+    },
+    {
+      "id": "range_unit",
+      "type": "text",
+      "z": 5,
+      "x": 337,
+      "y": 592,
+      "w": 48,
+      "h": 35,
+      "text": "{{u:distLc}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left"
+    },
+    {
+      "id": "oil_label",
+      "type": "text",
+      "z": 5,
+      "x": 1540,
+      "y": 512,
+      "w": 140,
+      "h": 35,
+      "text": "OIL",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left"
+    },
+    {
+      "id": "oil_val",
+      "type": "text",
+      "z": 5,
+      "x": 1720,
+      "y": 512,
+      "w": 100,
+      "h": 35,
+      "text": "{{oil}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right"
+    },
+    {
+      "id": "oil_unit",
+      "type": "text",
+      "z": 5,
+      "x": 1825,
+      "y": 512,
+      "w": 40,
+      "h": 35,
+      "text": "{{u:temp}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left"
+    },
+    {
+      "id": "water_label",
+      "type": "text",
+      "z": 5,
+      "x": 1540,
+      "y": 592,
+      "w": 140,
+      "h": 35,
+      "text": "WATER",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left"
+    },
+    {
+      "id": "water_val",
+      "type": "text",
+      "z": 5,
+      "x": 1720,
+      "y": 592,
+      "w": 100,
+      "h": 35,
+      "text": "{{coolant}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right"
+    },
+    {
+      "id": "water_unit",
+      "type": "text",
+      "z": 5,
+      "x": 1825,
+      "y": 592,
+      "w": 40,
+      "h": 35,
+      "text": "{{u:temp}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left"
+    },
+    {
+      "id": "ambient_label",
+      "type": "text",
+      "z": 5,
+      "x": 1540,
+      "y": 432,
+      "w": 140,
+      "h": 35,
+      "text": "OUTSIDE",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left"
+    },
+    {
+      "id": "ambient",
+      "type": "text",
+      "z": 5,
+      "x": 1720,
+      "y": 432,
+      "w": 100,
+      "h": 35,
+      "text": "{{ambient}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right"
+    },
+    {
+      "id": "ambient_unit",
+      "type": "text",
+      "z": 5,
+      "x": 1825,
+      "y": 432,
+      "w": 40,
+      "h": 35,
+      "text": "{{u:temp}}",
       "font": "t_label",
       "color": "dim",
       "align": "left"
@@ -637,84 +764,6 @@
       "hotWhen": "now",
       "color2": "chrome",
       "toggle": "mapWindow"
-    },
-    {
-      "id": "time",
-      "type": "text",
-      "z": 5,
-      "x": 1610,
-      "y": 434,
-      "w": 190,
-      "h": 42,
-      "text": "{{time}}",
-      "font": "m_val",
-      "color": "fg",
-      "align": "right"
-    },
-    {
-      "id": "ampm",
-      "type": "text",
-      "z": 5,
-      "x": 1806,
-      "y": 444,
-      "w": 50,
-      "h": 36,
-      "text": "{{ampmLc}}",
-      "font": "m_unit",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "range",
-      "type": "text",
-      "z": 5,
-      "x": 1650,
-      "y": 514,
-      "w": 150,
-      "h": 42,
-      "text": "{{range}}",
-      "font": "m_val",
-      "color": "fg",
-      "align": "right"
-    },
-    {
-      "id": "range_unit",
-      "type": "text",
-      "z": 5,
-      "x": 1806,
-      "y": 524,
-      "w": 50,
-      "h": 36,
-      "text": "{{u:distLc}}",
-      "font": "m_unit",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "ambient",
-      "type": "text",
-      "z": 5,
-      "x": 1650,
-      "y": 594,
-      "w": 150,
-      "h": 42,
-      "text": "{{ambient}}",
-      "font": "m_val",
-      "color": "fg",
-      "align": "right"
-    },
-    {
-      "id": "ambient_unit",
-      "type": "text",
-      "z": 5,
-      "x": 1806,
-      "y": 604,
-      "w": 40,
-      "h": 36,
-      "text": "{{u:temp}}",
-      "font": "m_unit",
-      "color": "dim",
-      "align": "left"
     }
   ]
 }
