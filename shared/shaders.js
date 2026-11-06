@@ -961,6 +961,7 @@ const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL
 //   u_metal  1: a machined look for the silver colour, a sheen across the segments and a bright leading edge
 //   u_curve  how the scale is spread along the band: 1 = even, above 1 = the top of the rev range gets more of the band
 //   u_barA, u_barB, u_barC, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C)
+//   u_colA, u_colB  the colours of bars A and B (C is u_amber)
 //   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
 //   u_tab    a soft tab joined to the window: x, y, w, h (w 0 = none). What shows through it is dimmed and fades out at
 //            its edges, so BMW's grey panel under it has no hard edge.
@@ -982,6 +983,8 @@ uniform vec4 u_barA;
 uniform vec4 u_barB;
 uniform vec4 u_barC;
 uniform vec3 u_lvl;
+uniform vec3 u_colA;
+uniform vec3 u_colB;
 uniform vec4 u_hex;
 uniform vec3 u_hexW;
 uniform vec4 u_tab;
@@ -1050,8 +1053,8 @@ void main() {
         float railFade = smoothstep(0.0, 0.10, s) * smoothstep(1.0, 0.90, s);
         c = mix(c, vec3(0.50, 0.51, 0.54), cov(abs(dy - h - 5.0) - 0.55) * railFade);
     }
-    c = bar(c, p, u_barA, u_lvl.x, u_amber);
-    c = bar(c, p, u_barB, u_lvl.y, u_amber);
+    c = bar(c, p, u_barA, u_lvl.x, u_colA);
+    c = bar(c, p, u_barB, u_lvl.y, u_colB);
     c = bar(c, p, u_barC, u_lvl.z, u_amber);
     float a = 1.0;
     if (u_hexW.x > 0.0) {

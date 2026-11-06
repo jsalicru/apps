@@ -7,7 +7,7 @@ import json, math, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'apps', 'cluster_themes', 'hud')
-ARC = [10, 960, 2985, 58]      # y of the top at the middle, centre x, curve radius, band height: clears the hood (shared/visible.js)
+ARC = [10, 960, 2985, 74]      # y of the top at the middle, centre x, curve radius, band height: clears the hood (shared/visible.js)
 SPAN = [125, 1795]             # x at 0 rpm, x at 8000
 HEX = [963, 141, 341, 580, 302, 438, 357]   # centre x, y top, widest, bottom; half widths at top, widest, bottom
 TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for two, for three, height: BMW's speed, right-aligned at about x 630, stops above its line
@@ -16,6 +16,10 @@ REV_CURVES = {name: math.log(0.5) / math.log(rpm / 8000) for name, rpm in (('rac
 BAR_A = [60, 473, 320, 13]   # oil
 BAR_C = [60, 553, 320, 13]   # boost
 BAR_B = [60, 633, 320, 13]   # fuel
+
+
+def f_to_c(f):
+    return round((f - 32) * 5 / 9, 2)
 
 
 def cell(font):
@@ -35,7 +39,10 @@ def bottom(x):
 
 
 widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, revCurves={k: round(v, 4) for k, v in REV_CURVES.items()},
-                barA=BAR_A, signalA='oil', rangeA=[50, 150], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
+                barA=BAR_A, signalA='oil', rangeA=[0, 150], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
+                zonesA=[dict(signal='oil', above=f_to_c(250), color='hot'), dict(signal='oil', above=f_to_c(235), color='warn'),
+                        dict(signal='oil', below=f_to_c(140), color='cold')],
+                zonesB=[dict(signal='range', below=round(50 * 1.609344, 2), color='low')],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
                 hex=HEX, tab=TAB, holeWhen='mapWindow')]
 for i in range(9):

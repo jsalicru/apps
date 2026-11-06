@@ -88,7 +88,8 @@
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
- *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "hex" [centre x, y top, y widest, y bottom, half width
+ *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "zonesA" / "zonesB" [{ signal, below | above,
+ *             color }], the first that matches colours that bar; "hex" [centre x, y top, y widest, y bottom, half width
  *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on, joined to the
  *             optional soft "tab" [right x, y, left x for one digit, for two, for three, h], room for BMW's own speed.
  *   segbar    effect layer; "max" segments, the first round(signal) lit (e.g. "setupLevel:engine"), "slant" px
@@ -997,6 +998,7 @@ class HudApp {
             const silver = this.setting('sweepColor') === 'silver';
             c.uniform(ref, 'u_metal', [silver ? 1 : 0]);
             c.uniform(ref, 'u_amber', rgb(color(t, silver ? 'silver' : 'arc')));
+            x.barColor = silver ? 'silver' : 'arc';
             c.uniform(ref, 'u_hot', rgb(t.hot));
         }
         else if (w.type === 'twinface') {
@@ -1226,9 +1228,20 @@ class HudApp {
             const sp = this._raw('speed');
             const shown = isNum(sp) ? (this.setting('units') === 'us' ? sp * 0.621371 : sp) : 0;
             const left = x.tabOn ? (shown >= 95 ? w.tab[4] : shown >= 8 ? w.tab[3] : w.tab[2]) : null;
-            const key = vals.join('|') + '|' + left;
+            // a bar's colour by its zones: the first that matches, in layout order, else the theme's bar colour
+            const zone = (zones) => {
+                const hit = (zones || []).filter((z) => {
+                    const v = this._raw(z.signal);
+                    return isNum(v) && (isNum(z.below) ? v < z.below : v > z.above);
+                })[0];
+                return hit ? hit.color : x.barColor;
+            };
+            const colA = zone(w.zonesA), colB = zone(w.zonesB);
+            const key = vals.join('|') + '|' + left + '|' + colA + '|' + colB;
             if (!force && key === x.last) return;
             x.last = key;
+            x.c.uniform(x.ref, 'u_colA', rgb(color(this.theme, colA)));
+            x.c.uniform(x.ref, 'u_colB', rgb(color(this.theme, colB)));
             x.c.uniform(x.ref, 'u_tab', left === null ? [0, 0, 0, 0] : [left, w.tab[1], w.tab[0] - left, w.tab[5]]);
             x.c.uniform(x.ref, 'u_rpm', [vals[0]]);
             x.c.uniform(x.ref, 'u_lvl', [vals[1], vals[2], vals[3]]);
