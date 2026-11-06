@@ -85,6 +85,9 @@
  *   twinneedle effect layer; the Twin Dial needles, above the numerals (shaders.js twinneedle): "needles": [{ cx, cy, len,
  *             tail, start, sweep, width (half width at the hub), hub, signal, min, max, metricMax }] up to 4; signal
  *             "speed" reads in the display unit, so min/max are mph, metricMax km/h. Colour role "color" (arc).
+ *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "arc" [y of the top at the middle, centre x,
+ *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "barA" / "barB" [x, y, w, h] with
+ *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max]; the map window as fill ("hole", "holeWhen", ...).
  *   segbar    effect layer; "max" segments, the first round(signal) lit (e.g. "setupLevel:engine"), "slant" px
  *   icon      image layer; a line icon from icons.js ("icon": gauge, shock, wheel, cog, stack, therm, oilcan, fuel)
  *   arc also takes "start" and "sweep" in degrees (clockwise from 12 o'clock; negative = anticlockwise)
@@ -955,6 +958,21 @@ class HudApp {
             c.uniform(ref, 'u_redFrom', [red / max]);
             c.uniform(ref, 'u_red', rgb(t.hot));
         }
+        else if (w.type === 'sweepdash') {
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_arc', w.arc);
+            c.uniform(ref, 'u_span', w.span);
+            c.uniform(ref, 'u_segs', [(w.max || 8000) / 100]);
+            c.uniform(ref, 'u_red', [this.setting('redline') / (w.max || 8000)]);
+            c.uniform(ref, 'u_barA', w.barA);
+            c.uniform(ref, 'u_barB', w.barB);
+            c.uniform(ref, 'u_rpm', [0]);
+            c.uniform(ref, 'u_lvl', [0, 0]);
+            c.uniform(ref, 'u_hole', this._hole(w));
+            c.uniform(ref, 'u_holeR', [this._holeRadius(w)]);
+            c.uniform(ref, 'u_amber', rgb(color(t, 'arc')));
+            c.uniform(ref, 'u_hot', rgb(t.hot));
+        }
         else if (w.type === 'twinface') {
             const us = this.setting('units') === 'us', red = this.setting('redline');
             const dial = [], scale = [], redAt = [];
@@ -1173,6 +1191,16 @@ class HudApp {
             if (!force && q === x.last) return;
             x.last = q;
             x.c.uniform(x.ref, 'u_value', [q]);
+        } else if (w.type === 'sweepdash') {
+            const rpm = this._raw('rpm');
+            const lvl = (sig, r) => { const v = this._raw(sig); return isNum(v) ? Math.round(Math.min(1, Math.max(0, (v - r[0]) / (r[1] - r[0]))) * 200) / 200 : 0; };
+            const vals = [isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (w.max || 8000))) * 800) / 800 : 0,
+                lvl(w.signalA, w.rangeA), lvl(w.signalB, w.rangeB)];
+            const key = vals.join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.c.uniform(x.ref, 'u_rpm', [vals[0]]);
+            x.c.uniform(x.ref, 'u_lvl', [vals[1], vals[2]]);
         } else if (w.type === 'twinneedle') {
             const us = this.setting('units') === 'us';
             const vals = [0, 1, 2, 3].map((i) => {

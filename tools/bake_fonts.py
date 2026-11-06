@@ -64,6 +64,10 @@ CLUSTER_FONTS = [
     ('s_unit', 'Barlow-Medium.ttf', 24, LOWER + UPPER + DIGITS + '°/-. '),
     ('s_label', 'BarlowSemiCondensed-SemiBold.ttf', 30, UPPER + DIGITS + ' .'),
     ('s_gl', 'Michroma-Regular.ttf', 21, DIGITS + '/', 1),
+    # Sweep: the big digital speed and gear
+    ('u_hero', 'BarlowSemiCondensed-Medium.ttf', 270, DIGITS + '-'),
+    ('u_speed', 'BarlowSemiCondensed-Medium.ttf', 150, DIGITS + '-'),
+    ('u_gear', 'BarlowSemiCondensed-Medium.ttf', 112, DIGITS + 'PRND-'),
     # Twin Dial: the dial numbers and the readouts in the dials
     ('t_num', 'BarlowSemiCondensed-SemiBold.ttf', 46, DIGITS),
     ('t_read', 'BarlowSemiCondensed-SemiBold.ttf', 50, DIGITS + 'PRND-'),

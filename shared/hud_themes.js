@@ -72,6 +72,16 @@ const THEMES = {
         ink: [12, 12, 14, 255], accent: [226, 36, 44, 255], well: [0, 0, 0, 255], redTrack: [90, 16, 20, 255],
         chrome: [182, 188, 198, 255], grey: [160, 166, 176, 255], grey2: [104, 110, 122, 255], faint: [96, 104, 118, 255],
     },
+    // Sweep (layout sweep.json): black, an amber rev sweep along the top, white numbers.
+    sweep: {
+        name: 'Sweep',
+        fg: [250, 251, 252, 255], dim: [142, 146, 154, 255], track: [104, 110, 120, 255], arc: [255, 138, 18, 255], chrome: [158, 164, 174, 255],
+        glow: 0, stripe: false,
+        bar: { low: [255, 138, 18], mid: [255, 138, 18], high: [255, 42, 42], midAt: 'shift' },
+        rev: { from: [255, 138, 18], to: [255, 42, 42] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [196, 202, 212, 255], head: [226, 228, 232, 255],
+        ink: [12, 12, 14, 255], accent: [255, 138, 18, 255], well: [0, 0, 0, 255],
+    },
     // Twin Dial (layout twin.json): dark silver round dials on black, white numbers, orange needles.
     twin: {
         name: 'Twin Dial',

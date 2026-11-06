@@ -35,6 +35,7 @@ const TYPES = {
     boxes: ['boxes'],
     twinface: ['dials'],
     twinneedle: ['needles'],
+    sweepdash: ['arc', 'span', 'barA', 'barB'],
 };
 const CLASSES = ['ambient', 'content', 'overlay', 'alert'];
 

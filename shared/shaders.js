@@ -952,4 +952,96 @@ void main() {
 }
 `;
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, twinface: TWINFACE, twinneedle: TWINNEEDLE };
+const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL ES 1.00): black, a segmented rev sweep along the top
+// of the cluster that follows the hood line, two level bars, and a see-through rounded map window with a thin frame.
+//   u_arc    y of the sweep's top at the middle, the centre x, the curve's radius, the band's height (target px)
+//   u_span   x at 0 rpm, x at the top of the scale
+//   u_segs   segments in the sweep
+//   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
+//   u_barA, u_barB, u_lvl  the bars' x, y, w, h and their levels 0..1 (x: A, y: B)
+//   u_hole, u_holeR  the map window, as fill (w 0 = none)
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec4 u_arc;
+uniform vec2 u_span;
+uniform float u_segs;
+uniform float u_rpm;
+uniform float u_red;
+uniform vec4 u_barA;
+uniform vec4 u_barB;
+uniform vec2 u_lvl;
+uniform vec4 u_hole;
+uniform float u_holeR;
+uniform vec3 u_amber;
+uniform vec3 u_hot;
+
+float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+float sdBox(vec2 p, vec4 b, float r) {
+    vec2 hs = b.zw * 0.5, q = abs(p - b.xy - hs) - hs + vec2(r);
+    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+}
+vec3 bar(vec3 c, vec2 p, vec4 b, float lvl, vec3 lit) {
+    if (p.x < b.x - 2.0 || p.x > b.x + b.z + 14.0 || p.y < b.y - 2.0 || p.y > b.y + b.w + 2.0) return c;
+    float dy = p.y - b.y;
+    float s = (p.x - b.x + (dy - b.w) * 0.35) / b.z;
+    float n = 24.0, f = fract(s * n), w = b.z / n;
+    float seg = cov((abs(f - 0.47) - 0.42) * w) * cov(-dy) * cov(dy - b.w) * cov(-s * b.z) * cov((s - 1.0) * b.z);
+    bool on = (floor(s * n) + 0.5) / n < lvl;
+    float g = clamp(dy / b.w, 0.0, 1.0);
+    return mix(c, on ? lit * mix(1.08, 0.66, g) : vec3(0.11) * mix(1.25, 0.8, g), seg);
+}
+
+void main() {
+    vec2 p = v_uv * u_size;
+    vec3 c = vec3(0.0);
+    float u = (p.x - u_arc.y) / u_arc.z;
+    float top = u_arc.x + 0.5 * u_arc.z * u * u;              // the curve as a parabola: no huge numbers in the shader
+    float dy = p.y - top, h = u_arc.w;
+    float s = (p.x - dy * 0.45 - u_span.x) / (u_span.y - u_span.x);
+    float rpm = clamp(u_rpm, 0.0, 1.0);
+    if (dy > -60.0 && dy < h + 60.0) {
+        float along = (u_span.y - u_span.x) * s;
+        float width = (u_span.y - u_span.x) / u_segs;
+        float f = fract(s * u_segs);
+        float seg = cov((abs(f - 0.47) - 0.40) * width) * cov(-dy) * cov(dy - h) * cov(-along) * cov((s - 1.0) * (u_span.y - u_span.x));
+        float mid = (floor(s * u_segs) + 0.5) / u_segs;
+        bool on = mid < rpm;
+        bool hot = mid >= u_red;
+        // glass: each segment lit deepest at the bottom, a bright lip along the top
+        float glass = clamp(dy / h, 0.0, 1.0);
+        vec3 base = hot ? u_hot : mix(u_amber * 0.80, u_amber, smoothstep(0.0, u_red, mid));
+        vec3 lit = base * mix(1.08, 0.58, glass) + vec3(0.42) * cov(dy - 2.0);
+        vec3 off = (hot ? vec3(0.23, 0.03, 0.035) : vec3(0.075)) * mix(1.5, 0.75, glass) + vec3(0.07) * cov(dy - 1.5);
+        c = mix(c, on ? lit : off, seg);
+        // a soft glow off the lit part
+        if (s > 0.0 && s < rpm) {
+            float dg = max(max(-dy, dy - h), 0.0);
+            c += (mid >= u_red ? u_hot : u_amber) * 0.10 * exp(-dg / 8.0) * (1.0 - seg) * smoothstep(rpm, rpm - 0.012, s);
+        }
+        // a tick under the band every 1000 rpm, the caller gives the scale by u_segs (10 segments a tick)
+        float t = s * u_segs / 10.0, dt = abs(fract(t + 0.5) - 0.5) * 10.0 * width;
+        if (s > -0.002 && s < 1.002) c = mix(c, vec3(0.74), cov(dt - 0.8) * cov(h + 5.0 - dy) * cov(dy - h - 13.0));
+        // a hairline rail under the band, fading at both ends
+        float railFade = smoothstep(0.0, 0.10, s) * smoothstep(1.0, 0.90, s);
+        c = mix(c, vec3(0.50, 0.51, 0.54), cov(abs(dy - h - 5.0) - 0.55) * railFade);
+    }
+    c = bar(c, p, u_barA, u_lvl.x, u_amber);
+    c = bar(c, p, u_barB, u_lvl.y, u_amber);
+    float a = 1.0;
+    if (u_hole.z > 0.0) {
+        float d = sdBox(p, u_hole, u_holeR);
+        // a fine frame, brighter along the top like light on a glass edge
+        float lift = clamp((p.y - u_hole.y) / u_hole.w, 0.0, 1.0);
+        c = mix(c, mix(vec3(0.62, 0.63, 0.66), vec3(0.20, 0.21, 0.23), lift), cov(abs(d - 1.5) - 0.7));
+        a = clamp(d + 0.5, 0.0, 1.0);
+    }
+    gl_FragColor = vec4(c, a);
+}
+`;
+
+module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, twinface: TWINFACE, twinneedle: TWINNEEDLE, sweepdash: SWEEPDASH };
