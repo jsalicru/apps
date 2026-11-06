@@ -5,8 +5,8 @@ import json, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'apps', 'cluster_themes', 'hud')
-ARC = [18, 960, 2985, 44]      # y of the top at the middle, centre x, curve radius, band height: clears the hood (shared/visible.js)
-SPAN = [110, 1810]             # x at 0 rpm, x at 8000
+ARC = [10, 960, 2985, 58]      # y of the top at the middle, centre x, curve radius, band height: clears the hood (shared/visible.js)
+SPAN = [125, 1795]             # x at 0 rpm, x at 8000
 MAP = [416, 120, 1088, 480]
 BAR_A = [60, 473, 320, 13]   # oil
 BAR_C = [60, 553, 320, 13]   # boost
@@ -31,7 +31,7 @@ def bottom(x):
 
 widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000,
                 barA=BAR_A, signalA='oil', rangeA=[50, 150], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
-                barC=BAR_C, signalC='boost', rangeC=[0, 1.5], toggleC='showBoost',
+                barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
                 hole=MAP, holeWhen='mapWindow', holeInset=6, holeRadius=28)]
 for i in range(9):
     x = SPAN[0] + (SPAN[1] - SPAN[0]) * i / 8
