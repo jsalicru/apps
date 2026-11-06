@@ -70,10 +70,8 @@ widgets += [
     text('speed_hero', 960, 505, 430, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),
     text('hero_unit', 960, 625, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow'),
     text('gear_top', 960, 245, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
-    text('ambient', 1820, 450, 100, '{{ambient}}', 't_label', align='right', toggle='mapWindow'),
-    text('ambient_unit', 1825, 450, 40, '{{u:temp}}', 't_label', 'dim', toggle='mapWindow'),
-    text('ambient_big', 1800, 400, 150, '{{ambient}}', 'u_val', align='right', toggle='!mapWindow'),
-    text('ambient_big_unit', 1806, 404, 50, '{{u:temp}}', 't_label', 'dim', toggle='!mapWindow'),
+    text('ambient', 1820, 682, 100, '{{ambient}}', 't_label', align='right'),
+    text('ambient_unit', 1825, 682, 40, '{{u:temp}}', 't_label', 'dim'),
     text('gear', 1880, 300, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome', toggle='mapWindow'),
 ]
 for id, label, val, unit, small, big, cond in (
