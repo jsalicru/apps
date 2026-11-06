@@ -953,12 +953,12 @@ void main() {
 `;
 
 const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL ES 1.00): black, a segmented rev sweep along the top
-// of the cluster that follows the hood line, two level bars, and a see-through rounded map window with a thin frame.
+// of the cluster that follows the hood line, three level bars, and a see-through rounded map window with a thin frame.
 //   u_arc    y of the sweep's top at the middle, the centre x, the curve's radius, the band's height (target px)
 //   u_span   x at 0 rpm, x at the top of the scale
 //   u_segs   segments in the sweep
 //   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
-//   u_barA, u_barB, u_lvl  the bars' x, y, w, h and their levels 0..1 (x: A, y: B)
+//   u_barA, u_barB, u_barC, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C)
 //   u_hole, u_holeR  the map window, as fill (w 0 = none)
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
@@ -974,7 +974,8 @@ uniform float u_rpm;
 uniform float u_red;
 uniform vec4 u_barA;
 uniform vec4 u_barB;
-uniform vec2 u_lvl;
+uniform vec4 u_barC;
+uniform vec3 u_lvl;
 uniform vec4 u_hole;
 uniform float u_holeR;
 uniform vec3 u_amber;
@@ -986,7 +987,7 @@ float sdBox(vec2 p, vec4 b, float r) {
     return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
 }
 vec3 bar(vec3 c, vec2 p, vec4 b, float lvl, vec3 lit) {
-    if (p.x < b.x - 2.0 || p.x > b.x + b.z + 14.0 || p.y < b.y - 2.0 || p.y > b.y + b.w + 2.0) return c;
+    if (b.z <= 0.0 || p.x < b.x - 2.0 || p.x > b.x + b.z + 14.0 || p.y < b.y - 2.0 || p.y > b.y + b.w + 2.0) return c;
     float dy = p.y - b.y;
     float s = (p.x - b.x + (dy - b.w) * 0.35) / b.z;
     float n = 24.0, f = fract(s * n), w = b.z / n;
@@ -1032,6 +1033,7 @@ void main() {
     }
     c = bar(c, p, u_barA, u_lvl.x, u_amber);
     c = bar(c, p, u_barB, u_lvl.y, u_amber);
+    c = bar(c, p, u_barC, u_lvl.z, u_amber);
     float a = 1.0;
     if (u_hole.z > 0.0) {
         float d = sdBox(p, u_hole, u_holeR);

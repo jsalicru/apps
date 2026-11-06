@@ -72,7 +72,7 @@ CLUSTER_FONTS = [
     ('t_num', 'BarlowSemiCondensed-SemiBold.ttf', 46, DIGITS),
     ('t_read', 'BarlowSemiCondensed-SemiBold.ttf', 50, DIGITS + 'PRND-'),
     ('t_mini', 'BarlowSemiCondensed-SemiBold.ttf', 30, DIGITS + '/'),
-    ('t_label', 'BarlowSemiCondensed-Medium.ttf', 28, UPPER + LOWER + DIGITS + '° /.'),
+    ('t_label', 'BarlowSemiCondensed-Medium.ttf', 28, UPPER + LOWER + DIGITS + '° /.-'),
 ]
 FONTS = {'idrive_hud_widgets': HUD_FONTS, 'cluster_themes': CLUSTER_FONTS}
 PAD = 2

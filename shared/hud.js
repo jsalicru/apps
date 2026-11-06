@@ -87,7 +87,7 @@
  *             "speed" reads in the display unit, so min/max are mph, metricMax km/h. Colour role "color" (arc).
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "barA" / "barB" [x, y, w, h] with
- *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max]; the map window as fill ("hole", "holeWhen", ...).
+ *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; the map window as fill ("hole", "holeWhen", ...).
  *   segbar    effect layer; "max" segments, the first round(signal) lit (e.g. "setupLevel:engine"), "slant" px
  *   icon      image layer; a line icon from icons.js ("icon": gauge, shock, wheel, cog, stack, therm, oilcan, fuel)
  *   arc also takes "start" and "sweep" in degrees (clockwise from 12 o'clock; negative = anticlockwise)
@@ -966,8 +966,9 @@ class HudApp {
             c.uniform(ref, 'u_red', [this.setting('redline') / (w.max || 8000)]);
             c.uniform(ref, 'u_barA', w.barA);
             c.uniform(ref, 'u_barB', w.barB);
+            c.uniform(ref, 'u_barC', w.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? w.barC : [0, 0, 0, 0]);
             c.uniform(ref, 'u_rpm', [0]);
-            c.uniform(ref, 'u_lvl', [0, 0]);
+            c.uniform(ref, 'u_lvl', [0, 0, 0]);
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeR', [this._holeRadius(w)]);
             c.uniform(ref, 'u_amber', rgb(color(t, 'arc')));
@@ -1195,12 +1196,12 @@ class HudApp {
             const rpm = this._raw('rpm');
             const lvl = (sig, r) => { const v = this._raw(sig); return isNum(v) ? Math.round(Math.min(1, Math.max(0, (v - r[0]) / (r[1] - r[0]))) * 200) / 200 : 0; };
             const vals = [isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (w.max || 8000))) * 800) / 800 : 0,
-                lvl(w.signalA, w.rangeA), lvl(w.signalB, w.rangeB)];
+                lvl(w.signalA, w.rangeA), lvl(w.signalB, w.rangeB), w.barC ? lvl(w.signalC, w.rangeC) : 0];
             const key = vals.join('|');
             if (!force && key === x.last) return;
             x.last = key;
             x.c.uniform(x.ref, 'u_rpm', [vals[0]]);
-            x.c.uniform(x.ref, 'u_lvl', [vals[1], vals[2]]);
+            x.c.uniform(x.ref, 'u_lvl', [vals[1], vals[2], vals[3]]);
         } else if (w.type === 'twinneedle') {
             const us = this.setting('units') === 'us';
             const vals = [0, 1, 2, 3].map((i) => {

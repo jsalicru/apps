@@ -8,8 +8,9 @@ APP = os.path.join(HERE, '..', 'apps', 'cluster_themes', 'hud')
 ARC = [18, 960, 2985, 44]      # y of the top at the middle, centre x, curve radius, band height: clears the hood (shared/visible.js)
 SPAN = [110, 1810]             # x at 0 rpm, x at 8000
 MAP = [416, 120, 1088, 480]
-BAR_A = [60, 478, 320, 13]
-BAR_B = [60, 608, 320, 13]
+BAR_A = [60, 473, 320, 13]   # oil
+BAR_C = [60, 553, 320, 13]   # boost
+BAR_B = [60, 633, 320, 13]   # fuel
 
 
 def cell(font):
@@ -30,6 +31,7 @@ def bottom(x):
 
 widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000,
                 barA=BAR_A, signalA='oil', rangeA=[50, 150], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
+                barC=BAR_C, signalC='boost', rangeC=[0, 1.5], toggleC='showBoost',
                 hole=MAP, holeWhen='mapWindow', holeInset=6, holeRadius=28)]
 for i in range(9):
     x = SPAN[0] + (SPAN[1] - SPAN[0]) * i / 8
@@ -39,10 +41,13 @@ widgets += [
     text('speed_unit', 385, 400, 120, '{{u:speedLc}}', 't_label', 'dim', 'right', toggle='mapWindow'),
     text('speed_hero', 960, 345, 620, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),
     text('hero_unit', 960, 510, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow'),
-    text('oil_label', 60, 455, 160, 'OIL', 't_label', 'dim'),
-    text('oil_val', 340, 455, 100, '{{oil}}', 't_label', align='right'),
-    text('oil_unit', 345, 455, 40, '{{u:temp}}', 't_label', 'dim'),
-    text('fuel_label', 60, 585, 160, 'FUEL', 't_label', 'dim'),
+    text('oil_label', 60, 450, 160, 'OIL', 't_label', 'dim'),
+    text('oil_val', 340, 450, 100, '{{oil}}', 't_label', align='right'),
+    text('oil_unit', 345, 450, 40, '{{u:temp}}', 't_label', 'dim'),
+    text('boost_label', 60, 530, 140, 'BOOST', 't_label', 'dim', toggle='showBoost'),
+    text('boost_val', 332, 530, 100, '{{boost}}', 't_label', align='right', toggle='showBoost'),
+    text('boost_unit', 337, 530, 48, '{{u:boost}}', 't_label', 'dim', toggle='showBoost'),
+    text('fuel_label', 60, 610, 160, 'FUEL', 't_label', 'dim'),
     text('gear', 1880, 300, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome'),
     text('time', 1800, 455, 190, '{{time}}', 'm_val', align='right'),
     text('ampm', 1806, 462, 50, '{{ampmLc}}', 'm_unit', 'dim'),

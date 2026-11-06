@@ -26,7 +26,7 @@
       "max": 8000,
       "barA": [
         60,
-        478,
+        473,
         320,
         13
       ],
@@ -37,7 +37,7 @@
       ],
       "barB": [
         60,
-        608,
+        633,
         320,
         13
       ],
@@ -46,6 +46,18 @@
         0,
         1
       ],
+      "barC": [
+        60,
+        553,
+        320,
+        13
+      ],
+      "signalC": "boost",
+      "rangeC": [
+        0,
+        1.5
+      ],
+      "toggleC": "showBoost",
       "hole": [
         416,
         120,
@@ -236,7 +248,7 @@
       "type": "text",
       "z": 5,
       "x": 60,
-      "y": 438,
+      "y": 432,
       "w": 160,
       "h": 35,
       "text": "OIL",
@@ -249,7 +261,7 @@
       "type": "text",
       "z": 5,
       "x": 240,
-      "y": 438,
+      "y": 432,
       "w": 100,
       "h": 35,
       "text": "{{oil}}",
@@ -262,7 +274,7 @@
       "type": "text",
       "z": 5,
       "x": 345,
-      "y": 438,
+      "y": 432,
       "w": 40,
       "h": 35,
       "text": "{{u:temp}}",
@@ -271,11 +283,53 @@
       "align": "left"
     },
     {
+      "id": "boost_label",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 512,
+      "w": 140,
+      "h": 35,
+      "text": "BOOST",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "showBoost"
+    },
+    {
+      "id": "boost_val",
+      "type": "text",
+      "z": 5,
+      "x": 232,
+      "y": 512,
+      "w": 100,
+      "h": 35,
+      "text": "{{boost}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right",
+      "toggle": "showBoost"
+    },
+    {
+      "id": "boost_unit",
+      "type": "text",
+      "z": 5,
+      "x": 337,
+      "y": 512,
+      "w": 48,
+      "h": 35,
+      "text": "{{u:boost}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "showBoost"
+    },
+    {
       "id": "fuel_label",
       "type": "text",
       "z": 5,
       "x": 60,
-      "y": 568,
+      "y": 592,
       "w": 160,
       "h": 35,
       "text": "FUEL",
