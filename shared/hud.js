@@ -88,7 +88,7 @@
  *   Any widget: "toggle2" is a second condition like "toggle"; both must hold.
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "noMap" { arc, span, barA..barD } replaces those while
  *             the map window is off; "coldLimit" [oil deg C cold, oil deg C warm, rpm]: the red zone starts at that rpm when
- *             cold and rises to the redline as the oil warms; "yellowAt" rpm: the yellow zone at normal temperature; "waveFrom" rpm: from here to the redline, the lit segments turn yellow from the red zone back to 0; "arc" [y of the top at the middle, centre x,
+ *             cold and rises to the redline as the oil warms; "yellowLines": how many lines just below the red zone are always yellow; "waveFrom" rpm: from here to the redline, the lit segments turn yellow from the red zone back to 0; "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
@@ -1249,7 +1249,7 @@ class HudApp {
                 const warm = Math.min(1, Math.max(0, (oil - w.coldLimit[0]) / (w.coldLimit[1] - w.coldLimit[0])));
                 limit = Math.round((w.coldLimit[2] + (redline - w.coldLimit[2]) * warm) / 50) * 50;
             }
-            const yellow = isNum(w.yellowAt) ? Math.max(0, redline - w.yellowAt) : 0;
+            const yellow = isNum(w.yellowLines) ? w.yellowLines * 100 : 0;   // each line is 100 rpm
             const key = vals.join('|') + '|' + left + '|' + colA + '|' + colB + '|' + colD + '|' + limit + '|' + yellow;
             if (!force && key === x.last) return;
             x.last = key;

@@ -54,7 +54,7 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
                 barD=BAR_D, signalD='coolant', rangeD=[f_to_c(100), f_to_c(260)],
                 zonesD=[dict(signal='coolant', above=f_to_c(230), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
-                coldLimit=[f_to_c(120), f_to_c(160), 4000], yellowAt=6500, waveFrom=6000,
+                coldLimit=[f_to_c(120), f_to_c(160), 4000], yellowLines=2, waveFrom=6000,
                 hex=HEX, tab=TAB, holeWhen='mapWindow',
                 noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D))]
 for i in range(9):
