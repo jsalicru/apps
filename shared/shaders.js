@@ -811,12 +811,14 @@ void main() {
 
 
 const TWINFACE = `// The Twin Dial theme's backdrop in one cluster-render "effect" layer (GLSL ES 1.00): pure black, up to 4 round
-// dials, each with a thin steel ring, ticks and an optional red zone. The numerals are text widgets on top and
+// dials, each with a spun dark silver face, a steel ring, ticks and an optional red zone, and up to 2 recessed readout windows. The numerals are text widgets on top and
 // the needles a second effect layer (TWINNEEDLE) above those, so a needle passes over the numbers.
 // Uniforms from hud.js (positions in target px, v_uv (0,0) is the top-left):
 //   u_dial[i]   cx, cy, r, 1 when in use
 //   u_scale[i]  start, sweep (radians clockwise from 12 o'clock), minor divisions, a major tick every N minors
 //   u_red[i]    x: the 0..1 of the sweep where the red zone starts (above 1 = none)
+//   u_win[i]    a readout window: x, y, w, h (w 0 = none)
+//   u_face      the face colour
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -827,6 +829,8 @@ uniform vec2 u_size;
 uniform vec4 u_dial[4];
 uniform vec4 u_scale[4];
 uniform vec4 u_red[4];
+uniform vec4 u_win[2];
+uniform vec3 u_face;
 uniform vec3 u_ink;
 uniform vec3 u_hot;
 
@@ -842,7 +846,14 @@ void main() {
         float R = u_dial[i].z, r = length(q);
         if (r > R + 2.0) continue;
         float sweep = u_scale[i].y, n = u_scale[i].z, every = u_scale[i].w;
-        float rel = mod(atan(q.x, -q.y) - u_scale[i].x + 4.0 * PI, 2.0 * PI);
+        float ang = atan(q.x, -q.y);
+        // the spun metal face: a soft sheen across it, fine rings, darker towards the rim
+        float sheen = pow(0.5 + 0.5 * cos(2.0 * (ang - 0.7)), 3.0);
+        float fine = 0.012 * sin(r * 1.9);
+        float edge = smoothstep(R * 0.72, R * 0.985, r);
+        vec3 metal = u_face * (0.86 + 0.26 * sheen + fine - 0.30 * edge);
+        c = mix(c, metal, cov(r - (R - 3.0)));
+        float rel = mod(ang - u_scale[i].x + 4.0 * PI, 2.0 * PI);
         if (rel > PI + sweep * 0.5) rel -= 2.0 * PI;
         float f = rel / sweep;
         float k = clamp(floor(f * n + 0.5), 0.0, n);
@@ -860,8 +871,19 @@ void main() {
             float band = cov(abs(r - (rOut + R * 0.012)) - R * 0.012) * cov(-along);
             c = mix(c, u_hot, band);
         }
-        float ring = cov(abs(r - (R - 2.5)) - 2.0);              // a steel ring, lit from above
-        c = mix(c, mix(vec3(0.72, 0.74, 0.77), vec3(0.24, 0.25, 0.27), clamp(q.y / R * 0.5 + 0.5, 0.0, 1.0)), ring);
+        float rw = max(2.5, R * 0.011);                          // a steel ring, lit from above
+        float ring = cov(abs(r - (R - rw - 0.5)) - rw);
+        float lit = clamp(q.y / R * 0.5 + 0.5, 0.0, 1.0);
+        vec3 steel = mix(vec3(0.86, 0.87, 0.89), vec3(0.30, 0.31, 0.33), lit);
+        c = mix(c, steel + 0.10 * sheen, ring);
+    }
+    for (int i = 0; i < 2; i++) {
+        if (u_win[i].z <= 0.0) continue;
+        vec2 hs = u_win[i].zw * 0.5, m = p - u_win[i].xy - hs;
+        vec2 e = abs(m) - hs + 8.0;
+        float d = length(max(e, 0.0)) + min(max(e.x, e.y), 0.0) - 8.0;
+        c = mix(c, vec3(0.018), cov(d));                         // the recess
+        c = mix(c, m.y > 0.0 ? vec3(0.62) * u_face / max(u_face.r, 0.01) * 0.75 : vec3(0.03), cov(abs(d) - 0.9) * 0.7);   // its edge catches the light below
     }
     gl_FragColor = vec4(c, 1.0);
 }
@@ -886,6 +908,11 @@ uniform vec3 u_color;
 uniform vec3 u_rim;
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+vec4 over(vec4 top, vec4 under) {
+    float a = top.a + under.a * (1.0 - top.a);
+    if (a <= 0.0) return vec4(0.0);
+    return vec4((top.rgb * top.a + under.rgb * under.a * (1.0 - top.a)) / a, a);
+}
 
 void main() {
     vec2 p = v_uv * u_size;
@@ -903,15 +930,22 @@ void main() {
         float tail = u_nd[i].w;
         float t = clamp(along / tip, 0.0, 1.0);
         float hw = mix(u_na[i].z, 1.4, t);
+        // the needle's shadow on the face, a little below and to the right
+        vec2 qs = q - vec2(tip * 0.012 + 2.0, tip * 0.02 + 3.0);
+        float sa = dot(qs, dir), sc = abs(qs.x * dir.y - qs.y * dir.x);
+        float shadow = clamp(1.5 - (sc - mix(u_na[i].z, 1.4, clamp(sa / tip, 0.0, 1.0))) / 2.5, 0.0, 1.0) * cov(sa - tip) * cov(-tail - sa);
+        c = over(vec4(0.0, 0.0, 0.0, 0.34 * shadow), c);
         float body = cov(across - hw) * cov(along - tip) * cov(-tail - along);
         // a brighter centre line gives the needle some depth
         vec3 col = mix(u_color * 0.82, min(u_color * 1.15 + vec3(0.06), vec3(1.0)), cov(across - hw * 0.35));
-        if (body > 0.0) c = vec4(col, max(body, c.a));
+        c = over(vec4(col, body), c);
         float r = length(q);
         float h = cov(r - hub);
         if (h > 0.0) {
-            vec3 hc = mix(vec3(0.015), u_rim, cov(abs(r - (hub - 1.5)) - 1.3));
-            c = vec4(mix(c.rgb, hc, h), max(c.a, h));
+            float dome = clamp(0.5 - q.y / hub * 0.5, 0.0, 1.0);
+            vec3 hc = mix(vec3(0.02), vec3(0.17), dome * dome);
+            hc = mix(hc, u_rim, cov(abs(r - (hub - 1.5)) - 1.3) * 0.75);
+            c = over(vec4(hc, h), c);
         }
     }
     gl_FragColor = c;

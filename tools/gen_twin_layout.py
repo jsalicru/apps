@@ -50,7 +50,7 @@ widgets = [
         dial(TACH, minor=40, major=5, redline=8000),
         dial(FUEL, minor=8, major=4),
         dial(OIL, minor=10, major=5),
-    ]),
+    ], windows=[[SPEEDO[0] - 72, SPEEDO[1] + 108, 144, 60], [TACH[0] - 72, TACH[1] + 108, 144, 60]]),
 ]
 widgets += ring('mph', SPEEDO, [str(v) for v in range(0, 201, 20)], 't_num', 0.72, toggle='units=us')
 widgets += ring('kmh', SPEEDO, [str(v) for v in range(0, 321, 40)], 't_num', 0.72, toggle='units=metric')
@@ -59,9 +59,9 @@ widgets += ring('fuel', FUEL, ['0', '1/2', '1'], 't_mini', 0.60, w=70)
 widgets += ring('oil', OIL, ['{{temp:50}}', '{{temp:100}}', '{{temp:150}}'], 't_mini', 0.58, w=80)
 widgets += [
     text('speed_unit', SPEEDO[0], SPEEDO[1] - 92, 120, '{{u:speedLc}}', 't_label', 'dim'),
-    text('speed', SPEEDO[0], SPEEDO[1] + 125, 240, '{{speed}}', 't_speed'),
+    text('speed', SPEEDO[0], SPEEDO[1] + 138, 130, '{{speed}}', 't_read'),
     text('rpm_unit', TACH[0], TACH[1] - 92, 160, 'x1000 rpm', 't_label', 'dim'),
-    text('gear', TACH[0], TACH[1] + 125, 240, '{{gear}}', 't_gear', hotWhen='now'),
+    text('gear', TACH[0], TACH[1] + 138, 130, '{{gear}}', 't_read', hotWhen='now'),
     text('fuel_label', FUEL[0], FUEL[1] + 66, 90, 'FUEL', 't_label', 'dim'),
     text('oil_label', OIL[0], OIL[1] + 94, 120, 'OIL {{u:temp}}', 't_label', 'dim'),
     text('time', 1800, 215, 190, '{{time}}', 'm_val', align='right'),

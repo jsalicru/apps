@@ -53,6 +53,20 @@
           "minor": 10,
           "major": 5
         }
+      ],
+      "windows": [
+        [
+          333,
+          473,
+          144,
+          60
+        ],
+        [
+          988,
+          473,
+          144,
+          60
+        ]
       ]
     },
     {
@@ -547,12 +561,12 @@
       "id": "speed",
       "type": "text",
       "z": 5,
-      "x": 285,
-      "y": 454,
-      "w": 240,
-      "h": 71,
+      "x": 340,
+      "y": 484,
+      "w": 130,
+      "h": 39,
       "text": "{{speed}}",
-      "font": "t_speed",
+      "font": "t_read",
       "color": "fg",
       "align": "center"
     },
@@ -573,12 +587,12 @@
       "id": "gear",
       "type": "text",
       "z": 5,
-      "x": 940,
-      "y": 454,
-      "w": 240,
-      "h": 71,
+      "x": 995,
+      "y": 484,
+      "w": 130,
+      "h": 39,
       "text": "{{gear}}",
-      "font": "t_gear",
+      "font": "t_read",
       "color": "fg",
       "align": "center",
       "hotWhen": "now"
