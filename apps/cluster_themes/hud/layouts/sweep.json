@@ -187,35 +187,6 @@
       "align": "center"
     },
     {
-      "id": "speed",
-      "type": "text",
-      "z": 5,
-      "x": 55,
-      "y": 262,
-      "w": 330,
-      "h": 112,
-      "text": "{{speed}}",
-      "font": "u_speed",
-      "color": "fg",
-      "align": "right",
-      "toggle": "mapWindow",
-      "color2": "chrome"
-    },
-    {
-      "id": "speed_unit",
-      "type": "text",
-      "z": 5,
-      "x": 265,
-      "y": 382,
-      "w": 120,
-      "h": 35,
-      "text": "{{u:speedLc}}",
-      "font": "t_label",
-      "color": "dim",
-      "align": "right",
-      "toggle": "mapWindow"
-    },
-    {
       "id": "speed_hero",
       "type": "text",
       "z": 5,

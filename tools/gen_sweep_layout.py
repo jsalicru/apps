@@ -39,8 +39,7 @@ for i in range(9):
     x = SPAN[0] + (SPAN[1] - SPAN[0]) * i / 8
     widgets.append(text('n%d' % i, x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center'))
 widgets += [
-    text('speed', 385, 318, 330, '{{speed}}', 'u_speed', align='right', toggle='mapWindow', color2='chrome'),
-    text('speed_unit', 385, 400, 120, '{{u:speedLc}}', 't_label', 'dim', 'right', toggle='mapWindow'),
+    # no speed of ours with the map on: in Map view BMW's own speed shows in the map window
     text('speed_hero', 960, 505, 620, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),
     text('hero_unit', 960, 625, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow'),
     text('gear_top', 960, 205, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
