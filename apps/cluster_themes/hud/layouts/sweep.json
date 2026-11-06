@@ -24,6 +24,7 @@
         1795
       ],
       "max": 8000,
+      "raceCurve": 1.4748,
       "barA": [
         60,
         473,
@@ -78,7 +79,7 @@
       "holeWhen": "mapWindow"
     },
     {
-      "id": "n0",
+      "id": "ne0",
       "type": "text",
       "z": 5,
       "x": 124,
@@ -88,10 +89,25 @@
       "text": "0",
       "font": "t_mini",
       "color": "fg",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
     },
     {
-      "id": "n1",
+      "id": "nr0",
+      "type": "text",
+      "z": 5,
+      "x": 124,
+      "y": 188,
+      "w": 50,
+      "h": 26,
+      "text": "0",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race"
+    },
+    {
+      "id": "ne1",
       "type": "text",
       "z": 5,
       "x": 333,
@@ -101,10 +117,25 @@
       "text": "1",
       "font": "t_mini",
       "color": "fg",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
     },
     {
-      "id": "n2",
+      "id": "nr1",
+      "type": "text",
+      "z": 5,
+      "x": 202,
+      "y": 168,
+      "w": 50,
+      "h": 26,
+      "text": "1",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race"
+    },
+    {
+      "id": "ne2",
       "type": "text",
       "z": 5,
       "x": 542,
@@ -114,10 +145,25 @@
       "text": "2",
       "font": "t_mini",
       "color": "fg",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
     },
     {
-      "id": "n3",
+      "id": "nr2",
+      "type": "text",
+      "z": 5,
+      "x": 340,
+      "y": 137,
+      "w": 50,
+      "h": 26,
+      "text": "2",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race"
+    },
+    {
+      "id": "ne3",
       "type": "text",
       "z": 5,
       "x": 750,
@@ -127,10 +173,25 @@
       "text": "3",
       "font": "t_mini",
       "color": "fg",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
     },
     {
-      "id": "n4",
+      "id": "nr3",
+      "type": "text",
+      "z": 5,
+      "x": 517,
+      "y": 107,
+      "w": 50,
+      "h": 26,
+      "text": "3",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race"
+    },
+    {
+      "id": "ne4",
       "type": "text",
       "z": 5,
       "x": 959,
@@ -140,10 +201,25 @@
       "text": "4",
       "font": "t_mini",
       "color": "fg",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
     },
     {
-      "id": "n5",
+      "id": "nr4",
+      "type": "text",
+      "z": 5,
+      "x": 725,
+      "y": 85,
+      "w": 50,
+      "h": 26,
+      "text": "4",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race"
+    },
+    {
+      "id": "ne5",
       "type": "text",
       "z": 5,
       "x": 1168,
@@ -153,10 +229,25 @@
       "text": "5",
       "font": "t_mini",
       "color": "fg",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
     },
     {
-      "id": "n6",
+      "id": "nr5",
+      "type": "text",
+      "z": 5,
+      "x": 959,
+      "y": 78,
+      "w": 50,
+      "h": 26,
+      "text": "5",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race"
+    },
+    {
+      "id": "ne6",
       "type": "text",
       "z": 5,
       "x": 1376,
@@ -166,10 +257,25 @@
       "text": "6",
       "font": "t_mini",
       "color": "fg",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
     },
     {
-      "id": "n7",
+      "id": "nr6",
+      "type": "text",
+      "z": 5,
+      "x": 1217,
+      "y": 91,
+      "w": 50,
+      "h": 26,
+      "text": "6",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race"
+    },
+    {
+      "id": "ne7",
       "type": "text",
       "z": 5,
       "x": 1585,
@@ -179,10 +285,25 @@
       "text": "7",
       "font": "t_mini",
       "color": "fg",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
     },
     {
-      "id": "n8",
+      "id": "nr7",
+      "type": "text",
+      "z": 5,
+      "x": 1495,
+      "y": 131,
+      "w": 50,
+      "h": 26,
+      "text": "7",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race"
+    },
+    {
+      "id": "ne8",
       "type": "text",
       "z": 5,
       "x": 1794,
@@ -192,7 +313,22 @@
       "text": "8",
       "font": "t_mini",
       "color": "hot",
-      "align": "center"
+      "align": "center",
+      "toggle": "revScale=even"
+    },
+    {
+      "id": "nr8",
+      "type": "text",
+      "z": 5,
+      "x": 1794,
+      "y": 202,
+      "w": 50,
+      "h": 26,
+      "text": "8",
+      "font": "t_mini",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=race"
     },
     {
       "id": "speed_hero",

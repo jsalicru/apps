@@ -3,7 +3,7 @@
 on the bench. Fitted to a 2022 M3 from car photos (Nov 2026): BMW draws two black boxes over this theme, at about
 x 811-1053, y 297-390 and x 1232-1320, y 330-400. The map window follows the black six-sided area in the middle of
 BMW's own M layout, inset a little so its grey side panels and red marks stay covered."""
-import json, os
+import json, math, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'apps', 'cluster_themes', 'hud')
@@ -11,6 +11,7 @@ ARC = [10, 960, 2985, 58]      # y of the top at the middle, centre x, curve rad
 SPAN = [125, 1795]             # x at 0 rpm, x at 8000
 HEX = [963, 141, 341, 580, 302, 438, 357]   # centre x, y top, widest, bottom; half widths at top, widest, bottom
 TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for two, for three, height: BMW's speed, right-aligned at about x 630, stops above its line
+RACE_CURVE = math.log(0.5) / math.log(5 / 8)   # the race scale: 5000 to 8000 rpm takes exactly half the band
 BAR_A = [60, 473, 320, 13]   # oil
 BAR_C = [60, 553, 320, 13]   # boost
 BAR_B = [60, 633, 320, 13]   # fuel
@@ -32,13 +33,15 @@ def bottom(x):
     return ARC[0] + dx * dx / (2 * ARC[2]) + ARC[3]
 
 
-widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000,
+widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, raceCurve=round(RACE_CURVE, 4),
                 barA=BAR_A, signalA='oil', rangeA=[50, 150], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
                 hex=HEX, tab=TAB, holeWhen='mapWindow')]
 for i in range(9):
-    x = SPAN[0] + (SPAN[1] - SPAN[0]) * i / 8
-    widgets.append(text('n%d' % i, x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center'))
+    for name, curve in (('even', 1), ('race', RACE_CURVE)):
+        x = SPAN[0] + (SPAN[1] - SPAN[0]) * (i / 8) ** curve
+        widgets.append(text('n%s%d' % (name[0], i), x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center',
+                            toggle='revScale=' + name))
 widgets += [
     # no speed of ours with the map on: in Map view BMW's own speed shows in the map window
     text('speed_hero', 960, 505, 620, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),

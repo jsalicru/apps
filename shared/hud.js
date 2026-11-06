@@ -86,7 +86,8 @@
  *             tail, start, sweep, width (half width at the hub), hub, signal, min, max, metricMax }] up to 4; signal
  *             "speed" reads in the display unit, so min/max are mph, metricMax km/h. Colour role "color" (arc).
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "arc" [y of the top at the middle, centre x,
- *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "barA" / "barB" [x, y, w, h] with
+ *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "raceCurve" (the spread while the "revScale"
+ *             setting is "race": the band's position is (rpm / max) ^ raceCurve), "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "hex" [centre x, y top, y widest, y bottom, half width
  *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on, joined to the
  *             optional soft "tab" [right x, y, left x for one digit, for two, for three, h], room for BMW's own speed.
@@ -985,6 +986,7 @@ class HudApp {
             c.uniform(ref, 'u_barA', w.barA);
             c.uniform(ref, 'u_barB', w.barB);
             c.uniform(ref, 'u_barC', w.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? w.barC : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_curve', [this.setting('revScale') === 'race' && isNum(w.raceCurve) ? w.raceCurve : 1]);
             c.uniform(ref, 'u_rpm', [0]);
             c.uniform(ref, 'u_lvl', [0, 0, 0]);
             const hexOn = Array.isArray(w.hex) && w.holeWhen && this.setting(w.holeWhen) === true;

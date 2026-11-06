@@ -958,6 +958,7 @@ const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL
 //   u_span   x at 0 rpm, x at the top of the scale
 //   u_segs   segments in the sweep
 //   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
+//   u_curve  how the scale is spread along the band: 1 = even, above 1 = the top of the rev range gets more of the band
 //   u_barA, u_barB, u_barC, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C)
 //   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
 //   u_tab    a soft tab joined to the window: x, y, w, h (w 0 = none). What shows through it is dimmed and fades out at
@@ -974,6 +975,7 @@ uniform vec2 u_span;
 uniform float u_segs;
 uniform float u_rpm;
 uniform float u_red;
+uniform float u_curve;
 uniform vec4 u_barA;
 uniform vec4 u_barB;
 uniform vec4 u_barC;
@@ -1012,11 +1014,14 @@ void main() {
     float s = (p.x - dy * 0.45 - u_span.x) / (u_span.y - u_span.x);
     float rpm = clamp(u_rpm, 0.0, 1.0);
     if (dy > -60.0 && dy < h + 60.0) {
-        float along = (u_span.y - u_span.x) * s;
-        float width = (u_span.y - u_span.x) / u_segs;
-        float f = fract(s * u_segs);
-        float seg = cov((abs(f - 0.47) - 0.40) * width) * cov(-dy) * cov(dy - h) * cov(-along) * cov((s - 1.0) * (u_span.y - u_span.x));
-        float mid = (floor(s * u_segs) + 0.5) / u_segs;
+        float span = u_span.y - u_span.x;
+        float along = span * s;
+        float sc = max(s, 0.001);
+        float v = pow(sc, 1.0 / u_curve);                      // the rpm (0..1) at this point of the band
+        float width = span / (u_segs * (1.0 / u_curve) * pow(sc, 1.0 / u_curve - 1.0));   // this segment's width in px
+        float f = fract(v * u_segs);
+        float seg = cov((abs(f - 0.47) - 0.40) * width) * cov(-dy) * cov(dy - h) * cov(-along) * cov((s - 1.0) * span);
+        float mid = (floor(v * u_segs) + 0.5) / u_segs;
         bool on = mid < rpm;
         bool hot = mid >= u_red;
         // glass: each segment lit deepest at the bottom, a bright lip along the top
@@ -1026,12 +1031,12 @@ void main() {
         vec3 off = (hot ? vec3(0.23, 0.03, 0.035) : vec3(0.075)) * mix(1.5, 0.75, glass) + vec3(0.07) * cov(dy - 1.5);
         c = mix(c, on ? lit : off, seg);
         // a soft glow off the lit part
-        if (s > 0.0 && s < rpm) {
+        if (s > 0.0 && v < rpm) {
             float dg = max(max(-dy, dy - h), 0.0);
-            c += (mid >= u_red ? u_hot : u_amber) * 0.10 * exp(-dg / 8.0) * (1.0 - seg) * smoothstep(rpm, rpm - 0.012, s);
+            c += (mid >= u_red ? u_hot : u_amber) * 0.10 * exp(-dg / 8.0) * (1.0 - seg) * smoothstep(rpm, rpm - 0.012, v);
         }
         // a tick under the band every 1000 rpm, the caller gives the scale by u_segs (10 segments a tick)
-        float t = s * u_segs / 10.0, dt = abs(fract(t + 0.5) - 0.5) * 10.0 * width;
+        float t = v * u_segs / 10.0, dt = abs(fract(t + 0.5) - 0.5) * 10.0 * width;
         if (s > -0.002 && s < 1.002) c = mix(c, vec3(0.74), cov(dt - 0.8) * cov(h + 5.0 - dy) * cov(dy - h - 13.0));
         // a hairline rail under the band, fading at both ends
         float railFade = smoothstep(0.0, 0.10, s) * smoothstep(1.0, 0.90, s);
