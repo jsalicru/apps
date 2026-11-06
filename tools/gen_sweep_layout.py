@@ -12,7 +12,7 @@ SPAN = [125, 1795]             # x at 0 rpm, x at 8000
 HEX = [963, 141, 341, 580, 302, 438, 357]   # centre x, y top, widest, bottom; half widths at top, widest, bottom
 TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for two, for three, height: BMW's speed, right-aligned at about x 630, stops above its line
 # the race scales: the band's middle is at this rpm, and each thousand gets wider towards the top
-REV_CURVES = {name: math.log(0.5) / math.log(rpm / 8000) for name, rpm in (('race', 5000), ('race55', 5500), ('race60', 6000))}
+REV_CURVES = {name: math.log(0.5) / math.log(rpm / 8000) for name, rpm in (('race', 5000), ('race55', 5500))}
 BAR_A = [60, 473, 320, 13]   # oil
 BAR_C = [60, 553, 320, 13]   # boost
 BAR_B = [60, 633, 320, 13]   # fuel
@@ -41,8 +41,6 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
 for i in range(9):
     for name, curve in [('even', 1)] + list(REV_CURVES.items()):
         x = SPAN[0] + (SPAN[1] - SPAN[0]) * (i / 8) ** curve
-        if i == 1 and x - SPAN[0] < 25:   # no room for the 1 next to the 0
-            continue
         widgets.append(text('n%s_%d' % (name, i), x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center',
                             toggle='revScale=' + name))
 widgets += [
