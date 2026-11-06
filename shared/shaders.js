@@ -957,7 +957,7 @@ const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL
 //   u_arc    y of the sweep's top at the middle, the centre x, the curve's radius, the band's height (target px)
 //   u_span   x at 0 rpm, x at the top of the scale
 //   u_segs   segments in the sweep
-//   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
+//   u_rpm, u_red, u_yel  the rpm now, the start of the red zone and of the yellow zone below it, 0..1 of the scale
 //   u_metal  1: a machined look for the silver colour, a sheen across the segments and a bright leading edge
 //   u_curve  how the scale is spread along the band: 1 = even, above 1 = the top of the rev range gets more of the band
 //   u_barA, u_barB, u_barC, u_barD, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C, w: D)
@@ -977,6 +977,8 @@ uniform vec2 u_span;
 uniform float u_segs;
 uniform float u_rpm;
 uniform float u_red;
+uniform float u_yel;
+uniform vec3 u_yellow;
 uniform float u_curve;
 uniform float u_metal;
 uniform vec4 u_barA;
@@ -1033,20 +1035,21 @@ void main() {
         float mid = (floor(v * u_segs) + 0.5) / u_segs;
         bool on = mid < rpm;
         bool hot = mid >= u_red;
+        bool yel = !hot && mid >= u_yel;
         // glass: each segment lit deepest at the bottom, a bright lip along the top
         float glass = clamp(dy / h, 0.0, 1.0);
-        vec3 base = hot ? u_hot : mix(u_amber * 0.80, u_amber, smoothstep(0.0, u_red, mid));
+        vec3 base = hot ? u_hot : yel ? u_yellow : mix(u_amber * 0.80, u_amber, smoothstep(0.0, u_red, mid));
         vec3 lit = base * mix(1.08, 0.58, glass) + vec3(0.42) * cov(dy - 2.0);
         if (u_metal > 0.5) {
             lit += vec3(0.20) * exp(-pow((glass - 0.24) / 0.13, 2.0));              // the sheen
-            if (!hot) lit = mix(lit, vec3(1.0), 0.5 * smoothstep(rpm - 3.0 / u_segs, rpm, mid));   // the leading edge
+            if (!hot && !yel) lit = mix(lit, vec3(1.0), 0.5 * smoothstep(rpm - 3.0 / u_segs, rpm, mid));   // the leading edge
         }
-        vec3 off = (hot ? vec3(0.23, 0.03, 0.035) : vec3(0.075)) * mix(1.5, 0.75, glass) + vec3(0.07) * cov(dy - 1.5);
+        vec3 off = (hot ? vec3(0.23, 0.03, 0.035) : yel ? vec3(0.20, 0.155, 0.03) : vec3(0.075)) * mix(1.5, 0.75, glass) + vec3(0.07) * cov(dy - 1.5);
         c = mix(c, on ? lit : off, seg);
         // a soft glow off the lit part
         if (s > 0.0 && v < rpm) {
             float dg = max(max(-dy, dy - h), 0.0);
-            c += (mid >= u_red ? u_hot : u_amber) * 0.10 * exp(-dg / 8.0) * (1.0 - seg) * smoothstep(rpm, rpm - 0.012, v);
+            c += (hot ? u_hot : yel ? u_yellow : u_amber) * 0.10 * exp(-dg / 8.0) * (1.0 - seg) * smoothstep(rpm, rpm - 0.012, v);
         }
         // a tick under the band every 1000 rpm, the caller gives the scale by u_segs (10 segments a tick)
         float t = v * u_segs / 10.0, dt = abs(fract(t + 0.5) - 0.5) * 10.0 * width;

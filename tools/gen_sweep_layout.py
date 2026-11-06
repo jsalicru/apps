@@ -20,10 +20,10 @@ BAR_D = [1540, 633, 320, 13]   # water, right
 # with the map off the gauges take the room: a thicker sweep (shorter, so its slanted end clears BMW's PARK light) and wide bars
 ARC_OFF = [10, 960, 2985, 120]
 SPAN_OFF = [125, 1760]
-BIG_C = [60, 480, 655, 34]
-BIG_B = [60, 600, 655, 34]
-BIG_A = [1205, 480, 655, 34]
-BIG_D = [1205, 600, 655, 34]
+BIG_C = [60, 488, 560, 25]
+BIG_B = [60, 603, 560, 25]
+BIG_A = [1300, 488, 560, 25]
+BIG_D = [1300, 603, 560, 25]
 
 
 def f_to_c(f):
@@ -54,6 +54,7 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
                 barD=BAR_D, signalD='coolant', rangeD=[f_to_c(100), f_to_c(260)],
                 zonesD=[dict(signal='coolant', above=f_to_c(230), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
+                coldLimit=[f_to_c(120), f_to_c(160), 4000], yellowAt=6500,
                 hex=HEX, tab=TAB, holeWhen='mapWindow',
                 noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D))]
 for i in range(9):
@@ -71,24 +72,24 @@ widgets += [
     text('gear_top', 960, 245, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
     text('ambient', 1820, 450, 100, '{{ambient}}', 't_label', align='right', toggle='mapWindow'),
     text('ambient_unit', 1825, 450, 40, '{{u:temp}}', 't_label', 'dim', toggle='mapWindow'),
-    text('ambient_big', 1800, 380, 150, '{{ambient}}', 'm_val', align='right', toggle='!mapWindow'),
-    text('ambient_big_unit', 1806, 387, 50, '{{u:temp}}', 'm_unit', 'dim', toggle='!mapWindow'),
+    text('ambient_big', 1800, 400, 150, '{{ambient}}', 'u_val', align='right', toggle='!mapWindow'),
+    text('ambient_big_unit', 1806, 404, 50, '{{u:temp}}', 't_label', 'dim', toggle='!mapWindow'),
     text('gear', 1880, 300, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome', toggle='mapWindow'),
 ]
 for id, label, val, unit, small, big, cond in (
-        ('boost', 'BOOST', '{{boost}}', '{{u:boost}}', (60, 530), (60, 450), 'showBoost'),
-        ('fuel', 'FUEL', '{{range}}', '{{u:distLc}}', (60, 610), (60, 570), None),
-        ('oil', 'OIL', '{{oil}}', '{{u:temp}}', (1540, 530), (1205, 450), None),
-        ('water', 'WATER', '{{coolant}}', '{{u:temp}}', (1540, 610), (1205, 570), None)):
+        ('boost', 'BOOST', '{{boost}}', '{{u:boost}}', (60, 530), (60, 460), 'showBoost'),
+        ('fuel', 'FUEL', '{{range}}', '{{u:distLc}}', (60, 610), (60, 575), None),
+        ('oil', 'OIL', '{{oil}}', '{{u:temp}}', (1540, 530), (1300, 460), None),
+        ('water', 'WATER', '{{coolant}}', '{{u:temp}}', (1540, 610), (1300, 575), None)):
     on = lambda m: dict(toggle=cond, toggle2=m) if cond else dict(toggle=m)
     x, y = small
     widgets += [text(id + '_label', x, y, 140, label, 't_label', 'dim', **on('mapWindow')),
                 text(id + '_val', x + 272 + (8 if cond is None and x > 60 else 0), y, 100, val, 't_label', align='right', **on('mapWindow')),
                 text(id + '_unit', x + 277 + (8 if cond is None and x > 60 else 0), y, 48, unit, 't_label', 'dim', **on('mapWindow'))]
     x, y = big
-    widgets += [text(id + '_big_label', x, y, 220, label, 'm_label', 'dim', **on('!mapWindow')),
-                text(id + '_big_val', x + 590, y - 4, 170, val, 'm_val', align='right', **on('!mapWindow')),
-                text(id + '_big_unit', x + 597, y + 3, 58, unit, 'm_unit', 'dim', **on('!mapWindow'))]
+    widgets += [text(id + '_big_label', x, y, 220, label, 't_label', 'dim', **on('!mapWindow')),
+                text(id + '_big_val', x + 500, y - 3, 150, val, 'u_val', align='right', **on('!mapWindow')),
+                text(id + '_big_unit', x + 506, y, 58, unit, 't_label', 'dim', **on('!mapWindow'))]
 layout = dict(schemaVersion=2, name='Sweep', theme='sweep',
               _about='A digital dash with a rev sweep along the hood line and a map window. Written by tools/gen_sweep_layout.py.',
               widgets=widgets)

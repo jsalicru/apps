@@ -87,7 +87,8 @@
  *             "speed" reads in the display unit, so min/max are mph, metricMax km/h. Colour role "color" (arc).
  *   Any widget: "toggle2" is a second condition like "toggle"; both must hold.
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "noMap" { arc, span, barA..barD } replaces those while
- *             the map window is off; "arc" [y of the top at the middle, centre x,
+ *             the map window is off; "coldLimit" [oil deg C cold, oil deg C warm, rpm]: the red zone starts at that rpm when
+ *             cold and rises to the redline as the oil warms; "yellowAt" rpm: the yellow zone at normal temperature; "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
@@ -987,7 +988,7 @@ class HudApp {
             c.uniform(ref, 'u_arc', noMap.arc);
             c.uniform(ref, 'u_span', noMap.span);
             c.uniform(ref, 'u_segs', [(w.max || 8000) / 100]);
-            c.uniform(ref, 'u_red', [this.setting('redline') / (w.max || 8000)]);
+            c.uniform(ref, 'u_yellow', rgb(color(t, 'low')));
             c.uniform(ref, 'u_barA', noMap.barA);
             c.uniform(ref, 'u_barB', noMap.barB);
             c.uniform(ref, 'u_barC', noMap.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? noMap.barC : [0, 0, 0, 0]);
@@ -1241,9 +1242,19 @@ class HudApp {
                 return hit ? hit.color : x.barColor;
             };
             const colA = zone(w.zonesA), colB = zone(w.zonesB), colD = zone(w.zonesD);
-            const key = vals.join('|') + '|' + left + '|' + colA + '|' + colB + '|' + colD;
+            // the red zone starts low on a cold engine and rises to the redline as the oil warms; the yellow zone below it moves too
+            const redline = this.setting('redline'), max = w.max || 8000, oil = this._raw('oil');
+            let limit = redline;
+            if (w.coldLimit && isNum(oil)) {
+                const warm = Math.min(1, Math.max(0, (oil - w.coldLimit[0]) / (w.coldLimit[1] - w.coldLimit[0])));
+                limit = Math.round((w.coldLimit[2] + (redline - w.coldLimit[2]) * warm) / 50) * 50;
+            }
+            const yellow = isNum(w.yellowAt) ? Math.max(0, redline - w.yellowAt) : 0;
+            const key = vals.join('|') + '|' + left + '|' + colA + '|' + colB + '|' + colD + '|' + limit + '|' + yellow;
             if (!force && key === x.last) return;
             x.last = key;
+            x.c.uniform(x.ref, 'u_red', [limit / max]);
+            x.c.uniform(x.ref, 'u_yel', [(limit - yellow) / max]);
             x.c.uniform(x.ref, 'u_colA', rgb(color(this.theme, colA)));
             x.c.uniform(x.ref, 'u_colB', rgb(color(this.theme, colB)));
             x.c.uniform(x.ref, 'u_colD', rgb(color(this.theme, colD)));
