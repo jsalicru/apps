@@ -89,7 +89,7 @@
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "hex" [centre x, y top, y widest, y bottom, half width
  *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on, joined to the
- *             optional rounded "tab" [x, y, w, h] (room for BMW's own speed).
+ *             optional soft "tab" [right x, y, left x for one digit, for two, for three, h], room for BMW's own speed.
  *   segbar    effect layer; "max" segments, the first round(signal) lit (e.g. "setupLevel:engine"), "slant" px
  *   icon      image layer; a line icon from icons.js ("icon": gauge, shock, wheel, cog, stack, therm, oilcan, fuel)
  *   arc also takes "start" and "sweep" in degrees (clockwise from 12 o'clock; negative = anticlockwise)
@@ -990,7 +990,8 @@ class HudApp {
             const hexOn = Array.isArray(w.hex) && w.holeWhen && this.setting(w.holeWhen) === true;
             c.uniform(ref, 'u_hex', hexOn ? w.hex.slice(0, 4) : [0, 0, 0, 0]);
             c.uniform(ref, 'u_hexW', hexOn ? w.hex.slice(4, 7) : [0, 0, 0]);
-            c.uniform(ref, 'u_tab', hexOn && Array.isArray(w.tab) ? w.tab : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_tab', [0, 0, 0, 0]);
+            x.tabOn = hexOn && Array.isArray(w.tab);
             c.uniform(ref, 'u_amber', rgb(color(t, 'arc')));
             c.uniform(ref, 'u_hot', rgb(t.hot));
         }
@@ -1217,9 +1218,14 @@ class HudApp {
             const lvl = (sig, r) => { const v = this._raw(sig); return isNum(v) ? Math.round(Math.min(1, Math.max(0, (v - r[0]) / (r[1] - r[0]))) * 200) / 200 : 0; };
             const vals = [isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (w.max || 8000))) * 800) / 800 : 0,
                 lvl(w.signalA, w.rangeA), lvl(w.signalB, w.rangeB), w.barC ? lvl(w.signalC, w.rangeC) : 0];
-            const key = vals.join('|');
+            // the tab opens only as far as BMW's speed needs: a little early, BMW's reading runs above the signal
+            const sp = this._raw('speed');
+            const shown = isNum(sp) ? (this.setting('units') === 'us' ? sp * 0.621371 : sp) : 0;
+            const left = x.tabOn ? (shown >= 95 ? w.tab[4] : shown >= 8 ? w.tab[3] : w.tab[2]) : null;
+            const key = vals.join('|') + '|' + left;
             if (!force && key === x.last) return;
             x.last = key;
+            x.c.uniform(x.ref, 'u_tab', left === null ? [0, 0, 0, 0] : [left, w.tab[1], w.tab[0] - left, w.tab[5]]);
             x.c.uniform(x.ref, 'u_rpm', [vals[0]]);
             x.c.uniform(x.ref, 'u_lvl', [vals[1], vals[2], vals[3]]);
         } else if (w.type === 'twinneedle') {

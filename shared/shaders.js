@@ -960,7 +960,8 @@ const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL
 //   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
 //   u_barA, u_barB, u_barC, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C)
 //   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
-//   u_tab    a rounded tab joined to the window: x, y, w, h (w 0 = none)
+//   u_tab    a soft tab joined to the window: x, y, w, h (w 0 = none). What shows through it is dimmed and fades out at
+//            its edges, so BMW's grey panel under it has no hard edge.
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -1044,11 +1045,15 @@ void main() {
         vec2 q = vec2(abs(p.x - u_hex.x), p.y);
         vec2 t = vec2(u_hexW.x, u_hex.y), m = vec2(u_hexW.y, u_hex.z), b = vec2(u_hexW.z, u_hex.w);
         float d = smax(smax(u_hex.y - p.y, p.y - u_hex.w, 16.0), smax(side(q, t, m), side(q, m, b), 40.0), 24.0);
-        if (u_tab.z > 0.0) {
-            vec2 hs = u_tab.zw * 0.5, e = abs(p - u_tab.xy - hs) - hs + vec2(14.0);
-            d = min(d, length(max(e, 0.0)) + min(max(e.x, e.y), 0.0) - 14.0);
-        }
         a = clamp(d + 0.5, 0.0, 1.0);
+        if (u_tab.z > 0.0) {
+            float right = u_tab.x + u_tab.z;
+            float open = smoothstep(u_tab.x, u_tab.x + 60.0, p.x)
+                * smoothstep(u_tab.y, u_tab.y + 10.0, p.y) * smoothstep(u_tab.y + u_tab.w, u_tab.y + u_tab.w - 10.0, p.y)
+                * step(p.x, right);
+            float dim = 0.5 * smoothstep(right, right - 40.0, p.x);   // none where it meets the window
+            a = min(a, 1.0 - open * (1.0 - dim));
+        }
     }
     gl_FragColor = vec4(c, a);
 }
