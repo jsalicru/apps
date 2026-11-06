@@ -88,7 +88,7 @@
  *   Any widget: "toggle2" is a second condition like "toggle"; both must hold.
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "noMap" { arc, span, barA..barD } replaces those while
  *             the map window is off; "coldLimit" [oil deg C cold, oil deg C warm, rpm]: the red zone starts at that rpm when
- *             cold and rises to the redline as the oil warms; "yellowAt" rpm: the yellow zone at normal temperature; "arc" [y of the top at the middle, centre x,
+ *             cold and rises to the redline as the oil warms; "yellowAt" rpm: the yellow zone at normal temperature; "waveFrom" rpm: from here to the redline, the lit segments turn yellow from the red zone back to 0; "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
@@ -1255,6 +1255,11 @@ class HudApp {
             x.last = key;
             x.c.uniform(x.ref, 'u_red', [limit / max]);
             x.c.uniform(x.ref, 'u_yel', [(limit - yellow) / max]);
+            // past "waveFrom" rpm (below the redline by the same margin when the limit is lowered) the yellow spreads back to 0
+            const waveAt = isNum(w.waveFrom) ? limit - (redline - w.waveFrom) : limit;
+            const revs = vals[0] * max;
+            const wave = revs <= waveAt || limit <= waveAt ? 1 : Math.max(0, limit * (1 - (revs - waveAt) / (limit - waveAt)) / max);
+            x.c.uniform(x.ref, 'u_wave', [wave]);
             x.c.uniform(x.ref, 'u_colA', rgb(color(this.theme, colA)));
             x.c.uniform(x.ref, 'u_colB', rgb(color(this.theme, colB)));
             x.c.uniform(x.ref, 'u_colD', rgb(color(this.theme, colD)));
