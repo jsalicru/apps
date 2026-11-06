@@ -1,8 +1,8 @@
 {
   "id": "cluster_themes",
   "title": "Cluster Themes",
-  "description": "Redraws the instrument cluster: GT3 race dash, M-style or Sport, with shift lights, boost, temps and shift scoring",
-  "version": "0.7.2",
+  "description": "Redraws the instrument cluster: Twin Dial, GT3 race dash, M-style or Sport, with shift lights, boost, temps and shift scoring",
+  "version": "0.8.0",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
@@ -78,11 +78,15 @@
       "key": "hudLayout",
       "label": "Theme (when not by drive mode)",
       "type": "choice",
-      "default": "gt3",
+      "default": "twin",
       "options": [
         [
           "off",
           "Off (BMW's own cluster)"
+        ],
+        [
+          "twin",
+          "Twin Dial"
         ],
         [
           "gt3",
@@ -112,11 +116,15 @@
       "key": "inComfort",
       "label": "In Comfort",
       "type": "choice",
-      "default": "off",
+      "default": "twin",
       "options": [
         [
           "off",
           "Off (BMW's own cluster)"
+        ],
+        [
+          "twin",
+          "Twin Dial"
         ],
         [
           "gt3",
@@ -136,11 +144,15 @@
       "key": "inSport",
       "label": "In Sport",
       "type": "choice",
-      "default": "gt3",
+      "default": "twin",
       "options": [
         [
           "off",
           "Off (BMW's own cluster)"
+        ],
+        [
+          "twin",
+          "Twin Dial"
         ],
         [
           "gt3",
@@ -160,11 +172,15 @@
       "key": "inEco",
       "label": "In Eco Pro",
       "type": "choice",
-      "default": "off",
+      "default": "twin",
       "options": [
         [
           "off",
           "Off (BMW's own cluster)"
+        ],
+        [
+          "twin",
+          "Twin Dial"
         ],
         [
           "gt3",
@@ -223,12 +239,13 @@
       "label": "Redline (shift light)",
       "type": "number",
       "unit": "rpm",
-      "default": 7000,
+      "default": 7200,
       "steps": [
         5500,
         6000,
         6500,
         7000,
+        7200,
         7500
       ]
     },

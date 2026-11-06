@@ -6,6 +6,13 @@ Redraws the whole instrument cluster with your own themes. Open **Cluster Themes
 
 ## Themes
 
+**Twin Dial:** two round dials on black, with orange needles.
+
+- **Left:** a 0 to 200 mph speedometer (0 to 320 km/h in metric), with the digital speed inside it.
+- **Middle:** a 0 to 8 tachometer with its red zone from your Redline setting (7200 rpm by default), with the gear inside it. The gear turns red at your shift point.
+- **Right:** oil temperature and fuel gauges, the clock, range and outside temperature.
+- The dials sit left of center to stay clear of BMW's black gear box. "Leave room for the map" doesn't apply to this theme.
+
 **GT3:** a race dash.
 
 - **Top:** 18 round shift lights (green, yellow, red, then blue) that fill over the last 2000 rpm before your shift point, and a segmented rev bar.
@@ -66,7 +73,7 @@ More themes are on the way.
 
 ## Status
 
-Version 0.7.2 (0.7.2: the engine can draw over several connections to cluster-render, 8 layers each, and the calibration grid probes that on the car; it counts the pixel memory a layout costs (16 MiB for every app together, each image twice) and text sends only the pixels that changed; 0.7.1: the shift lights come on from 3000 rpm instead of only over the last 2000 rpm before the shift point, which kept them dark when revving parked; 0.7.0 removes the Dials theme after the Nov 5 car test; 0.6.0 is the fix build below; 0.5.1 matched the M and Sport themes to BMW's own clusters). First car test done on 0.1.0 (Nov 2026): the shapes drew upside down (fixed), only part of the dash drew (the status row now says what's missing and why), and the map cut-out was in the wrong place (moved to where the map sits on an X3). Second car test (Nov 5 2026): the car drew only the first 8 layers (cluster-render's limit per connection; every theme now fits in 8: text is packed into a few image layers, the GT3 frame is one shader, the M setup bars are part of the backdrop), dark tints are plainly visible on the panel (every backdrop is now pure black; a measured grey swatch showed the shader and image paths draw identical colours), and the hood and BMW's own black gear box hid the top corners and x 1406..1597, y 342..419 (everything moved clear of both). Third test the same evening: GT3 drew complete. Fourth, pending: the 0.7.2 grid photo (does L5..L16 show on connections 2 and 3?). Still to be checked on a car:
+Version 0.8.0 (0.8.0: the Twin Dial theme, not yet tested on a car; 0.7.2: the engine can draw over several connections to cluster-render, 8 layers each, and the calibration grid probes that on the car; it counts the pixel memory a layout costs (16 MiB for every app together, each image twice) and text sends only the pixels that changed; 0.7.1: the shift lights come on from 3000 rpm instead of only over the last 2000 rpm before the shift point, which kept them dark when revving parked; 0.7.0 removes the Dials theme after the Nov 5 car test; 0.6.0 is the fix build below; 0.5.1 matched the M and Sport themes to BMW's own clusters). First car test done on 0.1.0 (Nov 2026): the shapes drew upside down (fixed), only part of the dash drew (the status row now says what's missing and why), and the map cut-out was in the wrong place (moved to where the map sits on an X3). Second car test (Nov 5 2026): the car drew only the first 8 layers (cluster-render's limit per connection; every theme now fits in 8: text is packed into a few image layers, the GT3 frame is one shader, the M setup bars are part of the backdrop), dark tints are plainly visible on the panel (every backdrop is now pure black; a measured grey swatch showed the shader and image paths draw identical colours), and the hood and BMW's own black gear box hid the top corners and x 1406..1597, y 342..419 (everything moved clear of both). Third test the same evening: GT3 drew complete. Fourth, pending: the 0.7.2 grid photo (does L5..L16 show on connections 2 and 3?). Still to be checked on a car:
 
 - **Whether M and Sport draw complete** (GT3 does). If one doesn't, the first row of the app's page says how many parts are drawn and why the rest aren't.
 - **Whether BMW's warning lights still show over the dash.** The GT3 theme is solid black and covers whatever is under it. Test it parked: start the car with a seat belt off and look for the warning.

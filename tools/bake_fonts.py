@@ -64,6 +64,12 @@ CLUSTER_FONTS = [
     ('s_unit', 'Barlow-Medium.ttf', 24, LOWER + UPPER + DIGITS + '°/-. '),
     ('s_label', 'BarlowSemiCondensed-SemiBold.ttf', 30, UPPER + DIGITS + ' .'),
     ('s_gl', 'Michroma-Regular.ttf', 21, DIGITS + '/', 1),
+    # Twin Dial: the dial numbers and the readouts in the dials
+    ('t_num', 'BarlowSemiCondensed-SemiBold.ttf', 46, DIGITS),
+    ('t_speed', 'BarlowSemiCondensed-SemiBold.ttf', 92, DIGITS + '-'),
+    ('t_gear', 'BarlowSemiCondensed-SemiBold.ttf', 92, DIGITS + 'PRND-'),
+    ('t_mini', 'BarlowSemiCondensed-SemiBold.ttf', 30, DIGITS + '/'),
+    ('t_label', 'BarlowSemiCondensed-Medium.ttf', 28, UPPER + LOWER + DIGITS + '° /.'),
 ]
 FONTS = {'idrive_hud_widgets': HUD_FONTS, 'cluster_themes': CLUSTER_FONTS}
 PAD = 2

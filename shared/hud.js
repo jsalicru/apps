@@ -77,6 +77,13 @@
  *             "ticks" [speed, rpm], "rpmMax" (speed follows SPEED_SCALE), "fuelSeg" / "oilSeg" [fullX, fullY,
  *             emptyX, emptyY], "strip" [left end x, y, h, slant], "topEnd" x; the middle is black, and the map
  *             window is cut see-through while "holeWhen" is on ("hole", "holeInset", "holeRadius" as fill)
+ *   twinface  effect layer; the Twin Dial theme's backdrop (shaders.js twinface): black with up to 4 round dials,
+ *             "dials": [{ cx, cy, r, start, sweep (degrees clockwise from 12 o'clock), minor (divisions), major (a big
+ *             tick every N minors), metricMinor, metricMajor (the same when the units are metric), redline: max rpm of
+ *             the scale, which starts the red zone at the "redline" setting }]. Positions in target px.
+ *   twinneedle effect layer; the Twin Dial needles, above the numerals (shaders.js twinneedle): "needles": [{ cx, cy, len,
+ *             tail, start, sweep, width (half width at the hub), hub, signal, min, max, metricMax }] up to 4; signal
+ *             "speed" reads in the display unit, so min/max are mph, metricMax km/h. Colour role "color" (arc).
  *   segbar    effect layer; "max" segments, the first round(signal) lit (e.g. "setupLevel:engine"), "slant" px
  *   icon      image layer; a line icon from icons.js ("icon": gauge, shock, wheel, cog, stack, therm, oilcan, fuel)
  *   arc also takes "start" and "sweep" in degrees (clockwise from 12 o'clock; negative = anticlockwise)
@@ -947,6 +954,37 @@ class HudApp {
             c.uniform(ref, 'u_redFrom', [red / max]);
             c.uniform(ref, 'u_red', rgb(t.hot));
         }
+        else if (w.type === 'twinface') {
+            const us = this.setting('units') === 'us', red = this.setting('redline');
+            const dial = [], scale = [], redAt = [];
+            for (let i = 0; i < 4; i++) {
+                const d = (w.dials || [])[i];
+                dial.push(d ? d.cx - w.x : 0, d ? d.cy - w.y : 0, d ? d.r : 0, d ? 1 : 0);
+                scale.push(d ? d.start * Math.PI / 180 : 0, d ? d.sweep * Math.PI / 180 : 1,
+                    d ? (!us && d.metricMinor) || d.minor : 1, d ? (!us && d.metricMajor) || d.major : 1);
+                redAt.push(d && d.redline ? red / d.redline : 2, 0, 0, 0);
+            }
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_dial', dial, { type: 'vec4' });
+            c.uniform(ref, 'u_scale', scale, { type: 'vec4' });
+            c.uniform(ref, 'u_red', redAt, { type: 'vec4' });
+            c.uniform(ref, 'u_ink', rgb(color(t, 'fg')));
+            c.uniform(ref, 'u_hot', rgb(t.hot));
+        }
+        else if (w.type === 'twinneedle') {
+            const nd = [], na = [];
+            for (let i = 0; i < 4; i++) {
+                const n = (w.needles || [])[i];
+                nd.push(n ? n.cx - w.x : 0, n ? n.cy - w.y : 0, n ? n.len : 0, n ? n.tail || 0 : 0);
+                na.push(n ? n.start * Math.PI / 180 : 0, n ? n.sweep * Math.PI / 180 : 1, n ? n.width || 5 : 0, n ? n.hub || 20 : 0);
+            }
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_nd', nd, { type: 'vec4' });
+            c.uniform(ref, 'u_na', na, { type: 'vec4' });
+            c.uniform(ref, 'u_value', [0, 0, 0, 0]);
+            c.uniform(ref, 'u_color', rgb(color(t, w.color || 'arc')));
+            c.uniform(ref, 'u_rim', rgb(color(t, 'dim')));
+        }
         else if (w.type === 'grid') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_step', [w.step || 50]);
@@ -1127,6 +1165,20 @@ class HudApp {
             if (!force && q === x.last) return;
             x.last = q;
             x.c.uniform(x.ref, 'u_value', [q]);
+        } else if (w.type === 'twinneedle') {
+            const us = this.setting('units') === 'us';
+            const vals = [0, 1, 2, 3].map((i) => {
+                const n = (w.needles || [])[i];
+                if (!n) return 0;
+                let v = this._raw(n.signal), max = n.max;
+                if (n.signal === 'speed') { if (isNum(v) && us) v *= 0.621371; if (!us && n.metricMax) max = n.metricMax; }
+                if (!isNum(v)) return 0;
+                return Math.round(Math.min(1, Math.max(0, (v - n.min) / (max - n.min))) * 1500) / 1500;   // about 0.2 degrees
+            });
+            const key = vals.join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.c.uniform(x.ref, 'u_value', vals);
         } else if (w.type === 'sdash') {
             const us = this.setting('units') === 'us';
             const sp = this._raw('speed'), rpm = this._raw('rpm'), fuel = this._raw('fuel'), oil = this._raw('oil');

@@ -33,6 +33,8 @@ const TYPES = {
     swatch: [],
     swatchimg: [],
     boxes: ['boxes'],
+    twinface: ['dials'],
+    twinneedle: ['needles'],
 };
 const CLASSES = ['ambient', 'content', 'overlay', 'alert'];
 

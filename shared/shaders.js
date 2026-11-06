@@ -810,4 +810,112 @@ void main() {
 `;
 
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES };
+const TWINFACE = `// The Twin Dial theme's backdrop in one cluster-render "effect" layer (GLSL ES 1.00): pure black, up to 4 round
+// dials, each with a thin steel ring, ticks and an optional red zone. The numerals are text widgets on top and
+// the needles a second effect layer (TWINNEEDLE) above those, so a needle passes over the numbers.
+// Uniforms from hud.js (positions in target px, v_uv (0,0) is the top-left):
+//   u_dial[i]   cx, cy, r, 1 when in use
+//   u_scale[i]  start, sweep (radians clockwise from 12 o'clock), minor divisions, a major tick every N minors
+//   u_red[i]    x: the 0..1 of the sweep where the red zone starts (above 1 = none)
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec4 u_dial[4];
+uniform vec4 u_scale[4];
+uniform vec4 u_red[4];
+uniform vec3 u_ink;
+uniform vec3 u_hot;
+
+const float PI = 3.14159265359;
+float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+
+void main() {
+    vec2 p = v_uv * u_size;
+    vec3 c = vec3(0.0);
+    for (int i = 0; i < 4; i++) {
+        if (u_dial[i].w < 0.5) continue;
+        vec2 q = p - u_dial[i].xy;
+        float R = u_dial[i].z, r = length(q);
+        if (r > R + 2.0) continue;
+        float sweep = u_scale[i].y, n = u_scale[i].z, every = u_scale[i].w;
+        float rel = mod(atan(q.x, -q.y) - u_scale[i].x + 4.0 * PI, 2.0 * PI);
+        if (rel > PI + sweep * 0.5) rel -= 2.0 * PI;
+        float f = rel / sweep;
+        float k = clamp(floor(f * n + 0.5), 0.0, n);
+        bool major = mod(k + 0.25, every) < 0.5;
+        float dt = abs(rel - k / n * sweep) * r;                 // px from the nearest tick's centre line
+        float rOut = R * 0.955;
+        float len = major ? R * 0.095 : R * 0.05;
+        float hw = major ? max(1.6, R * 0.0085) : max(0.8, R * 0.0038);
+        float tick = cov(dt - hw) * cov(r - rOut) * cov(rOut - len - r);
+        float redStart = u_red[i].x;
+        bool hot = k / n >= redStart - 0.001;
+        c = mix(c, hot ? u_hot : u_ink, tick);
+        if (redStart <= 1.0) {                                   // the red zone, a band behind the ticks' outer ends
+            float along = min(f - redStart, 1.0 - f) * sweep * r;
+            float band = cov(abs(r - (rOut + R * 0.012)) - R * 0.012) * cov(-along);
+            c = mix(c, u_hot, band);
+        }
+        float ring = cov(abs(r - (R - 2.5)) - 2.0);              // a steel ring, lit from above
+        c = mix(c, mix(vec3(0.72, 0.74, 0.77), vec3(0.24, 0.25, 0.27), clamp(q.y / R * 0.5 + 0.5, 0.0, 1.0)), ring);
+    }
+    gl_FragColor = vec4(c, 1.0);
+}
+`;
+
+const TWINNEEDLE = `// The Twin Dial theme's needles in one cluster-render "effect" layer (GLSL ES 1.00): up to 4 tapered needles,
+// each with a short tail and a black hub with a thin rim. See-through everywhere else.
+//   u_nd[i]    cx, cy (layer px), tip length, tail length (0 length = not in use)
+//   u_na[i]    start, sweep (radians clockwise from 12 o'clock), half width at the hub, hub radius
+//   u_value    the 4 needles' positions, 0..1 of the sweep
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec4 u_nd[4];
+uniform vec4 u_na[4];
+uniform vec4 u_value;
+uniform vec3 u_color;
+uniform vec3 u_rim;
+
+float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+
+void main() {
+    vec2 p = v_uv * u_size;
+    vec4 c = vec4(0.0);
+    for (int i = 0; i < 4; i++) {
+        float tip = u_nd[i].z;
+        if (tip <= 0.0) continue;
+        vec2 q = p - u_nd[i].xy;
+        float hub = u_na[i].w;
+        if (dot(q, q) > (tip + 4.0) * (tip + 4.0)) continue;
+        float a = u_na[i].x + clamp(u_value[i], 0.0, 1.0) * u_na[i].y;
+        vec2 dir = vec2(sin(a), -cos(a));                        // y runs down
+        float along = dot(q, dir);
+        float across = abs(q.x * dir.y - q.y * dir.x);
+        float tail = u_nd[i].w;
+        float t = clamp(along / tip, 0.0, 1.0);
+        float hw = mix(u_na[i].z, 1.4, t);
+        float body = cov(across - hw) * cov(along - tip) * cov(-tail - along);
+        // a brighter centre line gives the needle some depth
+        vec3 col = mix(u_color * 0.82, min(u_color * 1.15 + vec3(0.06), vec3(1.0)), cov(across - hw * 0.35));
+        if (body > 0.0) c = vec4(col, max(body, c.a));
+        float r = length(q);
+        float h = cov(r - hub);
+        if (h > 0.0) {
+            vec3 hc = mix(vec3(0.015), u_rim, cov(abs(r - (hub - 1.5)) - 1.3));
+            c = vec4(mix(c.rgb, hc, h), max(c.a, h));
+        }
+    }
+    gl_FragColor = c;
+}
+`;
+
+module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, twinface: TWINFACE, twinneedle: TWINNEEDLE };
