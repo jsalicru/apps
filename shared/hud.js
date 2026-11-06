@@ -989,6 +989,7 @@ class HudApp {
             c.uniform(ref, 'u_span', noMap.span);
             c.uniform(ref, 'u_segs', [(w.max || 8000) / 100]);
             c.uniform(ref, 'u_yellow', rgb(color(t, 'low')));
+            c.uniform(ref, 'u_flash', [0]);
             c.uniform(ref, 'u_barA', noMap.barA);
             c.uniform(ref, 'u_barB', noMap.barB);
             c.uniform(ref, 'u_barC', noMap.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? noMap.barC : [0, 0, 0, 0]);
@@ -1250,7 +1251,10 @@ class HudApp {
                 limit = Math.round((w.coldLimit[2] + (redline - w.coldLimit[2]) * warm) / 50) * 50;
             }
             const yellow = isNum(w.yellowLines) ? w.yellowLines * 100 : 0;   // each line is 100 rpm
-            const key = vals.join('|') + '|' + left + '|' + colA + '|' + colB + '|' + colD + '|' + limit + '|' + yellow;
+            // the shift flash: from the shift point (below the red zone by the "Shift point" setting), about 5 flashes a second
+            const shiftAt = limit - (isNum(this.setting('shiftBefore')) ? this.setting('shiftBefore') : 0);
+            const flash = this.setting('shiftFlash') !== false && isNum(rpm) && rpm >= shiftAt && Math.floor(Date.now() / 100) % 2 === 0;
+            const key = vals.join('|') + '|' + left + '|' + colA + '|' + colB + '|' + colD + '|' + limit + '|' + yellow + '|' + flash;
             if (!force && key === x.last) return;
             x.last = key;
             x.c.uniform(x.ref, 'u_red', [limit / max]);
@@ -1260,6 +1264,7 @@ class HudApp {
             const revs = vals[0] * max;
             const wave = revs <= waveAt || limit <= waveAt ? 1 : Math.max(0, limit * (1 - (revs - waveAt) / (limit - waveAt)) / max);
             x.c.uniform(x.ref, 'u_wave', [wave]);
+            x.c.uniform(x.ref, 'u_flash', [flash ? 1 : 0]);
             x.c.uniform(x.ref, 'u_colA', rgb(color(this.theme, colA)));
             x.c.uniform(x.ref, 'u_colB', rgb(color(this.theme, colB)));
             x.c.uniform(x.ref, 'u_colD', rgb(color(this.theme, colD)));
