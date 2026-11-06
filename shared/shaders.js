@@ -953,13 +953,13 @@ void main() {
 `;
 
 const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL ES 1.00): black, a segmented rev sweep along the top
-// of the cluster that follows the hood line, three level bars, and a see-through rounded map window with a thin frame.
+// of the cluster that follows the hood line, three level bars, and a see-through six-sided map window with a thin frame.
 //   u_arc    y of the sweep's top at the middle, the centre x, the curve's radius, the band's height (target px)
 //   u_span   x at 0 rpm, x at the top of the scale
 //   u_segs   segments in the sweep
 //   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
 //   u_barA, u_barB, u_barC, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C)
-//   u_hole, u_holeR  the map window, as fill (w 0 = none)
+//   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -976,15 +976,18 @@ uniform vec4 u_barA;
 uniform vec4 u_barB;
 uniform vec4 u_barC;
 uniform vec3 u_lvl;
-uniform vec4 u_hole;
-uniform float u_holeR;
+uniform vec4 u_hex;
+uniform vec3 u_hexW;
 uniform vec3 u_amber;
 uniform vec3 u_hot;
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
-float sdBox(vec2 p, vec4 b, float r) {
-    vec2 hs = b.zw * 0.5, q = abs(p - b.xy - hs) - hs + vec2(r);
-    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+float smax(float a, float b, float k) {                       // rounds the corner where two edges meet
+    float h = clamp(0.5 + 0.5 * (a - b) / k, 0.0, 1.0);
+    return mix(b, a, h) + k * h * (1.0 - h);
+}
+float side(vec2 q, vec2 a, vec2 b) {                          // px outside the edge a -> b
+    return dot(q - a, normalize(vec2(b.y - a.y, a.x - b.x)));
 }
 vec3 bar(vec3 c, vec2 p, vec4 b, float lvl, vec3 lit) {
     if (b.z <= 0.0 || p.x < b.x - 2.0 || p.x > b.x + b.z + 14.0 || p.y < b.y - 2.0 || p.y > b.y + b.w + 2.0) return c;
@@ -1035,10 +1038,12 @@ void main() {
     c = bar(c, p, u_barB, u_lvl.y, u_amber);
     c = bar(c, p, u_barC, u_lvl.z, u_amber);
     float a = 1.0;
-    if (u_hole.z > 0.0) {
-        float d = sdBox(p, u_hole, u_holeR);
+    if (u_hexW.x > 0.0) {
+        vec2 q = vec2(abs(p.x - u_hex.x), p.y);
+        vec2 t = vec2(u_hexW.x, u_hex.y), m = vec2(u_hexW.y, u_hex.z), b = vec2(u_hexW.z, u_hex.w);
+        float d = smax(smax(u_hex.y - p.y, p.y - u_hex.w, 16.0), smax(side(q, t, m), side(q, m, b), 40.0), 24.0);
         // a fine frame, brighter along the top like light on a glass edge
-        float lift = clamp((p.y - u_hole.y) / u_hole.w, 0.0, 1.0);
+        float lift = clamp((p.y - u_hex.y) / (u_hex.w - u_hex.y), 0.0, 1.0);
         c = mix(c, mix(vec3(0.62, 0.63, 0.66), vec3(0.20, 0.21, 0.23), lift), cov(abs(d - 1.5) - 0.7));
         a = clamp(d + 0.5, 0.0, 1.0);
     }

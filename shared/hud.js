@@ -87,7 +87,8 @@
  *             "speed" reads in the display unit, so min/max are mph, metricMax km/h. Colour role "color" (arc).
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "barA" / "barB" [x, y, w, h] with
- *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; the map window as fill ("hole", "holeWhen", ...).
+ *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "hex" [centre x, y top, y widest, y bottom, half width
+ *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on.
  *   segbar    effect layer; "max" segments, the first round(signal) lit (e.g. "setupLevel:engine"), "slant" px
  *   icon      image layer; a line icon from icons.js ("icon": gauge, shock, wheel, cog, stack, therm, oilcan, fuel)
  *   arc also takes "start" and "sweep" in degrees (clockwise from 12 o'clock; negative = anticlockwise)
@@ -969,8 +970,9 @@ class HudApp {
             c.uniform(ref, 'u_barC', w.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? w.barC : [0, 0, 0, 0]);
             c.uniform(ref, 'u_rpm', [0]);
             c.uniform(ref, 'u_lvl', [0, 0, 0]);
-            c.uniform(ref, 'u_hole', this._hole(w));
-            c.uniform(ref, 'u_holeR', [this._holeRadius(w)]);
+            const hexOn = Array.isArray(w.hex) && w.holeWhen && this.setting(w.holeWhen) === true;
+            c.uniform(ref, 'u_hex', hexOn ? w.hex.slice(0, 4) : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_hexW', hexOn ? w.hex.slice(4, 7) : [0, 0, 0]);
             c.uniform(ref, 'u_amber', rgb(color(t, 'arc')));
             c.uniform(ref, 'u_hot', rgb(t.hot));
         }

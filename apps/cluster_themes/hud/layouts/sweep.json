@@ -58,15 +58,16 @@
         2.0684
       ],
       "toggleC": "showBoost",
-      "hole": [
-        416,
-        120,
-        1088,
-        480
+      "hex": [
+        963,
+        141,
+        341,
+        580,
+        302,
+        438,
+        357
       ],
-      "holeWhen": "mapWindow",
-      "holeInset": 6,
-      "holeRadius": 28
+      "holeWhen": "mapWindow"
     },
     {
       "id": "n0",
@@ -219,7 +220,7 @@
       "type": "text",
       "z": 5,
       "x": 650,
-      "y": 246,
+      "y": 406,
       "w": 620,
       "h": 199,
       "text": "{{speed}}",
@@ -234,13 +235,29 @@
       "type": "text",
       "z": 5,
       "x": 890,
-      "y": 492,
+      "y": 608,
       "w": 140,
       "h": 35,
       "text": "{{u:speedLc}}",
       "font": "t_label",
       "color": "dim",
       "align": "center",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "gear_top",
+      "type": "text",
+      "z": 5,
+      "x": 840,
+      "y": 162,
+      "w": 240,
+      "h": 85,
+      "text": "{{gear}}",
+      "font": "u_gear",
+      "color": "fg",
+      "align": "center",
+      "hotWhen": "now",
+      "color2": "chrome",
       "toggle": "!mapWindow"
     },
     {
@@ -350,7 +367,8 @@
       "color": "fg",
       "align": "right",
       "hotWhen": "now",
-      "color2": "chrome"
+      "color2": "chrome",
+      "toggle": "mapWindow"
     },
     {
       "id": "time",
