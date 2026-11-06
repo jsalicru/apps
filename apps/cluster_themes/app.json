@@ -2,7 +2,7 @@
   "id": "cluster_themes",
   "title": "Cluster Themes",
   "description": "Redraws the instrument cluster: Sweep, Twin Dial, GT3 race dash, M-style or Sport, with shift lights, boost, temps and shift scoring",
-  "version": "0.9.15",
+  "version": "0.9.16",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
@@ -254,17 +254,18 @@
       "key": "sweepColor",
       "label": "Color (Sweep)",
       "type": "choice",
-      "default": "orange",
+      "default": "silver",
       "options": [
-        [
-          "orange",
-          "Orange"
-        ],
         [
           "silver",
           "Silver"
+        ],
+        [
+          "orange",
+          "Orange"
         ]
-      ]
+      ],
+      "reset": 1
     },
     {
       "key": "revScale",
@@ -333,7 +334,7 @@
       "key": "demo",
       "label": "Demo data",
       "type": "choice",
-      "default": "auto",
+      "default": "off",
       "options": [
         [
           "auto",
@@ -347,7 +348,8 @@
           "off",
           "Off"
         ]
-      ]
+      ],
+      "reset": 1
     }
   ],
   "config": {
