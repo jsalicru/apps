@@ -85,7 +85,9 @@
  *   twinneedle effect layer; the Twin Dial needles, above the numerals (shaders.js twinneedle): "needles": [{ cx, cy, len,
  *             tail, start, sweep, width (half width at the hub), hub, signal, min, max, metricMax }] up to 4; signal
  *             "speed" reads in the display unit, so min/max are mph, metricMax km/h. Colour role "color" (arc).
- *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "arc" [y of the top at the middle, centre x,
+ *   Any widget: "toggle2" is a second condition like "toggle"; both must hold.
+ *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "noMap" { arc, span, barA..barD } replaces those while
+ *             the map window is off; "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
@@ -785,7 +787,7 @@ class HudApp {
         this.themeName = this._themeName();
         this.theme = THEMES[this.themeName] || THEMES.classic;
         this.log.info('layout "' + layout.name + '", theme ' + this.theme.name + (this.layoutTheme ? '' : ' (' + this.setting('hudTheme') + ')'));
-        const shown = layout.widgets.filter((w) => !(w.toggle && !this._toggleOn(w.toggle)) && !(w.themes && w.themes.indexOf(this.themeName) < 0));
+        const shown = layout.widgets.filter((w) => !(w.toggle && !this._toggleOn(w.toggle)) && !(w.toggle2 && !this._toggleOn(w.toggle2)) && !(w.themes && w.themes.indexOf(this.themeName) < 0));
         this.needsBoost = /boost/.test(JSON.stringify(shown));
         // plan the layers first (a sheet's size is only known once every member is placed), then make them
         // in that order: within a class and z, cluster-render puts the newer layer on top. Small sheets
@@ -980,18 +982,19 @@ class HudApp {
         }
         else if (w.type === 'sweepdash') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
-            c.uniform(ref, 'u_arc', w.arc);
-            c.uniform(ref, 'u_span', w.span);
+            const hexOn = Array.isArray(w.hex) && w.holeWhen && this.setting(w.holeWhen) === true;
+            const noMap = (w.noMap && !hexOn) ? w.noMap : w;   // the layout's own geometry while there's no map window
+            c.uniform(ref, 'u_arc', noMap.arc);
+            c.uniform(ref, 'u_span', noMap.span);
             c.uniform(ref, 'u_segs', [(w.max || 8000) / 100]);
             c.uniform(ref, 'u_red', [this.setting('redline') / (w.max || 8000)]);
-            c.uniform(ref, 'u_barA', w.barA);
-            c.uniform(ref, 'u_barB', w.barB);
-            c.uniform(ref, 'u_barC', w.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? w.barC : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_barA', noMap.barA);
+            c.uniform(ref, 'u_barB', noMap.barB);
+            c.uniform(ref, 'u_barC', noMap.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? noMap.barC : [0, 0, 0, 0]);
             c.uniform(ref, 'u_curve', [isNum((w.revCurves || {})[this.setting('revScale')]) ? w.revCurves[this.setting('revScale')] : 1]);
-            c.uniform(ref, 'u_barD', w.barD || [0, 0, 0, 0]);
+            c.uniform(ref, 'u_barD', noMap.barD || [0, 0, 0, 0]);
             c.uniform(ref, 'u_rpm', [0]);
             c.uniform(ref, 'u_lvl', [0, 0, 0, 0]);
-            const hexOn = Array.isArray(w.hex) && w.holeWhen && this.setting(w.holeWhen) === true;
             c.uniform(ref, 'u_hex', hexOn ? w.hex.slice(0, 4) : [0, 0, 0, 0]);
             c.uniform(ref, 'u_hexW', hexOn ? w.hex.slice(4, 7) : [0, 0, 0]);
             c.uniform(ref, 'u_tab', [0, 0, 0, 0]);

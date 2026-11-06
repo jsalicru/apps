@@ -36,8 +36,8 @@
       ],
       "signalA": "oil",
       "rangeA": [
-        0,
-        150
+        37.78,
+        137.78
       ],
       "barB": [
         60,
@@ -94,8 +94,8 @@
       ],
       "signalD": "coolant",
       "rangeD": [
-        0,
-        150
+        37.78,
+        126.67
       ],
       "zonesD": [
         {
@@ -126,7 +126,43 @@
         270,
         94
       ],
-      "holeWhen": "mapWindow"
+      "holeWhen": "mapWindow",
+      "noMap": {
+        "arc": [
+          10,
+          960,
+          2985,
+          120
+        ],
+        "span": [
+          125,
+          1760
+        ],
+        "barA": [
+          1205,
+          480,
+          655,
+          34
+        ],
+        "barB": [
+          60,
+          600,
+          655,
+          34
+        ],
+        "barC": [
+          60,
+          480,
+          655,
+          34
+        ],
+        "barD": [
+          1205,
+          600,
+          655,
+          34
+        ]
+      }
     },
     {
       "id": "neven_0",
@@ -140,7 +176,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_0",
+      "type": "text",
+      "z": 5,
+      "x": 149,
+      "y": 245,
+      "w": 60,
+      "h": 36,
+      "text": "0",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_0",
@@ -154,7 +206,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_0",
+      "type": "text",
+      "z": 5,
+      "x": 149,
+      "y": 245,
+      "w": 60,
+      "h": 36,
+      "text": "0",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_0",
@@ -168,7 +236,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_0",
+      "type": "text",
+      "z": 5,
+      "x": 149,
+      "y": 245,
+      "w": 60,
+      "h": 36,
+      "text": "0",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "neven_1",
@@ -182,7 +266,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_1",
+      "type": "text",
+      "z": 5,
+      "x": 353,
+      "y": 199,
+      "w": 60,
+      "h": 36,
+      "text": "1",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_1",
@@ -196,7 +296,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_1",
+      "type": "text",
+      "z": 5,
+      "x": 225,
+      "y": 226,
+      "w": 60,
+      "h": 36,
+      "text": "1",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_1",
@@ -210,7 +326,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_1",
+      "type": "text",
+      "z": 5,
+      "x": 184,
+      "y": 236,
+      "w": 60,
+      "h": 36,
+      "text": "1",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "neven_2",
@@ -224,7 +356,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_2",
+      "type": "text",
+      "z": 5,
+      "x": 558,
+      "y": 166,
+      "w": 60,
+      "h": 36,
+      "text": "2",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_2",
@@ -238,7 +386,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_2",
+      "type": "text",
+      "z": 5,
+      "x": 361,
+      "y": 197,
+      "w": 60,
+      "h": 36,
+      "text": "2",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_2",
@@ -252,7 +416,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_2",
+      "type": "text",
+      "z": 5,
+      "x": 275,
+      "y": 215,
+      "w": 60,
+      "h": 36,
+      "text": "2",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "neven_3",
@@ -266,7 +446,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_3",
+      "type": "text",
+      "z": 5,
+      "x": 762,
+      "y": 148,
+      "w": 60,
+      "h": 36,
+      "text": "3",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_3",
@@ -280,7 +476,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_3",
+      "type": "text",
+      "z": 5,
+      "x": 534,
+      "y": 169,
+      "w": 60,
+      "h": 36,
+      "text": "3",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_3",
@@ -294,7 +506,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_3",
+      "type": "text",
+      "z": 5,
+      "x": 415,
+      "y": 187,
+      "w": 60,
+      "h": 36,
+      "text": "3",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "neven_4",
@@ -308,7 +536,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_4",
+      "type": "text",
+      "z": 5,
+      "x": 966,
+      "y": 143,
+      "w": 60,
+      "h": 36,
+      "text": "4",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_4",
@@ -322,7 +566,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_4",
+      "type": "text",
+      "z": 5,
+      "x": 737,
+      "y": 149,
+      "w": 60,
+      "h": 36,
+      "text": "4",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_4",
@@ -336,7 +596,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_4",
+      "type": "text",
+      "z": 5,
+      "x": 603,
+      "y": 161,
+      "w": 60,
+      "h": 36,
+      "text": "4",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "neven_5",
@@ -350,7 +626,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_5",
+      "type": "text",
+      "z": 5,
+      "x": 1171,
+      "y": 153,
+      "w": 60,
+      "h": 36,
+      "text": "5",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_5",
@@ -364,7 +656,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_5",
+      "type": "text",
+      "z": 5,
+      "x": 966,
+      "y": 143,
+      "w": 60,
+      "h": 36,
+      "text": "5",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_5",
@@ -378,7 +686,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_5",
+      "type": "text",
+      "z": 5,
+      "x": 834,
+      "y": 145,
+      "w": 60,
+      "h": 36,
+      "text": "5",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "neven_6",
@@ -392,7 +716,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_6",
+      "type": "text",
+      "z": 5,
+      "x": 1375,
+      "y": 176,
+      "w": 60,
+      "h": 36,
+      "text": "6",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_6",
@@ -406,7 +746,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_6",
+      "type": "text",
+      "z": 5,
+      "x": 1219,
+      "y": 157,
+      "w": 60,
+      "h": 36,
+      "text": "6",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_6",
@@ -420,7 +776,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_6",
+      "type": "text",
+      "z": 5,
+      "x": 1109,
+      "y": 148,
+      "w": 60,
+      "h": 36,
+      "text": "6",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "neven_7",
@@ -434,7 +806,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_7",
+      "type": "text",
+      "z": 5,
+      "x": 1580,
+      "y": 214,
+      "w": 60,
+      "h": 36,
+      "text": "7",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_7",
@@ -448,7 +836,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_7",
+      "type": "text",
+      "z": 5,
+      "x": 1492,
+      "y": 196,
+      "w": 60,
+      "h": 36,
+      "text": "7",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_7",
@@ -462,7 +866,23 @@
       "font": "t_mini",
       "color": "fg",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_7",
+      "type": "text",
+      "z": 5,
+      "x": 1426,
+      "y": 184,
+      "w": 60,
+      "h": 36,
+      "text": "7",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "neven_8",
@@ -476,7 +896,23 @@
       "font": "t_mini",
       "color": "hot",
       "align": "center",
-      "toggle": "revScale=even"
+      "toggle": "revScale=even",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "beven_8",
+      "type": "text",
+      "z": 5,
+      "x": 1784,
+      "y": 265,
+      "w": 60,
+      "h": 36,
+      "text": "8",
+      "font": "t_num",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace_8",
@@ -490,7 +926,23 @@
       "font": "t_mini",
       "color": "hot",
       "align": "center",
-      "toggle": "revScale=race"
+      "toggle": "revScale=race",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace_8",
+      "type": "text",
+      "z": 5,
+      "x": 1784,
+      "y": 265,
+      "w": 60,
+      "h": 36,
+      "text": "8",
+      "font": "t_num",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "nrace55_8",
@@ -504,15 +956,31 @@
       "font": "t_mini",
       "color": "hot",
       "align": "center",
-      "toggle": "revScale=race55"
+      "toggle": "revScale=race55",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "brace55_8",
+      "type": "text",
+      "z": 5,
+      "x": 1784,
+      "y": 265,
+      "w": 60,
+      "h": 36,
+      "text": "8",
+      "font": "t_num",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "speed_hero",
       "type": "text",
       "z": 5,
-      "x": 650,
+      "x": 745,
       "y": 406,
-      "w": 620,
+      "w": 430,
       "h": 199,
       "text": "{{speed}}",
       "font": "u_hero",
@@ -540,7 +1008,7 @@
       "type": "text",
       "z": 5,
       "x": 840,
-      "y": 162,
+      "y": 202,
       "w": 240,
       "h": 85,
       "text": "{{gear}}",
@@ -550,178 +1018,6 @@
       "hotWhen": "now",
       "color2": "chrome",
       "toggle": "!mapWindow"
-    },
-    {
-      "id": "boost_label",
-      "type": "text",
-      "z": 5,
-      "x": 60,
-      "y": 512,
-      "w": 140,
-      "h": 35,
-      "text": "BOOST",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left",
-      "toggle": "showBoost"
-    },
-    {
-      "id": "boost_val",
-      "type": "text",
-      "z": 5,
-      "x": 232,
-      "y": 512,
-      "w": 100,
-      "h": 35,
-      "text": "{{boost}}",
-      "font": "t_label",
-      "color": "fg",
-      "align": "right",
-      "toggle": "showBoost"
-    },
-    {
-      "id": "boost_unit",
-      "type": "text",
-      "z": 5,
-      "x": 337,
-      "y": 512,
-      "w": 48,
-      "h": 35,
-      "text": "{{u:boost}}",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left",
-      "toggle": "showBoost"
-    },
-    {
-      "id": "fuel_label",
-      "type": "text",
-      "z": 5,
-      "x": 60,
-      "y": 592,
-      "w": 140,
-      "h": 35,
-      "text": "FUEL",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "range_val",
-      "type": "text",
-      "z": 5,
-      "x": 232,
-      "y": 592,
-      "w": 100,
-      "h": 35,
-      "text": "{{range}}",
-      "font": "t_label",
-      "color": "fg",
-      "align": "right"
-    },
-    {
-      "id": "range_unit",
-      "type": "text",
-      "z": 5,
-      "x": 337,
-      "y": 592,
-      "w": 48,
-      "h": 35,
-      "text": "{{u:distLc}}",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "oil_label",
-      "type": "text",
-      "z": 5,
-      "x": 1540,
-      "y": 512,
-      "w": 140,
-      "h": 35,
-      "text": "OIL",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "oil_val",
-      "type": "text",
-      "z": 5,
-      "x": 1720,
-      "y": 512,
-      "w": 100,
-      "h": 35,
-      "text": "{{oil}}",
-      "font": "t_label",
-      "color": "fg",
-      "align": "right"
-    },
-    {
-      "id": "oil_unit",
-      "type": "text",
-      "z": 5,
-      "x": 1825,
-      "y": 512,
-      "w": 40,
-      "h": 35,
-      "text": "{{u:temp}}",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "water_label",
-      "type": "text",
-      "z": 5,
-      "x": 1540,
-      "y": 592,
-      "w": 140,
-      "h": 35,
-      "text": "WATER",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "water_val",
-      "type": "text",
-      "z": 5,
-      "x": 1720,
-      "y": 592,
-      "w": 100,
-      "h": 35,
-      "text": "{{coolant}}",
-      "font": "t_label",
-      "color": "fg",
-      "align": "right"
-    },
-    {
-      "id": "water_unit",
-      "type": "text",
-      "z": 5,
-      "x": 1825,
-      "y": 592,
-      "w": 40,
-      "h": 35,
-      "text": "{{u:temp}}",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
-    },
-    {
-      "id": "ambient_label",
-      "type": "text",
-      "z": 5,
-      "x": 1540,
-      "y": 432,
-      "w": 140,
-      "h": 35,
-      "text": "OUTSIDE",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left"
     },
     {
       "id": "ambient",
@@ -734,7 +1030,8 @@
       "text": "{{ambient}}",
       "font": "t_label",
       "color": "fg",
-      "align": "right"
+      "align": "right",
+      "toggle": "mapWindow"
     },
     {
       "id": "ambient_unit",
@@ -747,7 +1044,36 @@
       "text": "{{u:temp}}",
       "font": "t_label",
       "color": "dim",
-      "align": "left"
+      "align": "left",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "ambient_big",
+      "type": "text",
+      "z": 5,
+      "x": 1650,
+      "y": 359,
+      "w": 150,
+      "h": 42,
+      "text": "{{ambient}}",
+      "font": "m_val",
+      "color": "fg",
+      "align": "right",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "ambient_big_unit",
+      "type": "text",
+      "z": 5,
+      "x": 1806,
+      "y": 369,
+      "w": 50,
+      "h": 36,
+      "text": "{{u:temp}}",
+      "font": "m_unit",
+      "color": "dim",
+      "align": "left",
+      "toggle": "!mapWindow"
     },
     {
       "id": "gear",
@@ -764,6 +1090,348 @@
       "hotWhen": "now",
       "color2": "chrome",
       "toggle": "mapWindow"
+    },
+    {
+      "id": "boost_label",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 512,
+      "w": 140,
+      "h": 35,
+      "text": "BOOST",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "showBoost",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "boost_val",
+      "type": "text",
+      "z": 5,
+      "x": 232,
+      "y": 512,
+      "w": 100,
+      "h": 35,
+      "text": "{{boost}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right",
+      "toggle": "showBoost",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "boost_unit",
+      "type": "text",
+      "z": 5,
+      "x": 337,
+      "y": 512,
+      "w": 48,
+      "h": 35,
+      "text": "{{u:boost}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "showBoost",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "boost_big_label",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 435,
+      "w": 220,
+      "h": 30,
+      "text": "BOOST",
+      "font": "m_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "showBoost",
+      "toggle2": "!mapWindow"
+    },
+    {
+      "id": "boost_big_val",
+      "type": "text",
+      "z": 5,
+      "x": 480,
+      "y": 425,
+      "w": 170,
+      "h": 42,
+      "text": "{{boost}}",
+      "font": "m_val",
+      "color": "fg",
+      "align": "right",
+      "toggle": "showBoost",
+      "toggle2": "!mapWindow"
+    },
+    {
+      "id": "boost_big_unit",
+      "type": "text",
+      "z": 5,
+      "x": 657,
+      "y": 435,
+      "w": 58,
+      "h": 36,
+      "text": "{{u:boost}}",
+      "font": "m_unit",
+      "color": "dim",
+      "align": "left",
+      "toggle": "showBoost",
+      "toggle2": "!mapWindow"
+    },
+    {
+      "id": "fuel_label",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 592,
+      "w": 140,
+      "h": 35,
+      "text": "FUEL",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "fuel_val",
+      "type": "text",
+      "z": 5,
+      "x": 232,
+      "y": 592,
+      "w": 100,
+      "h": 35,
+      "text": "{{range}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "fuel_unit",
+      "type": "text",
+      "z": 5,
+      "x": 337,
+      "y": 592,
+      "w": 48,
+      "h": 35,
+      "text": "{{u:distLc}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "fuel_big_label",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 555,
+      "w": 220,
+      "h": 30,
+      "text": "FUEL",
+      "font": "m_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "fuel_big_val",
+      "type": "text",
+      "z": 5,
+      "x": 480,
+      "y": 545,
+      "w": 170,
+      "h": 42,
+      "text": "{{range}}",
+      "font": "m_val",
+      "color": "fg",
+      "align": "right",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "fuel_big_unit",
+      "type": "text",
+      "z": 5,
+      "x": 657,
+      "y": 555,
+      "w": 58,
+      "h": 36,
+      "text": "{{u:distLc}}",
+      "font": "m_unit",
+      "color": "dim",
+      "align": "left",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "oil_label",
+      "type": "text",
+      "z": 5,
+      "x": 1540,
+      "y": 512,
+      "w": 140,
+      "h": 35,
+      "text": "OIL",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "oil_val",
+      "type": "text",
+      "z": 5,
+      "x": 1720,
+      "y": 512,
+      "w": 100,
+      "h": 35,
+      "text": "{{oil}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "oil_unit",
+      "type": "text",
+      "z": 5,
+      "x": 1825,
+      "y": 512,
+      "w": 48,
+      "h": 35,
+      "text": "{{u:temp}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "oil_big_label",
+      "type": "text",
+      "z": 5,
+      "x": 1205,
+      "y": 435,
+      "w": 220,
+      "h": 30,
+      "text": "OIL",
+      "font": "m_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "oil_big_val",
+      "type": "text",
+      "z": 5,
+      "x": 1625,
+      "y": 425,
+      "w": 170,
+      "h": 42,
+      "text": "{{oil}}",
+      "font": "m_val",
+      "color": "fg",
+      "align": "right",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "oil_big_unit",
+      "type": "text",
+      "z": 5,
+      "x": 1802,
+      "y": 435,
+      "w": 58,
+      "h": 36,
+      "text": "{{u:temp}}",
+      "font": "m_unit",
+      "color": "dim",
+      "align": "left",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "water_label",
+      "type": "text",
+      "z": 5,
+      "x": 1540,
+      "y": 592,
+      "w": 140,
+      "h": 35,
+      "text": "WATER",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "water_val",
+      "type": "text",
+      "z": 5,
+      "x": 1720,
+      "y": 592,
+      "w": 100,
+      "h": 35,
+      "text": "{{coolant}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "water_unit",
+      "type": "text",
+      "z": 5,
+      "x": 1825,
+      "y": 592,
+      "w": 48,
+      "h": 35,
+      "text": "{{u:temp}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "mapWindow"
+    },
+    {
+      "id": "water_big_label",
+      "type": "text",
+      "z": 5,
+      "x": 1205,
+      "y": 555,
+      "w": 220,
+      "h": 30,
+      "text": "WATER",
+      "font": "m_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "water_big_val",
+      "type": "text",
+      "z": 5,
+      "x": 1625,
+      "y": 545,
+      "w": 170,
+      "h": 42,
+      "text": "{{coolant}}",
+      "font": "m_val",
+      "color": "fg",
+      "align": "right",
+      "toggle": "!mapWindow"
+    },
+    {
+      "id": "water_big_unit",
+      "type": "text",
+      "z": 5,
+      "x": 1802,
+      "y": 555,
+      "w": 58,
+      "h": 36,
+      "text": "{{u:temp}}",
+      "font": "m_unit",
+      "color": "dim",
+      "align": "left",
+      "toggle": "!mapWindow"
     }
   ]
 }

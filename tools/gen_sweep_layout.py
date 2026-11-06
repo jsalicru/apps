@@ -17,6 +17,13 @@ BAR_C = [60, 553, 320, 13]     # boost, left
 BAR_B = [60, 633, 320, 13]     # fuel, left
 BAR_A = [1540, 553, 320, 13]   # oil, right
 BAR_D = [1540, 633, 320, 13]   # water, right
+# with the map off the gauges take the room: a thicker sweep (shorter, so its slanted end clears BMW's PARK light) and wide bars
+ARC_OFF = [10, 960, 2985, 120]
+SPAN_OFF = [125, 1760]
+BIG_C = [60, 480, 655, 34]
+BIG_B = [60, 600, 655, 34]
+BIG_A = [1205, 480, 655, 34]
+BIG_D = [1205, 600, 655, 34]
 
 
 def f_to_c(f):
@@ -34,47 +41,54 @@ def text(id, x, y, w, s, font, color='fg', align='left', **kw):
     return dict(id=id, type='text', z=5, x=round(left), y=round(y - h / 2), w=w, h=h, text=s, font=font, color=color, align=align, **kw)
 
 
-def bottom(x):
-    dx = x - ARC[1]
-    return ARC[0] + dx * dx / (2 * ARC[2]) + ARC[3]
+def bottom(x, arc=ARC):
+    dx = x - arc[1]
+    return arc[0] + dx * dx / (2 * arc[2]) + arc[3]
 
 
 widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, revCurves={k: round(v, 4) for k, v in REV_CURVES.items()},
-                barA=BAR_A, signalA='oil', rangeA=[0, 150], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
+                barA=BAR_A, signalA='oil', rangeA=[f_to_c(100), f_to_c(280)], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
                 zonesA=[dict(signal='oil', above=f_to_c(250), color='hot'), dict(signal='oil', above=f_to_c(235), color='warn'),
                         dict(signal='oil', below=f_to_c(140), color='cold')],
                 zonesB=[dict(signal='range', below=round(50 * 1.609344, 2), color='low')],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
-                barD=BAR_D, signalD='coolant', rangeD=[0, 150],
+                barD=BAR_D, signalD='coolant', rangeD=[f_to_c(100), f_to_c(260)],
                 zonesD=[dict(signal='coolant', above=f_to_c(230), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
-                hex=HEX, tab=TAB, holeWhen='mapWindow')]
+                hex=HEX, tab=TAB, holeWhen='mapWindow',
+                noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D))]
 for i in range(9):
     for name, curve in [('even', 1)] + list(REV_CURVES.items()):
         x = SPAN[0] + (SPAN[1] - SPAN[0]) * (i / 8) ** curve
         widgets.append(text('n%s_%d' % (name, i), x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center',
-                            toggle='revScale=' + name))
+                            toggle='revScale=' + name, toggle2='mapWindow'))
+        x = SPAN_OFF[0] + (SPAN_OFF[1] - SPAN_OFF[0]) * (i / 8) ** curve + ARC_OFF[3] * 0.45
+        widgets.append(text('b%s_%d' % (name, i), x, bottom(x, ARC_OFF) + 31, 60, str(i), 't_num', 'hot' if i == 8 else 'fg', 'center',
+                            toggle='revScale=' + name, toggle2='!mapWindow'))
 widgets += [
     # no speed of ours with the map on: in Map view BMW's own speed shows in the map window
-    text('speed_hero', 960, 505, 620, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),
+    text('speed_hero', 960, 505, 430, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),
     text('hero_unit', 960, 625, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow'),
-    text('gear_top', 960, 205, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
-    text('boost_label', 60, 530, 140, 'BOOST', 't_label', 'dim', toggle='showBoost'),
-    text('boost_val', 332, 530, 100, '{{boost}}', 't_label', align='right', toggle='showBoost'),
-    text('boost_unit', 337, 530, 48, '{{u:boost}}', 't_label', 'dim', toggle='showBoost'),
-    text('fuel_label', 60, 610, 140, 'FUEL', 't_label', 'dim'),
-    text('range_val', 332, 610, 100, '{{range}}', 't_label', align='right'),
-    text('range_unit', 337, 610, 48, '{{u:distLc}}', 't_label', 'dim'),
-    text('oil_label', 1540, 530, 140, 'OIL', 't_label', 'dim'),
-    text('oil_val', 1820, 530, 100, '{{oil}}', 't_label', align='right'),
-    text('oil_unit', 1825, 530, 40, '{{u:temp}}', 't_label', 'dim'),
-    text('water_label', 1540, 610, 140, 'WATER', 't_label', 'dim'),
-    text('water_val', 1820, 610, 100, '{{coolant}}', 't_label', align='right'),
-    text('water_unit', 1825, 610, 40, '{{u:temp}}', 't_label', 'dim'),
-    text('ambient_label', 1540, 450, 140, 'OUTSIDE', 't_label', 'dim'),
-    text('ambient', 1820, 450, 100, '{{ambient}}', 't_label', align='right'),
-    text('ambient_unit', 1825, 450, 40, '{{u:temp}}', 't_label', 'dim'),
+    text('gear_top', 960, 245, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
+    text('ambient', 1820, 450, 100, '{{ambient}}', 't_label', align='right', toggle='mapWindow'),
+    text('ambient_unit', 1825, 450, 40, '{{u:temp}}', 't_label', 'dim', toggle='mapWindow'),
+    text('ambient_big', 1800, 380, 150, '{{ambient}}', 'm_val', align='right', toggle='!mapWindow'),
+    text('ambient_big_unit', 1806, 387, 50, '{{u:temp}}', 'm_unit', 'dim', toggle='!mapWindow'),
     text('gear', 1880, 300, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome', toggle='mapWindow'),
 ]
+for id, label, val, unit, small, big, cond in (
+        ('boost', 'BOOST', '{{boost}}', '{{u:boost}}', (60, 530), (60, 450), 'showBoost'),
+        ('fuel', 'FUEL', '{{range}}', '{{u:distLc}}', (60, 610), (60, 570), None),
+        ('oil', 'OIL', '{{oil}}', '{{u:temp}}', (1540, 530), (1205, 450), None),
+        ('water', 'WATER', '{{coolant}}', '{{u:temp}}', (1540, 610), (1205, 570), None)):
+    on = lambda m: dict(toggle=cond, toggle2=m) if cond else dict(toggle=m)
+    x, y = small
+    widgets += [text(id + '_label', x, y, 140, label, 't_label', 'dim', **on('mapWindow')),
+                text(id + '_val', x + 272 + (8 if cond is None and x > 60 else 0), y, 100, val, 't_label', align='right', **on('mapWindow')),
+                text(id + '_unit', x + 277 + (8 if cond is None and x > 60 else 0), y, 48, unit, 't_label', 'dim', **on('mapWindow'))]
+    x, y = big
+    widgets += [text(id + '_big_label', x, y, 220, label, 'm_label', 'dim', **on('!mapWindow')),
+                text(id + '_big_val', x + 590, y - 4, 170, val, 'm_val', align='right', **on('!mapWindow')),
+                text(id + '_big_unit', x + 597, y + 3, 58, unit, 'm_unit', 'dim', **on('!mapWindow'))]
 layout = dict(schemaVersion=2, name='Sweep', theme='sweep',
               _about='A digital dash with a rev sweep along the hood line and a map window. Written by tools/gen_sweep_layout.py.',
               widgets=widgets)
