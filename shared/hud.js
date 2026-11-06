@@ -994,7 +994,9 @@ class HudApp {
             c.uniform(ref, 'u_hexW', hexOn ? w.hex.slice(4, 7) : [0, 0, 0]);
             c.uniform(ref, 'u_tab', [0, 0, 0, 0]);
             x.tabOn = hexOn && Array.isArray(w.tab);
-            c.uniform(ref, 'u_amber', rgb(color(t, 'arc')));
+            const silver = this.setting('sweepColor') === 'silver';
+            c.uniform(ref, 'u_metal', [silver ? 1 : 0]);
+            c.uniform(ref, 'u_amber', rgb(color(t, silver ? 'silver' : 'arc')));
             c.uniform(ref, 'u_hot', rgb(t.hot));
         }
         else if (w.type === 'twinface') {

@@ -958,6 +958,7 @@ const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL
 //   u_span   x at 0 rpm, x at the top of the scale
 //   u_segs   segments in the sweep
 //   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
+//   u_metal  1: a machined look for the silver colour, a sheen across the segments and a bright leading edge
 //   u_curve  how the scale is spread along the band: 1 = even, above 1 = the top of the rev range gets more of the band
 //   u_barA, u_barB, u_barC, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C)
 //   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
@@ -976,6 +977,7 @@ uniform float u_segs;
 uniform float u_rpm;
 uniform float u_red;
 uniform float u_curve;
+uniform float u_metal;
 uniform vec4 u_barA;
 uniform vec4 u_barB;
 uniform vec4 u_barC;
@@ -1030,6 +1032,10 @@ void main() {
         float glass = clamp(dy / h, 0.0, 1.0);
         vec3 base = hot ? u_hot : mix(u_amber * 0.80, u_amber, smoothstep(0.0, u_red, mid));
         vec3 lit = base * mix(1.08, 0.58, glass) + vec3(0.42) * cov(dy - 2.0);
+        if (u_metal > 0.5) {
+            lit += vec3(0.20) * exp(-pow((glass - 0.24) / 0.13, 2.0));              // the sheen
+            if (!hot) lit = mix(lit, vec3(1.0), 0.5 * smoothstep(rpm - 3.0 / u_segs, rpm, mid));   // the leading edge
+        }
         vec3 off = (hot ? vec3(0.23, 0.03, 0.035) : vec3(0.075)) * mix(1.5, 0.75, glass) + vec3(0.07) * cov(dy - 1.5);
         c = mix(c, on ? lit : off, seg);
         // a soft glow off the lit part

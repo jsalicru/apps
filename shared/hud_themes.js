@@ -75,7 +75,7 @@ const THEMES = {
     // Sweep (layout sweep.json): black, an amber rev sweep along the top, white numbers.
     sweep: {
         name: 'Sweep',
-        fg: [250, 251, 252, 255], dim: [142, 146, 154, 255], track: [104, 110, 120, 255], arc: [255, 138, 18, 255], chrome: [158, 164, 174, 255],
+        fg: [250, 251, 252, 255], dim: [142, 146, 154, 255], track: [104, 110, 120, 255], arc: [255, 138, 18, 255], silver: [198, 205, 216, 255], chrome: [158, 164, 174, 255],
         glow: 0, stripe: false,
         bar: { low: [255, 138, 18], mid: [255, 138, 18], high: [255, 42, 42], midAt: 'shift' },
         rev: { from: [255, 138, 18], to: [255, 42, 42] },
