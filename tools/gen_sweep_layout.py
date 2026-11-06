@@ -10,6 +10,7 @@ APP = os.path.join(HERE, '..', 'apps', 'cluster_themes', 'hud')
 ARC = [10, 960, 2985, 58]      # y of the top at the middle, centre x, curve radius, band height: clears the hood (shared/visible.js)
 SPAN = [125, 1795]             # x at 0 rpm, x at 8000
 HEX = [963, 141, 341, 580, 302, 438, 357]   # centre x, y top, widest, bottom; half widths at top, widest, bottom
+TAB = [305, 328, 260, 78]     # room for three digits of BMW's own speed, right-aligned at about x 630; stops above its line
 BAR_A = [60, 473, 320, 13]   # oil
 BAR_C = [60, 553, 320, 13]   # boost
 BAR_B = [60, 633, 320, 13]   # fuel
@@ -34,7 +35,7 @@ def bottom(x):
 widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000,
                 barA=BAR_A, signalA='oil', rangeA=[50, 150], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
-                hex=HEX, holeWhen='mapWindow')]
+                hex=HEX, tab=TAB, holeWhen='mapWindow')]
 for i in range(9):
     x = SPAN[0] + (SPAN[1] - SPAN[0]) * i / 8
     widgets.append(text('n%d' % i, x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center'))

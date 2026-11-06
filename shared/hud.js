@@ -88,7 +88,8 @@
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "hex" [centre x, y top, y widest, y bottom, half width
- *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on.
+ *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on, joined to the
+ *             optional rounded "tab" [x, y, w, h] (room for BMW's own speed).
  *   segbar    effect layer; "max" segments, the first round(signal) lit (e.g. "setupLevel:engine"), "slant" px
  *   icon      image layer; a line icon from icons.js ("icon": gauge, shock, wheel, cog, stack, therm, oilcan, fuel)
  *   arc also takes "start" and "sweep" in degrees (clockwise from 12 o'clock; negative = anticlockwise)
@@ -179,6 +180,18 @@ const MODE_KEY = { comfort: 'inComfort', sport: 'inSport', eco: 'inEco' };
 const MODE_NAME = { comfort: 'Comfort', sport: 'Sport', eco: 'Eco Pro' };
 const FRESH_MS = 3000;
 // BMW's speed scale: even steps to 120 mph (180 km/h), then wider ones to 200 mph (320 km/h)
+/** Whether US daylight saving is on at time `ms`, for a standard offset of `off` minutes from UTC. */
+function usDstOn(ms, off) {
+    const y = new Date(ms + off * 60000).getUTCFullYear();
+    const sunday = (month, nth) => {                       // the day of the month of that month's nth Sunday
+        const first = new Date(Date.UTC(y, month, 1)).getUTCDay();
+        return 1 + ((7 - first) % 7) + (nth - 1) * 7;
+    };
+    const start = Date.UTC(y, 2, sunday(2, 2), 2) - off * 60000;            // 2 am standard time
+    const end = Date.UTC(y, 10, sunday(10, 1), 2) - (off + 60) * 60000;     // 2 am daylight time
+    return ms >= start && ms < end;
+}
+
 const SPEED_SCALE = { us: [0, 20, 40, 60, 80, 100, 120, 160, 200], metric: [0, 30, 60, 90, 120, 150, 180, 250, 320] };
 /** speed (display unit) -> 0..1 along a scale of evenly spaced labels */
 function scaleFrac(v, marks) {
@@ -721,9 +734,13 @@ class HudApp {
         }
     }
 
-    /** Local time. config.utcOffsetMinutes overrides the unit's own time zone if that turns out wrong on the car. */
+    /**
+     * Local time. config.utcOffsetMinutes overrides the unit's own time zone, which can run on UTC (a 2022 M3 did).
+     * config.usDst adds the US daylight saving hour: second Sunday of March to first Sunday of November, 2 am local.
+     */
     _now() {
-        const off = this.config.utcOffsetMinutes;
+        let off = this.config.utcOffsetMinutes;
+        if (typeof off === 'number' && this.config.usDst && usDstOn(Date.now(), off)) off += 60;
         if (!isNum(off)) return new Date();
         const d = new Date(Date.now() + off * 60000);
         return { getHours: () => d.getUTCHours(), getMinutes: () => d.getUTCMinutes() };
@@ -973,6 +990,7 @@ class HudApp {
             const hexOn = Array.isArray(w.hex) && w.holeWhen && this.setting(w.holeWhen) === true;
             c.uniform(ref, 'u_hex', hexOn ? w.hex.slice(0, 4) : [0, 0, 0, 0]);
             c.uniform(ref, 'u_hexW', hexOn ? w.hex.slice(4, 7) : [0, 0, 0]);
+            c.uniform(ref, 'u_tab', hexOn && Array.isArray(w.tab) ? w.tab : [0, 0, 0, 0]);
             c.uniform(ref, 'u_amber', rgb(color(t, 'arc')));
             c.uniform(ref, 'u_hot', rgb(t.hot));
         }

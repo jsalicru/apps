@@ -953,13 +953,14 @@ void main() {
 `;
 
 const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL ES 1.00): black, a segmented rev sweep along the top
-// of the cluster that follows the hood line, three level bars, and a see-through six-sided map window with a thin frame.
+// of the cluster that follows the hood line, three level bars, and a see-through six-sided map window.
 //   u_arc    y of the sweep's top at the middle, the centre x, the curve's radius, the band's height (target px)
 //   u_span   x at 0 rpm, x at the top of the scale
 //   u_segs   segments in the sweep
 //   u_rpm, u_red  the rpm now and the redline, 0..1 of the scale
 //   u_barA, u_barB, u_barC, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C)
 //   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
+//   u_tab    a rounded tab joined to the window: x, y, w, h (w 0 = none)
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -978,6 +979,7 @@ uniform vec4 u_barC;
 uniform vec3 u_lvl;
 uniform vec4 u_hex;
 uniform vec3 u_hexW;
+uniform vec4 u_tab;
 uniform vec3 u_amber;
 uniform vec3 u_hot;
 
@@ -1042,9 +1044,10 @@ void main() {
         vec2 q = vec2(abs(p.x - u_hex.x), p.y);
         vec2 t = vec2(u_hexW.x, u_hex.y), m = vec2(u_hexW.y, u_hex.z), b = vec2(u_hexW.z, u_hex.w);
         float d = smax(smax(u_hex.y - p.y, p.y - u_hex.w, 16.0), smax(side(q, t, m), side(q, m, b), 40.0), 24.0);
-        // a fine frame, brighter along the top like light on a glass edge
-        float lift = clamp((p.y - u_hex.y) / (u_hex.w - u_hex.y), 0.0, 1.0);
-        c = mix(c, mix(vec3(0.62, 0.63, 0.66), vec3(0.20, 0.21, 0.23), lift), cov(abs(d - 1.5) - 0.7));
+        if (u_tab.z > 0.0) {
+            vec2 hs = u_tab.zw * 0.5, e = abs(p - u_tab.xy - hs) - hs + vec2(14.0);
+            d = min(d, length(max(e, 0.0)) + min(max(e.x, e.y), 0.0) - 14.0);
+        }
         a = clamp(d + 0.5, 0.0, 1.0);
     }
     gl_FragColor = vec4(c, a);
