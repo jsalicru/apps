@@ -24,7 +24,11 @@
         1795
       ],
       "max": 8000,
-      "raceCurve": 1.4748,
+      "revCurves": {
+        "race": 1.4748,
+        "race55": 1.8499,
+        "race60": 2.4094
+      },
       "barA": [
         60,
         473,
@@ -79,7 +83,7 @@
       "holeWhen": "mapWindow"
     },
     {
-      "id": "ne0",
+      "id": "neven_0",
       "type": "text",
       "z": 5,
       "x": 124,
@@ -93,7 +97,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr0",
+      "id": "nrace_0",
       "type": "text",
       "z": 5,
       "x": 124,
@@ -107,7 +111,35 @@
       "toggle": "revScale=race"
     },
     {
-      "id": "ne1",
+      "id": "nrace55_0",
+      "type": "text",
+      "z": 5,
+      "x": 124,
+      "y": 188,
+      "w": 50,
+      "h": 26,
+      "text": "0",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "nrace60_0",
+      "type": "text",
+      "z": 5,
+      "x": 124,
+      "y": 188,
+      "w": 50,
+      "h": 26,
+      "text": "0",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race60"
+    },
+    {
+      "id": "neven_1",
       "type": "text",
       "z": 5,
       "x": 333,
@@ -121,7 +153,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr1",
+      "id": "nrace_1",
       "type": "text",
       "z": 5,
       "x": 202,
@@ -135,7 +167,21 @@
       "toggle": "revScale=race"
     },
     {
-      "id": "ne2",
+      "id": "nrace55_1",
+      "type": "text",
+      "z": 5,
+      "x": 160,
+      "y": 179,
+      "w": 50,
+      "h": 26,
+      "text": "1",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "neven_2",
       "type": "text",
       "z": 5,
       "x": 542,
@@ -149,7 +195,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr2",
+      "id": "nrace_2",
       "type": "text",
       "z": 5,
       "x": 340,
@@ -163,7 +209,35 @@
       "toggle": "revScale=race"
     },
     {
-      "id": "ne3",
+      "id": "nrace55_2",
+      "type": "text",
+      "z": 5,
+      "x": 253,
+      "y": 156,
+      "w": 50,
+      "h": 26,
+      "text": "2",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "nrace60_2",
+      "type": "text",
+      "z": 5,
+      "x": 183,
+      "y": 173,
+      "w": 50,
+      "h": 26,
+      "text": "2",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race60"
+    },
+    {
+      "id": "neven_3",
       "type": "text",
       "z": 5,
       "x": 750,
@@ -177,7 +251,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr3",
+      "id": "nrace_3",
       "type": "text",
       "z": 5,
       "x": 517,
@@ -191,7 +265,35 @@
       "toggle": "revScale=race"
     },
     {
-      "id": "ne4",
+      "id": "nrace55_3",
+      "type": "text",
+      "z": 5,
+      "x": 396,
+      "y": 127,
+      "w": 50,
+      "h": 26,
+      "text": "3",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "nrace60_3",
+      "type": "text",
+      "z": 5,
+      "x": 281,
+      "y": 150,
+      "w": 50,
+      "h": 26,
+      "text": "3",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race60"
+    },
+    {
+      "id": "neven_4",
       "type": "text",
       "z": 5,
       "x": 959,
@@ -205,7 +307,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr4",
+      "id": "nrace_4",
       "type": "text",
       "z": 5,
       "x": 725,
@@ -219,7 +321,35 @@
       "toggle": "revScale=race"
     },
     {
-      "id": "ne5",
+      "id": "nrace55_4",
+      "type": "text",
+      "z": 5,
+      "x": 587,
+      "y": 98,
+      "w": 50,
+      "h": 26,
+      "text": "4",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "nrace60_4",
+      "type": "text",
+      "z": 5,
+      "x": 438,
+      "y": 119,
+      "w": 50,
+      "h": 26,
+      "text": "4",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race60"
+    },
+    {
+      "id": "neven_5",
       "type": "text",
       "z": 5,
       "x": 1168,
@@ -233,7 +363,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr5",
+      "id": "nrace_5",
       "type": "text",
       "z": 5,
       "x": 959,
@@ -247,7 +377,35 @@
       "toggle": "revScale=race"
     },
     {
-      "id": "ne6",
+      "id": "nrace55_5",
+      "type": "text",
+      "z": 5,
+      "x": 824,
+      "y": 80,
+      "w": 50,
+      "h": 26,
+      "text": "5",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "nrace60_5",
+      "type": "text",
+      "z": 5,
+      "x": 662,
+      "y": 90,
+      "w": 50,
+      "h": 26,
+      "text": "5",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race60"
+    },
+    {
+      "id": "neven_6",
       "type": "text",
       "z": 5,
       "x": 1376,
@@ -261,7 +419,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr6",
+      "id": "nrace_6",
       "type": "text",
       "z": 5,
       "x": 1217,
@@ -275,7 +433,35 @@
       "toggle": "revScale=race"
     },
     {
-      "id": "ne7",
+      "id": "nrace55_6",
+      "type": "text",
+      "z": 5,
+      "x": 1105,
+      "y": 83,
+      "w": 50,
+      "h": 26,
+      "text": "6",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "nrace60_6",
+      "type": "text",
+      "z": 5,
+      "x": 959,
+      "y": 78,
+      "w": 50,
+      "h": 26,
+      "text": "6",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race60"
+    },
+    {
+      "id": "neven_7",
       "type": "text",
       "z": 5,
       "x": 1585,
@@ -289,7 +475,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr7",
+      "id": "nrace_7",
       "type": "text",
       "z": 5,
       "x": 1495,
@@ -303,7 +489,35 @@
       "toggle": "revScale=race"
     },
     {
-      "id": "ne8",
+      "id": "nrace55_7",
+      "type": "text",
+      "z": 5,
+      "x": 1428,
+      "y": 119,
+      "w": 50,
+      "h": 26,
+      "text": "7",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "nrace60_7",
+      "type": "text",
+      "z": 5,
+      "x": 1335,
+      "y": 105,
+      "w": 50,
+      "h": 26,
+      "text": "7",
+      "font": "t_mini",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race60"
+    },
+    {
+      "id": "neven_8",
       "type": "text",
       "z": 5,
       "x": 1794,
@@ -317,7 +531,7 @@
       "toggle": "revScale=even"
     },
     {
-      "id": "nr8",
+      "id": "nrace_8",
       "type": "text",
       "z": 5,
       "x": 1794,
@@ -329,6 +543,34 @@
       "color": "hot",
       "align": "center",
       "toggle": "revScale=race"
+    },
+    {
+      "id": "nrace55_8",
+      "type": "text",
+      "z": 5,
+      "x": 1794,
+      "y": 202,
+      "w": 50,
+      "h": 26,
+      "text": "8",
+      "font": "t_mini",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=race55"
+    },
+    {
+      "id": "nrace60_8",
+      "type": "text",
+      "z": 5,
+      "x": 1794,
+      "y": 202,
+      "w": 50,
+      "h": 26,
+      "text": "8",
+      "font": "t_mini",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=race60"
     },
     {
       "id": "speed_hero",

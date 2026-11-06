@@ -11,7 +11,8 @@ ARC = [10, 960, 2985, 58]      # y of the top at the middle, centre x, curve rad
 SPAN = [125, 1795]             # x at 0 rpm, x at 8000
 HEX = [963, 141, 341, 580, 302, 438, 357]   # centre x, y top, widest, bottom; half widths at top, widest, bottom
 TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for two, for three, height: BMW's speed, right-aligned at about x 630, stops above its line
-RACE_CURVE = math.log(0.5) / math.log(5 / 8)   # the race scale: 5000 to 8000 rpm takes exactly half the band
+# the race scales: the band's middle is at this rpm, and each thousand gets wider towards the top
+REV_CURVES = {name: math.log(0.5) / math.log(rpm / 8000) for name, rpm in (('race', 5000), ('race55', 5500), ('race60', 6000))}
 BAR_A = [60, 473, 320, 13]   # oil
 BAR_C = [60, 553, 320, 13]   # boost
 BAR_B = [60, 633, 320, 13]   # fuel
@@ -33,14 +34,16 @@ def bottom(x):
     return ARC[0] + dx * dx / (2 * ARC[2]) + ARC[3]
 
 
-widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, raceCurve=round(RACE_CURVE, 4),
+widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, revCurves={k: round(v, 4) for k, v in REV_CURVES.items()},
                 barA=BAR_A, signalA='oil', rangeA=[50, 150], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
                 hex=HEX, tab=TAB, holeWhen='mapWindow')]
 for i in range(9):
-    for name, curve in (('even', 1), ('race', RACE_CURVE)):
+    for name, curve in [('even', 1)] + list(REV_CURVES.items()):
         x = SPAN[0] + (SPAN[1] - SPAN[0]) * (i / 8) ** curve
-        widgets.append(text('n%s%d' % (name[0], i), x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center',
+        if i == 1 and x - SPAN[0] < 25:   # no room for the 1 next to the 0
+            continue
+        widgets.append(text('n%s_%d' % (name, i), x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center',
                             toggle='revScale=' + name))
 widgets += [
     # no speed of ours with the map on: in Map view BMW's own speed shows in the map window

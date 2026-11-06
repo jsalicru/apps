@@ -1020,7 +1020,9 @@ void main() {
         float v = pow(sc, 1.0 / u_curve);                      // the rpm (0..1) at this point of the band
         float width = span / (u_segs * (1.0 / u_curve) * pow(sc, 1.0 / u_curve - 1.0));   // this segment's width in px
         float f = fract(v * u_segs);
-        float seg = cov((abs(f - 0.47) - 0.40) * width) * cov(-dy) * cov(dy - h) * cov(-along) * cov((s - 1.0) * span);
+        float band = cov(-dy) * cov(dy - h) * cov(-along) * cov((s - 1.0) * span);
+        // segments too narrow to show their gaps merge into a solid strip
+        float seg = band * mix(1.0, cov((abs(f - 0.47) - 0.40) * width), smoothstep(3.0, 7.0, width));
         float mid = (floor(v * u_segs) + 0.5) / u_segs;
         bool on = mid < rpm;
         bool hot = mid >= u_red;
