@@ -15,6 +15,9 @@ TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for tw
 REV_CURVES = {name: math.log(0.5) / math.log(rpm / 8000) for name, rpm in (('race', 5000), ('race55', 5500))}
 BAR_C = [60, 553, 320, 13]     # boost, left
 BAR_B = [60, 633, 320, 13]     # fuel, left
+# BMW's gear letter in its bottom strip, measured from 2022 M3 photos (Nov 2026, about +-15 px): left open, since BMW draws a
+# black box of its own while a theme covers that letter (bimmer-lab/apps issue #5, found on an X3)
+GEAR_GAP = [1405, 650, 125, 70]
 BAR_A = [1540, 553, 320, 13]   # oil, right
 BAR_D = [1540, 633, 320, 13]   # water, right
 # with the map off the gauges take the room: a thicker sweep (shorter, so its slanted end clears BMW's PARK light) and wide bars
@@ -55,7 +58,7 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
                 barD=BAR_D, signalD='coolant', rangeD=[f_to_c(100), f_to_c(260)],
                 zonesD=[dict(signal='coolant', above=f_to_c(230), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
                 coldLimit=[f_to_c(120), f_to_c(160), 4000], yellowLines=2, waveFrom=6000,
-                hex=HEX, tab=TAB, holeWhen='mapWindow',
+                hex=HEX, tab=TAB, holeWhen='mapWindow', gearGap=GEAR_GAP,
                 noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D))]
 for i in range(9):
     for name, curve in [('even', 1)] + list(REV_CURVES.items()):

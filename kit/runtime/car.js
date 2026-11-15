@@ -3,7 +3,8 @@
  * car.js - the common driving signals, scaled, with demo fallback.
  *
  *   const car = new Car(ctx, ['rpm', 'speed', 'accel', 'temps', 'gear', 'torque'], extra);
- *   extra (optional) = { iface: { field: fn } }, more fields on the same watches (one proxy per interface)
+ *   extra (optional) = { iface: { field: fn } }, more fields on the same watches (one proxy per interface);
+ *   a "$pollMs" number in an interface's object re-reads its fields that often (for fields the car never notifies)
  *   car.setRedline(rpm) -> the demo drive revs to this rpm (default 7000)
  *   car.data()      -> { rpm, speed, gLong, gLat, coolant, oil, gear, torque, demo }
  *   car.onSample(fn)-> fn(data, tMs) on every new speed/rpm/accel sample (also in demo, 20 Hz)
@@ -11,7 +12,7 @@
  * Scalings are BMW's own (M Laptimer TypeConverters); an app's app.json
  * "config.scaling" entries override them. The app's app.json "signals" must
  * list the interfaces (see SIGNALS below for the exact entries).
- * Demo: setting "demo" = auto (until the car answers) / on / off.
+ * Demo: setting "demo" = auto (until the car answers) / on (until the car itself drives over 5 km/h) / off.
  * data().stage = the selector position 'P' / 'R' / 'N' / 'D' (gearbox signal), else undefined.
  * data().condition = BMW's vehicle state number ('condition' group; 10 = drive-ready), else undefined.
  */
@@ -32,6 +33,23 @@ const gearOf = (x) => (typeof x === 'number' ? (x >= 3 && x <= 12 ? x - 2 : x ==
 // the gear field alone can't tell P from N (both N_OR_P)
 const STAGES = { P: 'P', R: 'R', N: 'N', D: 'D', 1: 'P', 2: 'R', 3: 'N', 4: 'D' };
 const stageOf = (x) => STAGES[x];
+/**
+ * The shifter programme (D / S / M) from the gearbox status, when the car puts one there: field names differ
+ * between cars, so every selector-like field is looked at, enum names or on/off flags (after
+ * cauliflowermossgrape's car_vitals, MIT). 'D' when nothing says S or M.
+ */
+function programOf(o) {
+    for (const k of Object.keys(o || {})) {
+        if (k === 'statusActualGearDrive' || /StageDrive/.test(k) || !/select|lever|position|program|mode|range|manual|sport|tip/i.test(k)) continue;
+        const v = o[k];
+        if (v === true || v === 1) { if (/manual|tip/i.test(k)) return 'M'; if (/sport/i.test(k)) return 'S'; continue; }
+        const x = String(v).toUpperCase();
+        if (/NOT|INACTIVE|INVALID|SIGNAL|UNKNOWN|OFF|NO_/.test(x)) continue;
+        if (/MANU|TIPP|^M$|^M_|_M$|^M\d/.test(x)) return 'M';
+        if (/SPORT|^S$|_S$|^DS$/.test(x)) return 'S';
+    }
+    return 'D';
+}
 // VehicleCondition.statusConditionVehicle (BMW's vehicle state): names or wire numbers -> number.
 // 5 = WOHNEN (living, no ignition), 7 = PRUEFEN_ANALYSE_DIAGNOSE (ignition on), 8 = drive
 // readiness starting, 10 = FAHREN (drive-ready / READY, also with the engine off on a hybrid),
@@ -117,6 +135,7 @@ class Car {
             add('de.bmw.infrastructure.VehicleInformation', 'statusGearboxDrive', (v) => {
                 const g = gearOf(v.statusActualGearDrive), s = stageOf(v.statusActualStageDrive);
                 if (s !== undefined) put('stage', s);
+                put('program', programOf(v));
                 if (g !== undefined) put('gear', g);
             });
             const selSeen = [];
@@ -131,12 +150,14 @@ class Car {
         if (groups.includes('condition')) add('de.bmw.infrastructure.VehicleCondition', 'VehicleCondition', (v) => put('condition', conditionOf(v && v.statusConditionVehicle)));
         // negative torque (engine braking while the rpm falls) counts as 0
         if (groups.includes('torque')) add('de.bmw.infotainment.drivingexcitement.FES', 'statusActualValueTorque2', (v) => { const tq = sc('torque', v.actualValueTorqueCrankshaft); put('torque', tq === null ? null : Math.max(0, tq)); });
-        Object.keys(extra || {}).forEach((iface) => Object.keys(extra[iface]).forEach((f) => add(iface, f, extra[iface][f])));
+        // extra[iface].$pollMs: re-read that interface's fields that often (signals.js), for fields the car never notifies
+        const pollMs = {};
+        Object.keys(extra || {}).forEach((iface) => Object.keys(extra[iface]).forEach((f) => { if (f === '$pollMs') pollMs[iface] = extra[iface][f]; else add(iface, f, extra[iface][f]); }));
         // a parked car sends nothing new for minutes (fields are notified on change), so "no data for
         // a while" doesn't mean "no car": once a signal's provider is there, stay on live data
         this.subs = [];
         this.t0 = Date.now();
-        Object.keys(watches).forEach((iface) => ctx.signals.watch(iface, '1', watches[iface], this.log)
+        Object.keys(watches).forEach((iface) => ctx.signals.watch(iface, '1', watches[iface], this.log, pollMs[iface] ? { pollMs: pollMs[iface] } : undefined)
             .then((s) => { this.subs.push(s); this.log.info('signal ' + iface.split('.').pop() + (s.error ? ' error: ' + s.error : ' subscribed')); }));
 
         // demo feed (20 Hz) - also keeps the sim warm so switching is seamless. On a busy or
@@ -161,7 +182,11 @@ class Car {
 
     _wantDemo() {
         const m = this.ctx.settings.get('demo');
-        return m === 'on' || (m !== 'off' && !this.carPresent() && Date.now() - this.t0 > 5000);
+        // "On" gives way to the car's own data for good once the car itself drives (over 5 km/h): never a made-up
+        // speed while driving, not even at the next red light. Set it again (parked) to bring the demo back.
+        if (m !== this.demoMode) { this.demoMode = m; this.drove = false; }
+        if (this.live.speed > 5) this.drove = true;
+        return (m === 'on' && !this.drove) || (m !== 'off' && m !== 'on' && !this.carPresent() && Date.now() - this.t0 > 5000);
     }
 
     data() {

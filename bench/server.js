@@ -36,17 +36,25 @@ const { fork, execFileSync } = require('child_process');
 // What the driver sees of each target (hood curve, BMW's gear box and belt light, the HUD window):
 // one source of truth, shared with the app's layout check. The page gets it in the 'hello' event.
 const visible = require('../shared/visible');
+// what each effect shader asks of the KOMBI's GPU against shaders that ran or failed on cars (tools/shader_budget.js)
+const shaderBudget = require('../tools/shader_budget');
 
 const PORT = Number(process.env.BENCH_PORT) || 8078;
 // BENCH_LAYER_CAP: the car seems to draw only an app's first 8 layers (photos, Nov 5 2026).
 // 0 = unlimited. Layers past the cap get state 'waiting' and are not drawn. POST /cap sets it live.
 let layerCap = Math.max(0, Number(process.env.BENCH_LAYER_CAP) || 0);
+// BENCH_STALL_MS: an image layer reports "stalled" (no content yet, as cluster-render does until its first pixels are
+// uploaded) for this long after it is made, then "shown". 0 (default) = shown at once.
+const STALL_MS = Math.max(0, Number(process.env.BENCH_STALL_MS) || 0);
 // The service's other two limits, always on (CompositorLimits): 32 layers across every connection, and 16 MiB of
 // pixel memory for every image together, each image counted twice (Compositor::add_image), refused with the
 // service's own words "the service's pixel memory is full". BENCH_PIXEL_MIB overrides the 16 (0 = unlimited).
 const TOTAL_LAYERS = 32;
 const PIXEL_BYTES = (process.env.BENCH_PIXEL_MIB === undefined ? 16 : Math.max(0, Number(process.env.BENCH_PIXEL_MIB) || 0)) * 1024 * 1024;
-function pixelBytes() { let n = 0; layers.forEach((l) => { if (l.image) n += l.iw * l.ih * 8; }); return n; }
+// the service's accounting: an image or asset costs its bytes twice (compositor.cpp: the pixels and a rectangle scratch)
+function pixelBytes() { let n = 0; layers.forEach((l) => { if (l.image) n += l.iw * l.ih * (l.bpp || 4) * 2; }); return n; }
+function layerCount() { let n = 0; layers.forEach((l) => { if (l.kind !== 'asset') n++; }); return n; }
+const TOTAL_ASSETS = 32, ASSETS_PER_CLIENT = 16;   // CompositorLimits assets / assets_per_client
 const mib = (b) => (b / 1048576).toFixed(1) + ' MiB';
 const SOCK = path.join(os.tmpdir(), 'hud-bench-' + process.pid + '.sock');
 const ROOT = path.join(__dirname, '..');
@@ -97,13 +105,14 @@ function sceneMeta() {
     return Array.from(layers.values()).map((l) => ({
         key: l.key, conn: l.conn, ref: l.ref, app: l.app, kind: l.kind, target: l.target,
         class: l.class, z: l.z, x: l.x, y: l.y, w: l.w, h: l.h, visible: l.visible, opacity: l.opacity,
-        exclusive: l.exclusive, iw: l.iw, ih: l.ih, fs: l.fs, time: l.time, uniforms: l.uniforms,
-        state: l.state, reason: l.reason, warnings: layerWarnings(l),
+        sx: l.sx, sy: l.sy, px: l.px, py: l.py, rotate: l.rotate,
+        exclusive: l.exclusive, iw: l.iw, ih: l.ih, fs: l.fs, time: l.time, uniforms: l.uniforms, binds: l.binds, format: l.format,
+        state: l.state, reason: l.reason, warnings: l.kind === 'asset' ? [] : layerWarnings(l),
     }));
 }
 function helloMsg() {
     return { t: 'hello', targets: TARGETS, view: appView(), app: APP_ID, cap: layerCap, pixelCap: PIXEL_BYTES,
-        geometry: { HOOD: visible.HOOD, BLACK_BOX: visible.BLACK_BOX, BELT: visible.BELT, HUD_WINDOW: visible.HUD_WINDOW } };
+        geometry: { HOOD: visible.HOOD, BELT: visible.BELT, HUD_WINDOW: visible.HUD_WINDOW, HUD_BMW: visible.HUD_BMW, CAMERA: visible.CAMERA } };
 }
 let sceneTimer = null;
 function sceneChanged() {
@@ -125,6 +134,17 @@ function pixelRect(q) {
     const l = layers.get(q.key);
     const x = Number(q.x), y = Number(q.y), w = Number(q.w), h = Number(q.h);
     if (!l || !l.image || !(w > 0 && h > 0 && x >= 0 && y >= 0 && x + w <= l.iw && y + h <= l.ih)) return null;
+    if (l.bpp === 1) {
+        // an R8 asset: the page gets it as RGBA, the byte in R (what a shader's .r reads) and A, grey in G and B
+        const out = Buffer.alloc(w * h * 4);
+        for (let r = 0; r < h; r++) {
+            for (let i = 0; i < w; i++) {
+                const v = l.image[(y + r) * l.iw + x + i], o = (r * w + i) * 4;
+                out[o] = v; out[o + 1] = v; out[o + 2] = v; out[o + 3] = v;
+            }
+        }
+        return out;
+    }
     if (x === 0 && w === l.iw) return l.image.slice(y * l.iw * 4, (y + h) * l.iw * 4);
     const out = Buffer.alloc(w * h * 4);
     for (let r = 0; r < h; r++) l.image.copy(out, r * w * 4, ((y + r) * l.iw + x) * 4, ((y + r) * l.iw + x + w) * 4);
@@ -196,7 +216,7 @@ const renderServer = net.createServer((sock) => {
                 if (m.class && CLASSES.indexOf(m.class) < 0) return refuse('layer', m.ref, 'unknown class ' + m.class);
                 if (m.z !== undefined && (m.z < -1000 || m.z > 1000)) return refuse('layer', m.ref, 'z out of -1000..1000');
                 const [tw, th] = TARGETS[m.target];
-                if (layers.size >= TOTAL_LAYERS) return refuse('layer', m.ref, 'too many layers');
+                if (layerCount() >= TOTAL_LAYERS) return refuse('layer', m.ref, 'too many layers');
                 if (m.kind === 'image' && PIXEL_BYTES && m.iw > 0 && m.ih > 0 && pixelBytes() + m.iw * m.ih * 8 > PIXEL_BYTES) {
                     return refuse('layer', m.ref, "the service's pixel memory is full");
                 }
@@ -206,11 +226,13 @@ const renderServer = net.createServer((sock) => {
                     visible: m.visible === undefined ? 1 : m.visible, opacity: m.opacity === undefined ? 1 : m.opacity,
                     exclusive: m.exclusive || 0, uniforms: {}, state: 'shown', reason: '',
                 };
+                // scale / rotation about the pivot (PROTOCOL.md: sx, sy default 1; px, py default the rect's centre)
+                ['sx', 'sy', 'px', 'py', 'rotate'].forEach((k) => { if (m[k] !== undefined) nl[k] = m[k]; });
                 // The layer cap: count this connection's live layers that got a slot; past the cap, the
                 // layer is registered (so set/uniform/frames on it stay valid) but waits and is not drawn.
                 if (layerCap > 0) {
                     let shown = 0, live = 0;
-                    layers.forEach((o) => { if (o.conn === conn) { live++; if (o.state === 'shown') shown++; } });
+                    layers.forEach((o) => { if (o.conn === conn && o.kind !== 'asset') { live++; if (o.state === 'shown') shown++; } });
                     if (shown >= layerCap) {
                         nl.state = 'waiting'; nl.reason = 'bench: over the layer cap of ' + layerCap;
                         log('warn', 'layer ' + m.ref + ' (' + m.kind + ' ' + nl.x + ',' + nl.y + ' ' + nl.w + 'x' + nl.h + ') is live layer #' + (live + 1) + ' on this connection: over the layer cap of ' + layerCap + ', not drawn');
@@ -221,29 +243,72 @@ const renderServer = net.createServer((sock) => {
                 }
                 if (nl.exclusive) log('warn', 'layer ' + m.ref + ' is exclusive: it hides everything under it (CarPlay/AA map too)');
                 if (m.kind === 'image') {
-                    nl.iw = m.iw; nl.ih = m.ih;
+                    nl.iw = m.iw; nl.ih = m.ih; nl.bpp = 4;
                     if (!(m.iw > 0 && m.ih > 0 && m.iw <= 1920 && m.ih <= 720)) return refuse('layer', m.ref, 'image iw/ih out of range');
                     nl.image = Buffer.alloc(m.iw * m.ih * 4);
                 } else if (m.kind === 'effect') {
                     if (!m.fs) return refuse('layer', m.ref, 'effect without fs');
-                    nl.fs = m.fs; nl.time = !!m.time;
+                    nl.fs = m.fs; nl.time = !!m.time; nl.binds = {};
+                    try {
+                        const b = shaderBudget.layer(m.fs, nl.w, nl.h, m.target);
+                        if (b.level !== 'ok') log('warn', 'layer ' + m.ref + ' (effect ' + nl.w + 'x' + nl.h + ') shader budget: ' + b.text);
+                    } catch (e) { log('warn', 'layer ' + m.ref + ': shader budget check failed: ' + e.message); }
                 } else {
                     log('warn', 'layer ' + m.ref + ': kind ' + m.kind + ' is not drawn by the bench');
                 }
                 layers.set(key, nl);   // its visibility warnings (hood, gear box, belt light, HUD window) ride along in sceneMeta()
                 if (nl.state === 'waiting') writeEv(sock, { ev: 'layer', ref: m.ref, state: 'waiting', reason: nl.reason });
-                else writeEv(sock, { ev: 'layer', ref: m.ref, state: 'shown' });
+                else if (STALL_MS && m.kind === 'image') {
+                    writeEv(sock, { ev: 'layer', ref: m.ref, state: 'stalled', reason: 'bench: no frame yet' });
+                    setTimeout(() => { if (layers.get(key) === nl && !sock.destroyed) writeEv(sock, { ev: 'layer', ref: m.ref, state: 'shown' }); }, STALL_MS);
+                } else writeEv(sock, { ev: 'layer', ref: m.ref, state: 'shown' });
+                sceneChanged();
+                return;
+            }
+            case 'asset': {
+                // PROTOCOL.md "asset": an R8 or RGBA8 texture, not drawn, not a layer; effect layers sample it through "bind".
+                // The service's limits: 32 assets, 16 per client, 1..2048 a side, within one frame message; pixel memory twice its bytes.
+                if (!TARGETS[m.target]) return refuse('asset', m.ref, 'unknown target ' + m.target);
+                const format = m.format || 'rgba8', bpp = format === 'r8' ? 1 : format === 'rgba8' ? 4 : 0;
+                if (!bpp) return refuse('asset', m.ref, 'unknown asset format ' + format);
+                if (!(m.w > 0 && m.h > 0 && m.w <= 2048 && m.h <= 2048 && m.w * m.h * bpp + 64 <= 1920 * 720 * 4 + 64)) return refuse('asset', m.ref, 'asset size out of range');
+                let all = 0, mine = 0;
+                layers.forEach((o) => { if (o.kind === 'asset') { all++; if (o.conn === conn) mine++; } });
+                if (all >= TOTAL_ASSETS || mine >= ASSETS_PER_CLIENT) return refuse('asset', m.ref, 'too many assets');
+                if (PIXEL_BYTES && pixelBytes() + m.w * m.h * bpp * 2 > PIXEL_BYTES) return refuse('asset', m.ref, "the service's pixel memory is full");
+                layers.set(key, {
+                    key, conn, ref: m.ref, app: st.app, kind: 'asset', target: m.target, format, bpp, class: '-', z: 0,
+                    x: 0, y: 0, w: m.w, h: m.h, iw: m.w, ih: m.h, visible: 0, opacity: 1, exclusive: 0, uniforms: {},
+                    image: Buffer.alloc(m.w * m.h * bpp), state: 'shown', reason: '',
+                });
+                log('info', 'asset ' + m.ref + ': ' + format + ' ' + m.w + 'x' + m.h + ' (' + mib(m.w * m.h * bpp * 2) + ' of pixel memory)');
+                writeEv(sock, { ev: 'layer', ref: m.ref, state: 'shown' });
+                sceneChanged();
+                return;
+            }
+            case 'bind': {
+                if (!l) return refuse('bind', m.ref, 'no such layer');
+                if (l.kind !== 'effect') return refuse('bind', m.ref, 'bind on a ' + l.kind + ' layer');
+                const a = layers.get(conn + ':' + m.asset);
+                if (!a || a.kind !== 'asset') return refuse('bind', m.ref, 'no such asset ' + m.asset);
+                if (a.target !== l.target) return refuse('bind', m.ref, 'the asset is on another target');
+                l.binds[m.sampler] = a.key;
                 sceneChanged();
                 return;
             }
             case 'set': {
                 if (!l) return refuse('set', m.ref, 'no such layer');
-                ['class', 'z', 'x', 'y', 'w', 'h', 'visible', 'exclusive', 'opacity'].forEach((k) => { if (m[k] !== undefined) l[k] = m[k]; });
+                ['class', 'z', 'x', 'y', 'w', 'h', 'visible', 'exclusive', 'opacity', 'sx', 'sy', 'px', 'py', 'rotate'].forEach((k) => { if (m[k] !== undefined) l[k] = m[k]; });
                 sceneChanged();
                 return;
             }
             case 'drop': {
                 if (!l) return refuse('drop', m.ref, 'no such layer');
+                if (l.kind === 'asset') {
+                    let used = false;
+                    layers.forEach((o) => { if (o.binds && Object.keys(o.binds).some((s) => o.binds[s] === key)) used = true; });
+                    if (used) return refuse('drop', m.ref, 'asset in use');
+                }
                 layers.delete(key);
                 sceneChanged();
                 return;
@@ -266,7 +331,8 @@ const renderServer = net.createServer((sock) => {
             }
             case 'status':
                 const conns = new Set(Array.from(layers.values()).map((l) => l.conn)).size;
-                writeEv(sock, { ev: 'status', text: 'bench: ' + layers.size + ' layers on ' + conns + ' connection(s), layer cap ' + (layerCap || 'off') + ', ' + overCap() + ' over it, pixel memory ' + mib(pixelBytes()) + ' of ' + (PIXEL_BYTES ? mib(PIXEL_BYTES) : 'unlimited') });
+                const assets = layers.size - layerCount();
+                writeEv(sock, { ev: 'status', text: 'bench: ' + layerCount() + ' layers' + (assets ? ' and ' + assets + ' asset' + (assets > 1 ? 's' : '') : '') + ' on ' + conns + ' connection(s), layer cap ' + (layerCap || 'off') + ', ' + overCap() + ' over it, pixel memory ' + mib(pixelBytes()) + ' of ' + (PIXEL_BYTES ? mib(PIXEL_BYTES) : 'unlimited') });
                 return;
             default:
                 bad('op "' + m.op + '" not handled by the bench');
@@ -279,8 +345,8 @@ const renderServer = net.createServer((sock) => {
         const n = body.readUInt16LE(12);
         const l = layers.get(conn + ':' + ref);
         if (!l) return bad('frame for unknown ref ' + ref);
-        if (l.kind !== 'image') return bad('frame for a ' + l.kind + ' layer (ref ' + ref + ')');
-        const head = 14 + n * 8;
+        if (l.kind !== 'image' && l.kind !== 'asset') return bad('frame for a ' + l.kind + ' layer (ref ' + ref + ')');
+        const head = 14 + n * 8, bpp = l.bpp || 4;
         const px = body.slice(head);
         if (n === 0) {
             if (px.length !== l.image.length) return bad('whole frame for ref ' + ref + ' is ' + px.length + ' bytes, layer needs ' + l.image.length);
@@ -292,7 +358,7 @@ const renderServer = net.createServer((sock) => {
                 const x = body.readUInt16LE(14 + i * 8), y = body.readUInt16LE(16 + i * 8);
                 const w = body.readUInt16LE(18 + i * 8), h = body.readUInt16LE(20 + i * 8);
                 if (x + w > l.iw || y + h > l.ih) return bad('dirty rect off the image on ref ' + ref);
-                for (let r = 0; r < h; r++) { px.copy(l.image, ((y + r) * l.iw + x) * 4, o, o + w * 4); o += w * 4; }
+                for (let r = 0; r < h; r++) { px.copy(l.image, ((y + r) * l.iw + x) * bpp, o, o + w * bpp); o += w * bpp; }
                 rects.push([x, y, w, h]);
             }
             if (o !== px.length) return bad('dirty rects for ref ' + ref + ' carry ' + px.length + ' bytes, expected ' + o);
@@ -307,7 +373,8 @@ const renderServer = net.createServer((sock) => {
 
 let child = null;
 let signals = { t: 'signals', mode: 'demo', values: {} };
-let drive = { t: 'drive', value: null };   // the drive mode buttons (FES actualValueModeDrivingExperience), null = car hasn't said
+let drive = { t: 'drive', value: null };
+let fakeNav = null;                         // the fake route (POST /nav, fake-nav.js), replayed to a restarted app   // the drive mode buttons (FES actualValueModeDrivingExperience), null = car hasn't said
 let restartTimer = null;
 let stopping = false;
 
@@ -338,6 +405,7 @@ function startApp() {
     child = fork(path.join(__dirname, 'run-app.js'), [STAGE, DATA_DIR], opts);
     const c = child;
     if (drive.value !== null) c.send(drive);
+    if (fakeNav) c.send(fakeNav);
     const pipe = (stream, level) => {
         let rest = '';
         stream.on('data', (d) => {
@@ -434,6 +502,29 @@ const web = http.createServer(async (req, res) => {
         drive = { t: 'drive', value: b.value === null || b.value === undefined ? null : b.value };
         if (child) child.send(drive);
         log('info', 'bench: drive mode ' + JSON.stringify(drive.value));
+        res.writeHead(204); return res.end();
+    }
+    if (req.method === 'POST' && url === '/shift-test') {
+        // the page's "Test the shift lights" button (hud.testShift)
+        if (!child) { res.writeHead(409); return res.end('app not running'); }
+        child.send({ t: 'shiftTest' });
+        log('info', 'bench: shift-light test');
+        res.writeHead(204); return res.end();
+    }
+    if (req.method === 'POST' && url === '/nav') {
+        // a fake route for the HUD's directions (fake-nav.js): turn, roundabout, lanes, then, uturn, off
+        const b = await body(req);
+        fakeNav = { t: 'nav', scenario: String(b.scenario || 'off') };
+        if (child) child.send(fakeNav);
+        log('info', 'bench: directions ' + fakeNav.scenario);
+        res.writeHead(204); return res.end();
+    }
+    if (req.method === 'POST' && url === '/demo') {
+        // the page's "Play demo" / "Stop demo" button (hud.playDemo / hud.stopDemo); body { play: true | false, at: ms into the show }
+        const b = await body(req);
+        if (!child) { res.writeHead(409); return res.end('app not running'); }
+        child.send({ t: 'demo', play: b.play !== false, at: Number(b.at) || 0 });
+        log('info', 'bench: ' + (b.play !== false ? 'play' : 'stop') + ' the demo');
         res.writeHead(204); return res.end();
     }
     if (req.method === 'POST' && url === '/restart') {
