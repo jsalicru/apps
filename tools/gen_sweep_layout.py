@@ -70,9 +70,9 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
                 zonesA=[dict(signal='oil', above=f_to_c(250), color='hot'), dict(signal='oil', above=f_to_c(235), color='warn'),
                         dict(signal='oil', below=f_to_c(150), color='cold')],
                 zoneMarks=True,
-                # the lower-left bar can show the intake air instead (leftBar setting): 40 to 208 F in 24 segments of 7 F,
+                # the lower-left bar can show the intake air instead (intakeBar setting): 40 to 208 F in 24 segments of 7 F,
                 # so the last 4 start at 180, red above 180 with the hot bracket, and no cold zone
-                altB=dict(key='leftBar', intake=dict(signal='intake', range=[f_to_c(40), f_to_c(208)], hotMarks=True,
+                altB=dict(key='intakeBar', true=dict(signal='intake', range=[f_to_c(40), f_to_c(208)], hotMarks=True,
                                                      zones=[dict(signal='intake', above=f_to_c(180), color='hot')])),
                 zonesB=[dict(signal='range', below=round(50 * 1.609344, 2), color='low')],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
@@ -106,13 +106,8 @@ widgets += [
     text('gear_mid', 960, 382, 160, '{{gear}}', 'u_gearsm', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
     text('speed_mid', 960, 505, 300, '{{speed}}', 'u_speed', align='center', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
     text('mid_unit', 960, 590, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow&sweepCenter=tach'),
-    # intake air after the intercooler (OBD PID 0x77, app.json config.dme.intake), bottom left, mirroring the outside temperature
-    # with the lower-left bar on intake air, the fuel range takes this spot instead
-    text('iat_label', 60, 682, 60, 'IAT', 't_label', 'dim', toggle='!leftBar=intake'),
-    text('iat', 160, 682, 80, '{{intake}}', 't_label', align='right', toggle='!leftBar=intake'),
-    text('iat_unit', 165, 682, 40, '{{u:temp}}', 't_label', 'dim', toggle='!leftBar=intake'),
     # miles to empty, bold and yellow under 60 miles (the car sends km)
-    text('rng', 60, 682, 200, '{{range}} {{u:distLc}}', 't_label', align='left', toggle='leftBar=intake',
+    text('rng', 60, 682, 200, '{{range}} {{u:distLc}}', 't_label', align='left', toggle='intakeBar',
          lowWhen=dict(signal='range', below=round(60 * 1.609344, 2), color='low', font='u_bold')),
     text('ambient', 1820, 682, 100, '{{ambient}}', 't_label', align='right'),
     text('ambient_unit', 1825, 682, 40, '{{u:temp}}', 't_label', 'dim'),
@@ -120,8 +115,8 @@ widgets += [
 ]
 for id, label, val, unit, small, big, cond in (
         ('boost', 'BOOST', '{{boost}}', '{{u:boost}}', (60, 530), (60, 460), 'showBoost'),
-        ('fuel', 'FUEL', '{{range}}', '{{u:distLc}}', (60, 610), (60, 575), '!leftBar=intake'),
-        ('intake', 'INTAKE', '{{intake}}', '{{u:temp}}', (60, 610), (60, 575), 'leftBar=intake'),
+        ('fuel', 'FUEL', '{{range}}', '{{u:distLc}}', (60, 610), (60, 575), '!intakeBar'),
+        ('intake', 'INTAKE', '{{intake}}', '{{u:temp}}', (60, 610), (60, 575), 'intakeBar'),
         ('oil', 'OIL', '{{oil}}', '{{u:temp}}', (1540, 530), (1300, 460), None),
         ('water', 'WATER', '{{coolant}}', '{{u:temp}}', (1540, 610), (1300, 575), None)):
     on = lambda m: dict(toggle=cond, toggle2=m) if cond else dict(toggle=m)

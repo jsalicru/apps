@@ -71,8 +71,8 @@
       ],
       "zoneMarks": true,
       "altB": {
-        "key": "leftBar",
-        "intake": {
+        "key": "intakeBar",
+        "true": {
           "signal": "intake",
           "range": [
             4.44,
@@ -1560,48 +1560,6 @@
       "toggle": "!mapWindow&sweepCenter=tach"
     },
     {
-      "id": "iat_label",
-      "type": "text",
-      "z": 5,
-      "x": 60,
-      "y": 664,
-      "w": 60,
-      "h": 35,
-      "text": "IAT",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left",
-      "toggle": "!leftBar=intake"
-    },
-    {
-      "id": "iat",
-      "type": "text",
-      "z": 5,
-      "x": 80,
-      "y": 664,
-      "w": 80,
-      "h": 35,
-      "text": "{{intake}}",
-      "font": "t_label",
-      "color": "fg",
-      "align": "right",
-      "toggle": "!leftBar=intake"
-    },
-    {
-      "id": "iat_unit",
-      "type": "text",
-      "z": 5,
-      "x": 165,
-      "y": 664,
-      "w": 40,
-      "h": 35,
-      "text": "{{u:temp}}",
-      "font": "t_label",
-      "color": "dim",
-      "align": "left",
-      "toggle": "!leftBar=intake"
-    },
-    {
       "id": "rng",
       "type": "text",
       "z": 5,
@@ -1613,7 +1571,7 @@
       "font": "t_label",
       "color": "fg",
       "align": "left",
-      "toggle": "leftBar=intake",
+      "toggle": "intakeBar",
       "lowWhen": {
         "signal": "range",
         "below": 96.56,
@@ -1765,7 +1723,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "!leftBar=intake",
+      "toggle": "!intakeBar",
       "toggle2": "mapWindow"
     },
     {
@@ -1780,7 +1738,7 @@
       "font": "t_label",
       "color": "fg",
       "align": "right",
-      "toggle": "!leftBar=intake",
+      "toggle": "!intakeBar",
       "toggle2": "mapWindow"
     },
     {
@@ -1795,7 +1753,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "!leftBar=intake",
+      "toggle": "!intakeBar",
       "toggle2": "mapWindow"
     },
     {
@@ -1810,7 +1768,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "!leftBar=intake",
+      "toggle": "!intakeBar",
       "toggle2": "!mapWindow"
     },
     {
@@ -1825,7 +1783,7 @@
       "font": "u_val",
       "color": "fg",
       "align": "right",
-      "toggle": "!leftBar=intake",
+      "toggle": "!intakeBar",
       "toggle2": "!mapWindow"
     },
     {
@@ -1840,7 +1798,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "!leftBar=intake",
+      "toggle": "!intakeBar",
       "toggle2": "!mapWindow"
     },
     {
@@ -1855,7 +1813,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "leftBar=intake",
+      "toggle": "intakeBar",
       "toggle2": "mapWindow"
     },
     {
@@ -1870,7 +1828,7 @@
       "font": "t_label",
       "color": "fg",
       "align": "right",
-      "toggle": "leftBar=intake",
+      "toggle": "intakeBar",
       "toggle2": "mapWindow"
     },
     {
@@ -1885,7 +1843,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "leftBar=intake",
+      "toggle": "intakeBar",
       "toggle2": "mapWindow"
     },
     {
@@ -1900,7 +1858,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "leftBar=intake",
+      "toggle": "intakeBar",
       "toggle2": "!mapWindow"
     },
     {
@@ -1915,7 +1873,7 @@
       "font": "u_val",
       "color": "fg",
       "align": "right",
-      "toggle": "leftBar=intake",
+      "toggle": "intakeBar",
       "toggle2": "!mapWindow"
     },
     {
@@ -1930,7 +1888,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "leftBar=intake",
+      "toggle": "intakeBar",
       "toggle2": "!mapWindow"
     },
     {

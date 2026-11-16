@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 15 2026
 
+- **Cluster Themes 0.18.13 (jsalicru's fork):** the bar choice is now one switch, "Display intake temp instead of fuel gauge"; with the fuel gauge, the bottom-left corner stays empty (no IAT readout). Not yet tested on a car.
 - **Cluster Themes 0.18.12 (jsalicru's fork):** the intake air bar gets the silver bracket at its start, matching boost. Not yet tested on a car.
 - **Cluster Themes 0.18.11 (jsalicru's fork):** a "Sweep: lower-left bar" setting swaps the fuel bar for intake air (40 to 208 °F, red with the hot bracket from 180 °F); the miles to empty then show at the bottom left, opposite the outside temperature, bold and yellow under 60 miles. Not yet tested on a car.
 - **Cluster Themes 0.18.10 (jsalicru's fork):** Sweep shows the intake air after the intercooler (IAT, OBD PID 0x77) at the bottom left. The 0x0F fallback is gone, so it reads -- rather than the wrong sensor. Not yet tested on a car.
