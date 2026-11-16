@@ -1560,20 +1560,6 @@
       "toggle": "!mapWindow&sweepCenter=tach"
     },
     {
-      "id": "probe",
-      "type": "text",
-      "z": 5,
-      "x": 60,
-      "y": 664,
-      "w": 760,
-      "h": 35,
-      "text": "{{intakeProbe}}",
-      "font": "t_label",
-      "color": "fg",
-      "align": "left",
-      "toggle": "intakeProbe"
-    },
-    {
       "id": "rng",
       "type": "text",
       "z": 5,
@@ -1585,7 +1571,7 @@
       "font": "t_label",
       "color": "fg",
       "align": "left",
-      "toggle": "intakeBar&!intakeProbe",
+      "toggle": "intakeBar",
       "lowWhen": {
         "signal": "range",
         "below": 96.56,

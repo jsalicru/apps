@@ -2,7 +2,7 @@
   "id": "cluster_themes",
   "title": "P3 Clusters",
   "description": "Redraws the instrument cluster: Sweep, Rally, Dyno (BMW-coloured readout tiles) or Ribbon (with holiday editions), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
-  "version": "0.18.15",
+  "version": "0.18.16",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
@@ -305,12 +305,6 @@
     {
       "key": "intakeBar",
       "label": "Display intake temp instead of fuel gauge",
-      "type": "bool",
-      "default": false
-    },
-    {
-      "key": "intakeProbe",
-      "label": "Intake temp test readout",
       "type": "bool",
       "default": false
     },
@@ -1171,92 +1165,14 @@
       ],
       "intake": [
         {
-          "did": "F477",
-          "bytes": 1,
-          "at": 1,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
-          "note": "OBD PID 0x77 charge air cooler temperature, bank 1 sensor 1 (byte after the support byte): the air after the intercooler, confirmed as the right PID for a 2022 M3 (S58) by the owner, Nov 15 2026"
-        },
-        {
-          "obd": "77",
-          "bytes": 1,
-          "at": 1,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
-          "note": "OBD service 01 PID 0x77 (same as F477)"
-        }
-      ],
-      "intakeProbe": [
-        {
-          "label": "0F",
-          "bytes": 1,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
-          "did": "F40F",
-          "at": 0,
-          "note": "OBD PID 0x0F intake air temperature"
-        },
-        {
-          "label": "68A",
-          "bytes": 1,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
-          "did": "F468",
-          "at": 1,
-          "note": "OBD PID 0x68 intake air temperature, bank 1 sensor 1"
-        },
-        {
-          "label": "68B",
-          "bytes": 1,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
-          "did": "F468",
-          "at": 2,
-          "note": "OBD PID 0x68 intake air temperature, bank 1 sensor 2"
-        },
-        {
-          "label": "77A",
-          "bytes": 1,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
-          "did": "F477",
-          "at": 1,
-          "note": "OBD PID 0x77 charge air cooler temperature, bank 1 sensor 1"
-        },
-        {
-          "label": "77B",
-          "bytes": 1,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
-          "did": "F477",
-          "at": 2,
-          "note": "OBD PID 0x77 charge air cooler temperature, bank 1 sensor 2"
-        },
-        {
-          "label": "01",
-          "bytes": 1,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
           "obd": "0F",
+          "bytes": 1,
           "at": 0,
-          "note": "OBD service 01 PID 0x0F (the same as 0F, asked the old way)"
+          "factor": 1,
+          "offset": -40,
+          "min": -35,
+          "max": 150,
+          "note": "OBD service 01 PID 0x0F intake air temperature: the only intake PID a 2022 M3 (S58) answers (Nov 15 2026 probe: UDS F40F/F468/F477 refused, service 01 0F read 82 F); the owner says it is the manifold sensor"
         }
       ]
     },

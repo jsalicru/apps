@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 15 2026
 
+- **Cluster Themes 0.18.16 (jsalicru's fork):** intake air from OBD service 01 PID 0x0F, the one PID the car answered in the test (the others were refused); the test readout is gone.
 - **Cluster Themes 0.18.15 (jsalicru's fork):** the app icon is the P3 Auto Works logo.
 - **Cluster Themes 0.18.14 (jsalicru's fork):** an "Intake temp test readout" setting shows every intake temperature PID's reading (0x0F, 0x68 sensors 1 and 2, 0x77 sensors 1 and 2, and 0x0F over service 01) at the bottom left, to find which one is the manifold sensor. NO = the engine unit refused it, -- = no reply.
 - **Cluster Themes 0.18.13 (jsalicru's fork):** the bar choice is now one switch, "Display intake temp instead of fuel gauge"; with the fuel gauge, the bottom-left corner stays empty (no IAT readout). Not yet tested on a car.
