@@ -1,8 +1,8 @@
 {
   "id": "cluster_themes",
   "title": "P3 Clusters",
-  "description": "Redraws the instrument cluster: Sweep, Twin Dial, GT3 race dash, M-style, M view, Sport, Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno (BMW-coloured readout tiles) or Ribbon (with holiday editions), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
-  "version": "0.18.7",
+  "description": "Redraws the instrument cluster: Sweep, Rally, Dyno (BMW-coloured readout tiles) or Ribbon (with holiday editions), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
+  "version": "0.18.8",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
@@ -120,48 +120,8 @@
           "Sweep"
         ],
         [
-          "twin",
-          "Twin Dial"
-        ],
-        [
-          "gt3",
-          "GT3"
-        ],
-        [
-          "m",
-          "M"
-        ],
-        [
-          "mview",
-          "M view"
-        ],
-        [
-          "sport",
-          "Sport"
-        ],
-        [
-          "minimal",
-          "Minimal"
-        ],
-        [
-          "track",
-          "Track"
-        ],
-        [
-          "drag",
-          "Drag"
-        ],
-        [
           "rally",
           "Rally"
-        ],
-        [
-          "retro80s",
-          "Retro 80s"
-        ],
-        [
-          "cruise",
-          "Cruise"
         ],
         [
           "dyno",
@@ -174,10 +134,6 @@
         [
           "grid",
           "Calibration grid"
-        ],
-        [
-          "mapcal",
-          "Map calibration"
         ]
       ]
     },
@@ -202,48 +158,8 @@
           "Sweep"
         ],
         [
-          "twin",
-          "Twin Dial"
-        ],
-        [
-          "gt3",
-          "GT3"
-        ],
-        [
-          "m",
-          "M"
-        ],
-        [
-          "mview",
-          "M view"
-        ],
-        [
-          "sport",
-          "Sport"
-        ],
-        [
-          "minimal",
-          "Minimal"
-        ],
-        [
-          "track",
-          "Track"
-        ],
-        [
-          "drag",
-          "Drag"
-        ],
-        [
           "rally",
           "Rally"
-        ],
-        [
-          "retro80s",
-          "Retro 80s"
-        ],
-        [
-          "cruise",
-          "Cruise"
         ],
         [
           "dyno",
@@ -270,48 +186,8 @@
           "Sweep"
         ],
         [
-          "twin",
-          "Twin Dial"
-        ],
-        [
-          "gt3",
-          "GT3"
-        ],
-        [
-          "m",
-          "M"
-        ],
-        [
-          "mview",
-          "M view"
-        ],
-        [
-          "sport",
-          "Sport"
-        ],
-        [
-          "minimal",
-          "Minimal"
-        ],
-        [
-          "track",
-          "Track"
-        ],
-        [
-          "drag",
-          "Drag"
-        ],
-        [
           "rally",
           "Rally"
-        ],
-        [
-          "retro80s",
-          "Retro 80s"
-        ],
-        [
-          "cruise",
-          "Cruise"
         ],
         [
           "dyno",
@@ -338,48 +214,8 @@
           "Sweep"
         ],
         [
-          "twin",
-          "Twin Dial"
-        ],
-        [
-          "gt3",
-          "GT3"
-        ],
-        [
-          "m",
-          "M"
-        ],
-        [
-          "mview",
-          "M view"
-        ],
-        [
-          "sport",
-          "Sport"
-        ],
-        [
-          "minimal",
-          "Minimal"
-        ],
-        [
-          "track",
-          "Track"
-        ],
-        [
-          "drag",
-          "Drag"
-        ],
-        [
           "rally",
           "Rally"
-        ],
-        [
-          "retro80s",
-          "Retro 80s"
-        ],
-        [
-          "cruise",
-          "Cruise"
         ],
         [
           "dyno",
