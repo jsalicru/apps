@@ -52,8 +52,15 @@ def cell(font):
     return json.load(open(os.path.join(APP, 'fonts', font + '.json')))['cellHeight']
 
 
+# Sweep's wide bold fonts (Michroma, bake_fonts.py e_*) in place of the shared Barlow ones (Nov 16 2026)
+WIDE = dict(u_hero='e_hero', u_speed='e_speed', u_gear='e_gear', u_gearbig='e_gearbig', u_gearsm='e_gearsm', u_val='e_val',
+            t_num='e_num', t_label='e_label', t_mini='e_mini', u_bold='e_bold')
+
+
 def text(id, x, y, w, s, font, color='fg', align='left', **kw):
     """x is the left, middle or right edge by align, y the middle of the text."""
+    font = WIDE.get(font, font)
+    if 'lowWhen' in kw and kw['lowWhen'].get('font'): kw['lowWhen'] = dict(kw['lowWhen'], font=WIDE.get(kw['lowWhen']['font'], kw['lowWhen']['font']))
     h = cell(font)
     left = x if align == 'left' else x - w // 2 if align == 'center' else x - w
     return dict(id=id, type='text', z=5, x=round(left), y=round(y - h / 2), w=w, h=h, text=s, font=font, color=color, align=align, **kw)
@@ -66,9 +73,9 @@ def bottom(x, arc=ARC):
 
 widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, tailFrom=TAIL_FROM, tailScale=TAIL_SCALE, revCurves={k: round(v, 4) for k, v in REV_CURVES.items()},
                 # oil: 24 segments of 6.25F, so the 4th ends at 150 and the 4th from last starts at 250 (the zone lines)
-                barA=BAR_A, signalA='oil', rangeA=[f_to_c(125), f_to_c(275)], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
-                zonesA=[dict(signal='oil', above=f_to_c(250), color='hot'), dict(signal='oil', above=f_to_c(235), color='warn'),
-                        dict(signal='oil', below=f_to_c(150), color='cold')],
+                barA=BAR_A, signalA='oil', rangeA=[[f_to_c(80), 0], [f_to_c(160), 4 / 24], [f_to_c(260), 21 / 24], [f_to_c(280), 1]], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
+                zonesA=[dict(signal='oil', above=f_to_c(260), color='hot'), dict(signal='oil', above=f_to_c(235), color='warn'),
+                        dict(signal='oil', below=f_to_c(160), color='cold')],
                 zoneMarks=True,
                 # the lower-left bar can show the intake air instead (intakeBar setting): 40 to 208 F in 24 segments of 7 F,
                 # so the last 4 start at 180, red above 180 with the hot bracket, and no cold zone
@@ -77,13 +84,13 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
                 zonesB=[dict(signal='range', below=round(50 * 1.609344, 2), color='low')],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
                 # water: the 4th segment ends at 140, the 4th from last starts at 240
-                barD=BAR_D, signalD='coolant', rangeD=[f_to_c(115), f_to_c(265)],
-                zonesD=[dict(signal='coolant', above=f_to_c(240), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
+                barD=BAR_D, signalD='coolant', rangeD=[[f_to_c(80), 0], [f_to_c(160), 4 / 24], [f_to_c(240), 21 / 24], [f_to_c(260), 1]],
+                zonesD=[dict(signal='coolant', above=f_to_c(240), color='hot'), dict(signal='coolant', below=f_to_c(160), color='cold')],
                 coldLimit=[f_to_c(120), f_to_c(160), 4000], yellowLines=2, waveFrom=6000,
                 hex=HEX, tab=TAB, holeWhen='mapWindow', gearGap=GEAR_GAP,
                 noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D,
                            altKey='sweepCenter', alt=dict(tach=dict(arc=ARC_TACH))))]
-for i in range(9):
+for i in range(1, 9):   # no 0 at the start of the sweep (Nov 16 2026)
     for name, curve in [('even', 1)] + list(REV_CURVES.items()):
         x = SPAN[0] + (SPAN[1] - SPAN[0]) * rev_pos(i / 8, curve)
         widgets.append(text('n%s_%d' % (name, i), x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center',

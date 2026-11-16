@@ -2719,7 +2719,14 @@ class HudApp {
             // bar B swapped by a setting (altB: { key, <value>: { signal, range, zones } }), e.g. intake air for fuel
             const altB = (w.altB && w.altB[this.setting(w.altB.key)]) || {};
             const sigB = altB.signal || w.signalB, rangeB = altB.range || w.rangeB, zonesB = altB.zones || w.zonesB;
-            const lvl = (sig, r) => { const v = this._raw(sig); return isNum(v) ? Math.round(Math.min(1, Math.max(0, (v - r[0]) / (r[1] - r[0]))) * 200) / 200 : 0; };
+            // a range is [min, max], or [[value, fraction] ...] rising, for a scale that runs faster in some squares than others
+            const frac = (v, r) => {
+                if (!Array.isArray(r[0])) return (v - r[0]) / (r[1] - r[0]);
+                if (v <= r[0][0]) return r[0][1];
+                for (let k = 1; k < r.length; k++) if (v <= r[k][0]) return r[k - 1][1] + (v - r[k - 1][0]) / (r[k][0] - r[k - 1][0]) * (r[k][1] - r[k - 1][1]);
+                return r[r.length - 1][1];
+            };
+            const lvl = (sig, r) => { const v = this._raw(sig); return isNum(v) ? Math.round(Math.min(1, Math.max(0, frac(v, r))) * 200) / 200 : 0; };
             const vals = [isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (w.max || 8000))) * 800) / 800 : 0,
                 lvl(w.signalA, w.rangeA), lvl(sigB, rangeB), w.barC ? lvl(w.signalC, w.rangeC) : 0, w.barD ? lvl(w.signalD, w.rangeD) : 0];
             // the tab opens only as far as BMW's speed needs: a little early, BMW's reading runs above the signal

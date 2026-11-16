@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 16 2026
 
+- **Cluster Themes 0.18.19 (jsalicru's fork):** Sweep gets its own wide bold font (Michroma, thickened), no 0 at the start of the rev numbers, and new temperature scales: water 100 at the first square, 160 at the 4th, 240 at the 4th from the end, 260 at the end; oil the same but 260 and 280 at the top; blue below 160, water red from 240, oil red from 260.
 - **Cluster Themes 0.18.18 (jsalicru's fork):** a new Classic theme: two round dials with chrome bezels, gray spun faces and red-orange needles, fuel and oil temperature as small dials set into them, boost on the left and the clock, range and outside temperature on the right. Not yet tested on a car.
 - **Cluster Themes 0.18.17 (jsalicru's fork):** "Show ethanol content (flex fuel)" puts the blend (E42) at the bottom left, read over OBD PID 0x52. For a flex fuel kit like MHD's; untested whether the tune reports it there.
 

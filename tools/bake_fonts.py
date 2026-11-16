@@ -105,6 +105,17 @@ CLUSTER_FONTS = [
     ('u_gearsm', 'BarlowSemiCondensed-Medium.ttf', 84, 'PRND' + DIGITS + '-'),
     ('u_val', 'BarlowSemiCondensed-Medium.ttf', 42, DIGITS + '.:+-'),
     ('u_bold', 'BarlowCondensed-Bold.ttf', 32, DIGITS + LOWER + UPPER + '-/. '),
+    # Sweep's own wide set (Nov 16 2026): Michroma, given weight with a stroke for a bold extended look
+    ('e_hero', 'Michroma-Regular.ttf', 190, DIGITS + '-', 7),
+    ('e_speed', 'Michroma-Regular.ttf', 110, DIGITS + '-', 4),
+    ('e_gear', 'Michroma-Regular.ttf', 80, DIGITS + 'PRND-', 3),
+    ('e_gearbig', 'Michroma-Regular.ttf', 190, 'PRND' + DIGITS + '-', 7),
+    ('e_gearsm', 'Michroma-Regular.ttf', 62, 'PRND' + DIGITS + '-', 2),
+    ('e_val', 'Michroma-Regular.ttf', 30, DIGITS + '.:+-', 1),
+    ('e_num', 'Michroma-Regular.ttf', 32, DIGITS, 1),
+    ('e_label', 'Michroma-Regular.ttf', 20, UPPER + LOWER + DIGITS + '° /.-+', 1),
+    ('e_mini', 'Michroma-Regular.ttf', 21, DIGITS + '/', 1),
+    ('e_bold', 'Michroma-Regular.ttf', 20, DIGITS + LOWER + UPPER + '-/. ', 2),
     # Twin Dial: the dial numbers and the readouts in the dials
     ('t_num', 'BarlowSemiCondensed-SemiBold.ttf', 46, DIGITS),
     ('t_read', 'BarlowSemiCondensed-SemiBold.ttf', 50, DIGITS + 'PRND-'),
