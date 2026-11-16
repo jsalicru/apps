@@ -1559,15 +1559,18 @@ void main() {
 }
 `;
 
-const TWINFACE = `// The Twin Dial theme's backdrop in one cluster-render "effect" layer (GLSL ES 1.00): pure black, up to 4 round
-// dials, each with a spun dark silver face, a steel ring, ticks and an optional red zone, and up to 2 recessed readout windows. The numerals are text widgets on top and
-// the needles a second effect layer (TWINNEEDLE) above those, so a needle passes over the numbers.
+const TWINFACE = `// The Classic theme's backdrop in one cluster-render "effect" layer (GLSL ES 1.00): black, up to 4 round dials and
+// up to 2 recessed readout windows. A main dial has a chrome bezel lit from above, a gray face with a fine spun
+// grain, a soft shadow under the bezel, three tick sizes with a printed shadow, and an orange-to-red zone. An
+// inset dial (u_red[i].y 1) sits recessed in its parent: no bezel, a dark lip lit on its lower edge.
+// The numerals are text widgets on top and the needles a second effect layer (TWINNEEDLE) above those.
 // Uniforms from hud.js (positions in target px, v_uv (0,0) is the top-left):
 //   u_dial[i]   cx, cy, r, 1 when in use
 //   u_scale[i]  start, sweep (radians clockwise from 12 o'clock), minor divisions, a major tick every N minors
-//   u_red[i]    x: the 0..1 of the sweep where the red zone starts (above 1 = none)
+//   u_red[i]    x: the 0..1 of the sweep where the red zone starts (above 1 = none), y: 1 = inset dial,
+//               z: a middle tick every N minors (0 = none)
 //   u_win[i]    a readout window: x, y, w, h (w 0 = none)
-//   u_face      the face colour
+//   u_gap       x, y, w, h left see-through (BMW's gear letter; w 0 = none)
 #ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
 #else
@@ -1579,12 +1582,27 @@ uniform vec4 u_dial[4];
 uniform vec4 u_scale[4];
 uniform vec4 u_red[4];
 uniform vec4 u_win[2];
+uniform vec4 u_gap;
 uniform vec3 u_face;
 uniform vec3 u_ink;
 uniform vec3 u_hot;
 
 const float PI = 3.14159265359;
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+float hash(float n) { return fract(sin(n * 12.9898) * 43758.5453); }
+
+// a chrome torus: t 0..1 across the ring (0 outside), dir the outward direction; lit from above and a little left
+vec3 chrome(float t, vec2 dir) {
+    float a = (t - 0.5) * PI;                                   // -90..90 degrees across the profile
+    vec3 n = normalize(vec3(-dir * sin(a), cos(a)));           // y down: dir.y > 0 is the lower half
+    vec3 L = normalize(vec3(-0.30, -0.80, 0.52));
+    float d = max(dot(n, L), 0.0);
+    float horizon = smoothstep(-0.08, 0.08, -n.y);              // the sky above, the dark below, as in a real reflection
+    vec3 base = mix(vec3(0.10, 0.105, 0.11), vec3(0.78, 0.80, 0.83), horizon);
+    vec3 c = base * (0.35 + 0.75 * d) + vec3(1.0) * pow(d, 28.0) * 0.9;
+    c += vec3(0.25) * pow(max(dot(n, normalize(vec3(0.45, 0.70, 0.55))), 0.0), 12.0);   // a weaker bounce from below
+    return c;
+}
 
 void main() {
     vec2 p = v_uv * u_size;
@@ -1593,53 +1611,85 @@ void main() {
         if (u_dial[i].w < 0.5) continue;
         vec2 q = p - u_dial[i].xy;
         float R = u_dial[i].z, r = length(q);
-        if (r > R + 2.0) continue;
-        float sweep = u_scale[i].y, n = u_scale[i].z, every = u_scale[i].w;
+        bool inset = u_red[i].y > 0.5;
+        float outer = inset ? R + 6.0 : R;
+        if (r > outer + 3.0) continue;
+        vec2 dir = q / max(r, 0.001);
+        float bw = inset ? 0.0 : R * 0.055;                     // the bezel's width
+        float Rf = R - bw - (inset ? 0.0 : 2.0);                // the face's radius
+        // the gap between the dial and the black around it, and the bezel
+        if (!inset) {
+            c = mix(c, vec3(0.012), cov(r - (R + 2.5)));
+            float t = clamp((R - r) / bw, 0.0, 1.0);
+            c = mix(c, chrome(t, dir), cov(r - R) * cov(Rf - r));
+        } else {
+            // a recessed lip: dark, with its lower edge catching the light
+            float lip = cov(r - (R + 5.0)) * cov(R - r);
+            float lit = smoothstep(0.1, 0.9, dir.y);
+            c = mix(c, mix(vec3(0.06), vec3(0.55), lit * smoothstep(R + 5.0, R + 1.5, r)), lip);
+        }
+        if (!inset) c = mix(c, vec3(0.02), cov(abs(r - Rf) - 1.6));   // a thin dark gasket between bezel and face
+        if (r > Rf - 1.0) continue;
+        // the face: gray, a touch lighter in the middle, a fine spun grain and a few faint rings
         float ang = atan(q.x, -q.y);
-        // the spun metal face: a soft sheen across it, fine rings, darker towards the rim
-        float sheen = pow(0.5 + 0.5 * cos(2.0 * (ang - 0.7)), 3.0);
-        float fine = 0.012 * sin(r * 1.9);
-        float edge = smoothstep(R * 0.72, R * 0.985, r);
-        vec3 metal = u_face * (0.86 + 0.26 * sheen + fine - 0.30 * edge);
-        c = mix(c, metal, cov(r - (R - 3.0)));
+        float grain = (hash(floor(r * 1.7)) - 0.5) * 0.035 + (hash(floor(r * 0.35) + 7.0) - 0.5) * 0.02;
+        float sheen = 0.06 * pow(0.5 + 0.5 * cos(2.0 * (ang + 0.6)), 4.0);
+        vec3 face = u_face * (inset ? 0.82 : 1.0) * (1.05 - 0.16 * (r / Rf) * (r / Rf) + grain + sheen);
+        // the shadow the bezel (or the lip) casts, deeper at the top where the light comes from
+        float sd = Rf - r, top = clamp(-dir.y * 0.5 + 0.5, 0.0, 1.0);
+        face *= 1.0 - (0.55 * top + 0.18) * exp(-sd / (R * (inset ? 0.07 : 0.045)));
+        c = mix(c, face, cov(r - Rf));
+        // the scale
+        float sweep = u_scale[i].y, n = u_scale[i].z, every = u_scale[i].w, mid = u_red[i].z;
         float rel = mod(ang - u_scale[i].x + 4.0 * PI, 2.0 * PI);
         if (rel > PI + sweep * 0.5) rel -= 2.0 * PI;
         float f = rel / sweep;
-        float k = clamp(floor(f * n + 0.5), 0.0, n);
-        bool major = mod(k + 0.25, every) < 0.5;
-        float dt = abs(rel - k / n * sweep) * r;                 // px from the nearest tick's centre line
-        float rOut = R * 0.955;
-        float len = major ? R * 0.095 : R * 0.05;
-        float hw = major ? max(1.6, R * 0.0085) : max(0.8, R * 0.0038);
-        float tick = cov(dt - hw) * cov(r - rOut) * cov(rOut - len - r);
+        float rOut = Rf * 0.965;
         float redStart = u_red[i].x;
-        bool hot = k / n >= redStart - 0.001;
-        c = mix(c, hot ? u_hot : u_ink, tick);
-        if (redStart <= 1.0) {                                   // the red zone, a band behind the ticks' outer ends
+        if (redStart <= 1.0) {                                  // the zone: orange into red, printed behind the ticks
             float along = min(f - redStart, 1.0 - f) * sweep * r;
-            float band = cov(abs(r - (rOut + R * 0.012)) - R * 0.012) * cov(-along);
-            c = mix(c, u_hot, band);
+            float band = cov(abs(r - (rOut - R * 0.045)) - R * 0.045) * clamp(0.5 + along, 0.0, 1.0);
+            float g = smoothstep(redStart, redStart + 0.06, f);
+            c = mix(c, mix(vec3(1.0, 0.55, 0.05), u_hot, g), band * 0.95);
         }
-        float rw = max(2.5, R * 0.011);                          // a steel ring, lit from above
-        float ring = cov(abs(r - (R - rw - 0.5)) - rw);
-        float lit = clamp(q.y / R * 0.5 + 0.5, 0.0, 1.0);
-        vec3 steel = mix(vec3(0.86, 0.87, 0.89), vec3(0.30, 0.31, 0.33), lit);
-        c = mix(c, steel + 0.10 * sheen, ring);
+        for (int s = 0; s < 2; s++) {                           // the ticks' printed shadow, then the ticks
+            vec2 qq = s == 0 ? q - vec2(1.2, 1.8) : q;
+            float rr = length(qq), aa = atan(qq.x, -qq.y);
+            float rl = mod(aa - u_scale[i].x + 4.0 * PI, 2.0 * PI);
+            if (rl > PI + sweep * 0.5) rl -= 2.0 * PI;
+            float ff = rl / sweep;
+            float k = clamp(floor(ff * n + 0.5), 0.0, n);
+            bool major = mod(k + 0.25, every) < 0.5;
+            bool middle = !major && mid > 0.5 && mod(k + 0.25, mid) < 0.5;
+            float dt = abs(rl - k / n * sweep) * rr;
+            float len = major ? R * 0.11 : middle ? R * 0.075 : R * 0.045;
+            float hw = major ? max(1.8, R * 0.011) : middle ? max(1.3, R * 0.0065) : max(0.9, R * 0.004);
+            float tick = cov(dt - hw) * cov(rr - rOut) * cov(rOut - len - rr) * step(-0.02, ff) * step(ff, 1.02);
+            if (s == 0) c = mix(c, c * 0.55, tick * 0.6);
+            else c = mix(c, k / n >= redStart - 0.001 && redStart <= 1.0 ? vec3(1.0) : u_ink, tick);
+        }
     }
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++) {                               // the readout windows: a dark recess with a lit lower edge
         if (u_win[i].z <= 0.0) continue;
         vec2 hs = u_win[i].zw * 0.5, m = p - u_win[i].xy - hs;
-        vec2 e = abs(m) - hs + 8.0;
-        float d = length(max(e, 0.0)) + min(max(e.x, e.y), 0.0) - 8.0;
-        c = mix(c, vec3(0.018), cov(d));                         // the recess
-        c = mix(c, m.y > 0.0 ? vec3(0.62) * u_face / max(u_face.r, 0.01) * 0.75 : vec3(0.03), cov(abs(d) - 0.9) * 0.7);   // its edge catches the light below
+        vec2 e = abs(m) - hs + 9.0;
+        float d = length(max(e, 0.0)) + min(max(e.x, e.y), 0.0) - 9.0;
+        c = mix(c, c * 0.5, cov(d - 3.0) * 0.6);                 // a soft shadow round it
+        c = mix(c, vec3(0.025) + vec3(0.03) * clamp(-m.y / hs.y, 0.0, 1.0), cov(d));
+        c = mix(c, m.y > 0.0 ? vec3(0.62) : vec3(0.02), cov(abs(d) - 0.9) * 0.8);
     }
-    gl_FragColor = vec4(c, 1.0);
+    float a = 1.0;
+    if (u_gap.z > 0.0) {
+        vec2 g = p - u_gap.xy;
+        if (g.x >= 0.0 && g.y >= 0.0 && g.x < u_gap.z && g.y < u_gap.w) a = 0.0;
+    }
+    gl_FragColor = vec4(c * a, a);
 }
 `;
 
-const TWINNEEDLE = `// The Twin Dial theme's needles in one cluster-render "effect" layer (GLSL ES 1.00): up to 4 tapered needles,
-// each with a short tail and a black hub with a thin rim. See-through everywhere else.
+const TWINNEEDLE = `// The Classic theme's needles in one cluster-render "effect" layer (GLSL ES 1.00): up to 4 tapered needles with a
+// bevelled ridge, a soft shadow on the face, a short dark tail and a domed black cap with a chrome edge; over each
+// big dial a faint glass reflection. See-through everywhere else.
 //   u_nd[i]    cx, cy (layer px), tip length, tail length (0 length = not in use)
 //   u_na[i]    start, sweep (radians clockwise from 12 o'clock), half width at the hub, hub radius
 //   u_value    the 4 needles' positions, 0..1 of the sweep
@@ -1670,31 +1720,48 @@ void main() {
         float tip = u_nd[i].z;
         if (tip <= 0.0) continue;
         vec2 q = p - u_nd[i].xy;
-        float hub = u_na[i].w;
-        if (dot(q, q) > (tip + 4.0) * (tip + 4.0)) continue;
+        float hub = u_na[i].w, tail = u_nd[i].w, w0 = u_na[i].z;
+        if (dot(q, q) > (tip + 12.0) * (tip + 12.0)) continue;
         float a = u_na[i].x + clamp(u_value[i], 0.0, 1.0) * u_na[i].y;
         vec2 dir = vec2(sin(a), -cos(a));                        // y runs down
-        float along = dot(q, dir);
-        float across = abs(q.x * dir.y - q.y * dir.x);
-        float tail = u_nd[i].w;
+        vec2 nrm = vec2(-dir.y, dir.x);
+        // the needle's soft shadow on the face, a little below and to the right
+        vec2 qs = q - vec2(2.0, 4.0) * (tip > 150.0 ? 1.6 : 0.8);
+        float sa = dot(qs, dir), sc = abs(dot(qs, nrm));
+        float sw = mix(w0, 1.0, clamp(sa / tip, 0.0, 1.0)) * 1.15;
+        float soft = tip > 150.0 ? 4.0 : 2.0;
+        float shadow = clamp(0.5 - (sc - sw) / soft, 0.0, 1.0) * clamp(0.5 - (sa - tip) / soft, 0.0, 1.0) * clamp(0.5 + (sa + tail) / soft, 0.0, 1.0);
+        c = over(vec4(0.0, 0.0, 0.0, 0.38 * shadow), c);
+        float along = dot(q, dir), side = dot(q, nrm), across = abs(side);
         float t = clamp(along / tip, 0.0, 1.0);
-        float hw = mix(u_na[i].z, 1.4, t);
-        // the needle's shadow on the face, a little below and to the right
-        vec2 qs = q - vec2(tip * 0.012 + 2.0, tip * 0.02 + 3.0);
-        float sa = dot(qs, dir), sc = abs(qs.x * dir.y - qs.y * dir.x);
-        float shadow = clamp(1.5 - (sc - mix(u_na[i].z, 1.4, clamp(sa / tip, 0.0, 1.0))) / 2.5, 0.0, 1.0) * cov(sa - tip) * cov(-tail - sa);
-        c = over(vec4(0.0, 0.0, 0.0, 0.34 * shadow), c);
+        float hw = along >= 0.0 ? mix(w0, 0.9, pow(t, 0.9)) : w0 * 1.25;   // a slim taper, a wider tail
+        float point = along > tip - w0 * 2.0 ? 1.0 - (along - (tip - w0 * 2.0)) / (w0 * 2.0) : 1.0;   // a sharp point
+        hw *= max(point, 0.0);
         float body = cov(across - hw) * cov(along - tip) * cov(-tail - along);
-        // a brighter centre line gives the needle some depth
-        vec3 col = mix(u_color * 0.82, min(u_color * 1.15 + vec3(0.06), vec3(1.0)), cov(across - hw * 0.35));
+        // the ridge: one side catches the light, the other is in shade, a bright line on top
+        float lit = side / max(hw, 0.5) * sign(dir.x + 0.3);
+        vec3 col = along >= 0.0 ? u_color * (0.92 + 0.22 * lit) : vec3(0.08) + 0.04 * lit;
+        col = mix(col, min(u_color * 1.25 + vec3(0.18), vec3(1.0)), cov(across - max(hw * 0.18, 0.4)) * 0.6 * step(0.0, along));
         c = over(vec4(col, body), c);
         float r = length(q);
         float h = cov(r - hub);
-        if (h > 0.0) {
-            float dome = clamp(0.5 - q.y / hub * 0.5, 0.0, 1.0);
-            vec3 hc = mix(vec3(0.02), vec3(0.17), dome * dome);
-            hc = mix(hc, u_rim, cov(abs(r - (hub - 1.5)) - 1.3) * 0.75);
+        if (h > 0.0) {                                          // the cap: domed black, a highlight, a chrome edge
+            vec2 hl = q / hub - vec2(-0.30, -0.38);
+            vec3 hc = mix(vec3(0.015), vec3(0.11), clamp(0.6 - q.y / hub * 0.6, 0.0, 1.0));
+            hc += vec3(0.55) * exp(-dot(hl, hl) * 9.0);
+            float edge = cov(abs(r - (hub - 1.6)) - 1.4);
+            vec3 ch = mix(vec3(0.85), vec3(0.25), clamp(q.y / hub * 0.5 + 0.5, 0.0, 1.0));
+            hc = mix(hc, ch, edge * 0.9);
             c = over(vec4(hc, h), c);
+        }
+        if (tip > 150.0) {                                       // the glass over a big dial: a faint reflection
+            float R = tip / 0.86;
+            if (r < R) {
+                vec2 g = q / R;
+                float band = smoothstep(0.30, 0.0, abs(g.x * 0.55 + g.y + 0.45)) * smoothstep(1.0, 0.75, length(g));
+                float rim = smoothstep(0.90, 1.0, length(g)) * clamp(-g.y, 0.0, 1.0);
+                c = over(vec4(vec3(1.0), 0.06 * band + 0.10 * rim), c);
+            }
         }
     }
     gl_FragColor = c;

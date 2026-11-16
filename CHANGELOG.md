@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 16 2026
 
+- **Cluster Themes 0.18.18 (jsalicru's fork):** a new Classic theme: two round dials with chrome bezels, gray spun faces and red-orange needles, fuel and oil temperature as small dials set into them, boost on the left and the clock, range and outside temperature on the right. Not yet tested on a car.
 - **Cluster Themes 0.18.17 (jsalicru's fork):** "Show ethanol content (flex fuel)" puts the blend (E42) at the bottom left, read over OBD PID 0x52. For a flex fuel kit like MHD's; untested whether the tune reports it there.
 
 ## Nov 15 2026

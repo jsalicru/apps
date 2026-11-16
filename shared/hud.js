@@ -92,7 +92,8 @@
  *   twinface  effect layer; the Twin Dial theme's backdrop (shaders.js twinface): black with up to 4 round dials,
  *             "dials": [{ cx, cy, r, start, sweep (degrees clockwise from 12 o'clock), minor (divisions), major (a big
  *             tick every N minors), metricMinor, metricMajor (the same when the units are metric), redline: max rpm of
- *             the scale, which starts the red zone at the "redline" setting }], "windows": [[x, y, w, h] x up to 2]
+ *             the scale, which starts the red zone at the "redline" setting, mid (a middle tick every N minors), inset
+ *             (a small dial recessed in a big one) }], "gearGap" [x, y, w, h] left see-through (gearGap setting), "windows": [[x, y, w, h] x up to 2]
  *             (recessed readout windows). Positions in target px. Colour role "face".
  *   twinneedle effect layer; the Twin Dial needles, above the numerals (shaders.js twinneedle): "needles": [{ cx, cy, len,
  *             tail, start, sweep, width (half width at the hub), hub, signal, min, max, metricMax }] up to 4; signal
@@ -2243,7 +2244,7 @@ class HudApp {
                 dial.push(d ? d.cx - w.x : 0, d ? d.cy - w.y : 0, d ? d.r : 0, d ? 1 : 0);
                 scale.push(d ? d.start * Math.PI / 180 : 0, d ? d.sweep * Math.PI / 180 : 1,
                     d ? (!us && d.metricMinor) || d.minor : 1, d ? (!us && d.metricMajor) || d.major : 1);
-                redAt.push(d && d.redline ? red / d.redline : 2, 0, 0, 0);
+                redAt.push(d && d.redline ? red / d.redline : 2, d && d.inset ? 1 : 0, d ? d.mid || 0 : 0, 0);
             }
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_dial', dial, { type: 'vec4' });
@@ -2255,6 +2256,7 @@ class HudApp {
                 win.push(b ? b[0] - w.x : 0, b ? b[1] - w.y : 0, b ? b[2] : 0, b ? b[3] : 0);
             }
             c.uniform(ref, 'u_win', win, { type: 'vec4' });
+            c.uniform(ref, 'u_gap', Array.isArray(w.gearGap) && this.setting('gearGap') !== false ? [w.gearGap[0] - w.x, w.gearGap[1] - w.y, w.gearGap[2], w.gearGap[3]] : [0, 0, 0, 0]);
             c.uniform(ref, 'u_face', rgb(color(t, 'face')));
             c.uniform(ref, 'u_ink', rgb(color(t, 'fg')));
             c.uniform(ref, 'u_hot', rgb(t.hot));

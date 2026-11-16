@@ -231,6 +231,16 @@ const THEMES = {
         bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [196, 202, 212, 255], head: [226, 228, 232, 255],
         ink: [12, 12, 14, 255], accent: [255, 138, 18, 255], well: [0, 0, 0, 255],
     },
+    // Classic (layout classic.json): gray round dials with chrome bezels on black, white numbers, red-orange needles.
+    classic: {
+        name: 'Classic',
+        fg: [250, 250, 248, 255], dim: [214, 216, 220, 255], track: [104, 110, 120, 255], arc: [255, 62, 18, 255], face: [118, 120, 124, 255],
+        glow: 0, stripe: false,
+        bar: { low: [255, 62, 18], mid: [255, 62, 18], high: [255, 42, 42], midAt: 'shift' },
+        rev: { from: [255, 62, 18], to: [255, 42, 42] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [196, 202, 212, 255], head: [226, 228, 232, 255],
+        ink: [12, 12, 14, 255], accent: [255, 62, 18, 255], well: [0, 0, 0, 255],
+    },
     // Twin Dial (layout twin.json): dark silver round dials on black, white numbers, orange needles.
     twin: {
         name: 'Twin Dial',
