@@ -106,8 +106,10 @@ widgets += [
     text('gear_mid', 960, 382, 160, '{{gear}}', 'u_gearsm', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
     text('speed_mid', 960, 505, 300, '{{speed}}', 'u_speed', align='center', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
     text('mid_unit', 960, 590, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow&sweepCenter=tach'),
+    # the intake temperature test: every candidate PID's reading in one line, bottom left (setting intakeProbe)
+    text('probe', 60, 682, 760, '{{intakeProbe}}', 't_label', toggle='intakeProbe'),
     # miles to empty, bold and yellow under 60 miles (the car sends km)
-    text('rng', 60, 682, 200, '{{range}} {{u:distLc}}', 't_label', align='left', toggle='intakeBar',
+    text('rng', 60, 682, 200, '{{range}} {{u:distLc}}', 't_label', align='left', toggle='intakeBar&!intakeProbe',
          lowWhen=dict(signal='range', below=round(60 * 1.609344, 2), color='low', font='u_bold')),
     text('ambient', 1820, 682, 100, '{{ambient}}', 't_label', align='right'),
     text('ambient_unit', 1825, 682, 40, '{{u:temp}}', 't_label', 'dim'),

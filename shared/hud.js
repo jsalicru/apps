@@ -929,7 +929,7 @@ class HudApp {
         const dme = this.config.dme;
         const hasBoost = !!(dme && Array.isArray(dme.boost) && dme.boost.length);
         const hasIntake = !!(dme && Array.isArray(dme.intake) && dme.intake.length);
-        let rd = null, busy = false, baro = 101.3, baroAt = 0, intakeAsk = 0, hvAsk = 0, hvMiss = 0, fuelAsk = 0, fuelMiss = 0;
+        let rd = null, busy = false, probeAsk = 0, baro = 101.3, baroAt = 0, intakeAsk = 0, hvAsk = 0, hvMiss = 0, fuelAsk = 0, fuelMiss = 0;
         try {
             // the kit's read-only link: anything but a read (22 / OBD 01) is refused before it leaves the head unit.
             // silentAfter Infinity: never skip a unit that stopped answering; the retry timers below pace that.
@@ -945,7 +945,9 @@ class HudApp {
             const wantIntake = hasIntake && this.needsIntake && now - intakeAsk >= 2000;   // a temperature: every 2 s is plenty
             const wantHv = this.needsHv && now - hvAsk >= (hvMiss >= 3 ? HV_RETRY_MS : HV_EVERY_MS);
             const wantFuel = this.needsFuel && now - fuelAsk >= (fuelMiss >= 3 ? FUEL_RETRY_MS : FUEL_EVERY_MS);
-            if (busy || this.car.data().demo || (!wantBoost && !wantIntake && !wantHv && !wantFuel)) return;
+            // the intake probe (setting "intakeProbe", app.json config.dme.intakeProbe): every candidate in turn, for a photo
+            const wantProbe = this.setting('intakeProbe') === true && dme && Array.isArray(dme.intakeProbe) && now - probeAsk >= 3000;
+            if (busy || this.car.data().demo || (!wantBoost && !wantIntake && !wantHv && !wantFuel && !wantProbe)) return;
             busy = true;
             (async () => {
                 if (wantFuel) {
@@ -967,6 +969,17 @@ class HudApp {
                     } else if (++hvMiss === 3) {
                         this.log.info('hybrid battery: no answer from the battery unit (' + ((rd.raws[rd.key(HV_SOC)] || {}).why || '?') + '); asked once a minute');
                     }
+                }
+                if (wantProbe) {
+                    probeAsk = now;
+                    const us = this.setting('units') === 'us', out = [];
+                    for (const c of dme.intakeProbe) {
+                        const v = await rd.read(c), r = rd.raws[rd.key(c)] || {};
+                        const t = (x) => String(Math.round(us ? x * 9 / 5 + 32 : x));
+                        out.push(c.label + ' ' + (isNum(v) ? t(v) : isNum(r.value) ? t(r.value) + '?' : /^NRC/.test(r.why || '') ? 'NO' : '--'));
+                    }
+                    this.intakeProbeText = out.join('   ');
+                    this.log.info('intake probe: ' + this.intakeProbeText + ' | ' + dme.intakeProbe.map((c) => c.label + ' ' + ((rd.raws[rd.key(c)] || {}).bytes || (rd.raws[rd.key(c)] || {}).why || '')).join(' | '));
                 }
                 if (wantIntake) {
                     intakeAsk = now;
@@ -1669,6 +1682,7 @@ class HudApp {
         if (tok.indexOf('tyreT:') === 0) { const v = this._tyre('t', tok.slice(6)); return isNum(v) ? String(Math.round(us ? v * 9 / 5 + 32 : v)) : '--'; }
         switch (tok) {
             case 'u:pressure': return us ? 'psi' : 'bar';
+            case 'intakeProbe': return this.setting('intakeProbe') === true ? (this.intakeProbeText || 'PROBE ASKING') : '';
             case 'intake': { const v = this._raw('intake'); return fix(isNum(v) ? (us ? v * 9 / 5 + 32 : v) : v, 0); }
             case 'boostPeak': { const v = this.boostPeak; return us ? fix(isNum(v) ? v * 14.5038 : v, 1) : fix(v, 2); }
             case 'run': { const v = this.runs.shown(Date.now()); return isNum(v) ? v.toFixed(this.runs.state === 'run' ? 1 : 2) : '0.00'; }
