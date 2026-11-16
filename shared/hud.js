@@ -97,7 +97,7 @@
  *   twinneedle effect layer; the Twin Dial needles, above the numerals (shaders.js twinneedle): "needles": [{ cx, cy, len,
  *             tail, start, sweep, width (half width at the hub), hub, signal, min, max, metricMax }] up to 4; signal
  *             "speed" reads in the display unit, so min/max are mph, metricMax km/h. Colour role "color" (arc).
- *   Any widget: "toggle2" is a second condition like "toggle"; both must hold.
+ *   Any widget: "toggle2" is a second condition like "toggle"; both must hold. "a&b" in either needs both.
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "noMap" { arc, span, barA..barD } replaces those while
  *             the map window is off; "coldLimit" [oil deg C cold, oil deg C warm, rpm]: the red zone starts at that rpm when
  *             cold and rises to the redline as the oil warms; "yellowLines": how many lines just below the red zone are always yellow; "waveFrom" rpm: from here to the redline, the lit segments turn yellow from the red zone back to 0; "arc" [y of the top at the middle, centre x,
@@ -2053,6 +2053,7 @@ class HudApp {
 
     /** "key" is on while that bool setting is on; "!key" while it is off. */
     _toggleOn(t) {
+        if (t.indexOf('&') > 0) return t.split('&').every((p) => this._toggleOn(p));   // "a&b": both
         const not = t.charAt(0) === '!';
         const k = not ? t.slice(1) : t, eq = k.indexOf('=');
         const on = eq > 0 ? String(this.setting(k.slice(0, eq))) === k.slice(eq + 1) : this.setting(k) !== false;
@@ -2174,7 +2175,9 @@ class HudApp {
         else if (w.type === 'sweepdash') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             const hexOn = Array.isArray(w.hex) && w.holeWhen && this.setting(w.holeWhen) === true;
-            const noMap = (w.noMap && !hexOn) ? w.noMap : w;   // the layout's own geometry while there's no map window
+            let noMap = (w.noMap && !hexOn) ? w.noMap : w;   // the layout's own geometry while there's no map window
+            if (noMap === w.noMap && w.noMap.altKey && w.noMap.alt && w.noMap.alt[this.setting(w.noMap.altKey)])
+                noMap = Object.assign({}, w.noMap, w.noMap.alt[this.setting(w.noMap.altKey)]);   // e.g. a bigger rev sweep for one sweepCenter choice
             c.uniform(ref, 'u_arc', noMap.arc);
             c.uniform(ref, 'u_span', noMap.span);
             c.uniform(ref, 'u_segs', [(w.max || 8000) / 100]);

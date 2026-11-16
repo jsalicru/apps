@@ -101,6 +101,8 @@ CLUSTER_FONTS = [
     ('u_hero', 'BarlowSemiCondensed-Medium.ttf', 270, DIGITS + '-'),
     ('u_speed', 'BarlowSemiCondensed-Medium.ttf', 150, DIGITS + '-'),
     ('u_gear', 'BarlowSemiCondensed-Medium.ttf', 112, DIGITS + 'PRND-'),
+    ('u_gearbig', 'BarlowSemiCondensed-Medium.ttf', 270, 'PRND' + DIGITS + '-'),
+    ('u_gearsm', 'BarlowSemiCondensed-Medium.ttf', 84, 'PRND' + DIGITS + '-'),
     ('u_val', 'BarlowSemiCondensed-Medium.ttf', 42, DIGITS + '.:+-'),
     # Twin Dial: the dial numbers and the readouts in the dials
     ('t_num', 'BarlowSemiCondensed-SemiBold.ttf', 46, DIGITS),

@@ -177,7 +177,18 @@
           603,
           560,
           25
-        ]
+        ],
+        "altKey": "sweepCenter",
+        "alt": {
+          "tach": {
+            "arc": [
+              82,
+              960,
+              2985,
+              175
+            ]
+          }
+        }
       }
     },
     {
@@ -208,7 +219,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_0",
+      "type": "text",
+      "z": 5,
+      "x": 174,
+      "y": 366,
+      "w": 60,
+      "h": 36,
+      "text": "0",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_0",
@@ -238,7 +264,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_0",
+      "type": "text",
+      "z": 5,
+      "x": 174,
+      "y": 366,
+      "w": 60,
+      "h": 36,
+      "text": "0",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_0",
@@ -268,7 +309,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_0",
+      "type": "text",
+      "z": 5,
+      "x": 174,
+      "y": 366,
+      "w": 60,
+      "h": 36,
+      "text": "0",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "neven_1",
@@ -298,7 +354,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_1",
+      "type": "text",
+      "z": 5,
+      "x": 388,
+      "y": 319,
+      "w": 60,
+      "h": 36,
+      "text": "1",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_1",
@@ -328,7 +399,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_1",
+      "type": "text",
+      "z": 5,
+      "x": 256,
+      "y": 346,
+      "w": 60,
+      "h": 36,
+      "text": "1",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_1",
@@ -358,7 +444,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_1",
+      "type": "text",
+      "z": 5,
+      "x": 212,
+      "y": 356,
+      "w": 60,
+      "h": 36,
+      "text": "1",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "neven_2",
@@ -388,7 +489,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_2",
+      "type": "text",
+      "z": 5,
+      "x": 603,
+      "y": 288,
+      "w": 60,
+      "h": 36,
+      "text": "2",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_2",
@@ -418,7 +534,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_2",
+      "type": "text",
+      "z": 5,
+      "x": 402,
+      "y": 317,
+      "w": 60,
+      "h": 36,
+      "text": "2",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_2",
@@ -448,7 +579,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_2",
+      "type": "text",
+      "z": 5,
+      "x": 312,
+      "y": 334,
+      "w": 60,
+      "h": 36,
+      "text": "2",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "neven_3",
@@ -478,7 +624,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_3",
+      "type": "text",
+      "z": 5,
+      "x": 818,
+      "y": 272,
+      "w": 60,
+      "h": 36,
+      "text": "3",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_3",
@@ -508,7 +669,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_3",
+      "type": "text",
+      "z": 5,
+      "x": 588,
+      "y": 290,
+      "w": 60,
+      "h": 36,
+      "text": "3",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_3",
@@ -538,7 +714,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_3",
+      "type": "text",
+      "z": 5,
+      "x": 466,
+      "y": 306,
+      "w": 60,
+      "h": 36,
+      "text": "3",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "neven_4",
@@ -568,7 +759,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_4",
+      "type": "text",
+      "z": 5,
+      "x": 1033,
+      "y": 272,
+      "w": 60,
+      "h": 36,
+      "text": "4",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_4",
@@ -598,7 +804,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_4",
+      "type": "text",
+      "z": 5,
+      "x": 807,
+      "y": 273,
+      "w": 60,
+      "h": 36,
+      "text": "4",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_4",
@@ -628,7 +849,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_4",
+      "type": "text",
+      "z": 5,
+      "x": 671,
+      "y": 281,
+      "w": 60,
+      "h": 36,
+      "text": "4",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "neven_5",
@@ -658,7 +894,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_5",
+      "type": "text",
+      "z": 5,
+      "x": 1247,
+      "y": 287,
+      "w": 60,
+      "h": 36,
+      "text": "5",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_5",
@@ -688,7 +939,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_5",
+      "type": "text",
+      "z": 5,
+      "x": 1054,
+      "y": 273,
+      "w": 60,
+      "h": 36,
+      "text": "5",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_5",
@@ -718,7 +984,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_5",
+      "type": "text",
+      "z": 5,
+      "x": 926,
+      "y": 270,
+      "w": 60,
+      "h": 36,
+      "text": "5",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "neven_6",
@@ -748,7 +1029,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_6",
+      "type": "text",
+      "z": 5,
+      "x": 1462,
+      "y": 317,
+      "w": 60,
+      "h": 36,
+      "text": "6",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_6",
@@ -778,7 +1074,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_6",
+      "type": "text",
+      "z": 5,
+      "x": 1325,
+      "y": 296,
+      "w": 60,
+      "h": 36,
+      "text": "6",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_6",
@@ -808,7 +1119,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_6",
+      "type": "text",
+      "z": 5,
+      "x": 1227,
+      "y": 285,
+      "w": 60,
+      "h": 36,
+      "text": "6",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "neven_7",
@@ -838,7 +1164,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_7",
+      "type": "text",
+      "z": 5,
+      "x": 1677,
+      "y": 363,
+      "w": 60,
+      "h": 36,
+      "text": "7",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_7",
@@ -868,7 +1209,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_7",
+      "type": "text",
+      "z": 5,
+      "x": 1619,
+      "y": 349,
+      "w": 60,
+      "h": 36,
+      "text": "7",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_7",
@@ -898,7 +1254,22 @@
       "color": "fg",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_7",
+      "type": "text",
+      "z": 5,
+      "x": 1575,
+      "y": 340,
+      "w": 60,
+      "h": 36,
+      "text": "7",
+      "font": "t_num",
+      "color": "fg",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "neven_8",
@@ -928,7 +1299,22 @@
       "color": "hot",
       "align": "center",
       "toggle": "revScale=even",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "teven_8",
+      "type": "text",
+      "z": 5,
+      "x": 1809,
+      "y": 399,
+      "w": 60,
+      "h": 36,
+      "text": "8",
+      "font": "t_num",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=even",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace_8",
@@ -958,7 +1344,22 @@
       "color": "hot",
       "align": "center",
       "toggle": "revScale=race",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace_8",
+      "type": "text",
+      "z": 5,
+      "x": 1809,
+      "y": 399,
+      "w": 60,
+      "h": 36,
+      "text": "8",
+      "font": "t_num",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=race",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "nrace55_8",
@@ -988,7 +1389,22 @@
       "color": "hot",
       "align": "center",
       "toggle": "revScale=race55",
-      "toggle2": "!mapWindow"
+      "toggle2": "!mapWindow&!sweepCenter=tach"
+    },
+    {
+      "id": "trace55_8",
+      "type": "text",
+      "z": 5,
+      "x": 1809,
+      "y": 399,
+      "w": 60,
+      "h": 36,
+      "text": "8",
+      "font": "t_num",
+      "color": "hot",
+      "align": "center",
+      "toggle": "revScale=race55",
+      "toggle2": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "speed_hero",
@@ -1002,7 +1418,7 @@
       "font": "u_hero",
       "color": "fg",
       "align": "center",
-      "toggle": "!mapWindow",
+      "toggle": "!mapWindow&sweepCenter=speed",
       "color2": "chrome"
     },
     {
@@ -1017,7 +1433,7 @@
       "font": "t_label",
       "color": "dim",
       "align": "center",
-      "toggle": "!mapWindow"
+      "toggle": "!mapWindow&sweepCenter=speed"
     },
     {
       "id": "gear_top",
@@ -1033,7 +1449,97 @@
       "align": "center",
       "hotWhen": "now",
       "color2": "chrome",
-      "toggle": "!mapWindow"
+      "toggle": "!mapWindow&sweepCenter=speed"
+    },
+    {
+      "id": "gear_hero",
+      "type": "text",
+      "z": 5,
+      "x": 810,
+      "y": 406,
+      "w": 300,
+      "h": 199,
+      "text": "{{gear}}",
+      "font": "u_gearbig",
+      "color": "fg",
+      "align": "center",
+      "hotWhen": "now",
+      "color2": "chrome",
+      "toggle": "!mapWindow&sweepCenter=gear"
+    },
+    {
+      "id": "speed_top",
+      "type": "text",
+      "z": 5,
+      "x": 830,
+      "y": 262,
+      "w": 260,
+      "h": 85,
+      "text": "{{speed}}",
+      "font": "u_gear",
+      "color": "fg",
+      "align": "center",
+      "color2": "chrome",
+      "toggle": "!mapWindow&sweepCenter=gear"
+    },
+    {
+      "id": "top_unit",
+      "type": "text",
+      "z": 5,
+      "x": 890,
+      "y": 356,
+      "w": 140,
+      "h": 35,
+      "text": "{{u:speedLc}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "center",
+      "toggle": "!mapWindow&sweepCenter=gear"
+    },
+    {
+      "id": "gear_mid",
+      "type": "text",
+      "z": 5,
+      "x": 880,
+      "y": 349,
+      "w": 160,
+      "h": 66,
+      "text": "{{gear}}",
+      "font": "u_gearsm",
+      "color": "fg",
+      "align": "center",
+      "hotWhen": "now",
+      "color2": "chrome",
+      "toggle": "!mapWindow&sweepCenter=tach"
+    },
+    {
+      "id": "speed_mid",
+      "type": "text",
+      "z": 5,
+      "x": 810,
+      "y": 449,
+      "w": 300,
+      "h": 112,
+      "text": "{{speed}}",
+      "font": "u_speed",
+      "color": "fg",
+      "align": "center",
+      "color2": "chrome",
+      "toggle": "!mapWindow&sweepCenter=tach"
+    },
+    {
+      "id": "mid_unit",
+      "type": "text",
+      "z": 5,
+      "x": 890,
+      "y": 572,
+      "w": 140,
+      "h": 35,
+      "text": "{{u:speedLc}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "center",
+      "toggle": "!mapWindow&sweepCenter=tach"
     },
     {
       "id": "ambient",

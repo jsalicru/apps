@@ -27,7 +27,7 @@ mgu.run({
             title: ctx.spec.title, what: 'cluster',
             look: { name: 'Themes', style: 'hero', tags: { sweep: 'rev sweep · map', rally: 'rev arc · G-meter', dyno: 'safety tiles', ribbon: 'calm · holidays' } },
             tabs: ['look', 'readouts', 'badge', 'map', 'alerts', 'gmeter', 'settings'],
-            settings: ['units', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'gearGap', 'sweepColor', 'revScale', 'shiftFlash', 'nightDim', 'cameraNotch', 'holiday', 'demo'],
+            settings: ['units', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'gearGap', 'sweepColor', 'revScale', 'sweepCenter', 'shiftFlash', 'nightDim', 'cameraNotch', 'holiday', 'demo'],
             // the drive mode check's candidates this app's app.json listens to (issue #8; shared/hud.js modeDiagLines)
             modeCheck: ['HMI', 'MDrive', 'Engine', 'Sport2'],
         }).start();

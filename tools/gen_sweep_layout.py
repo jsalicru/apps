@@ -40,6 +40,8 @@ BIG_C = [60, 488, 560, 25]
 BIG_B = [60, 603, 560, 25]
 BIG_A = [1300, 488, 560, 25]
 BIG_D = [1300, 603, 560, 25]
+# the "Bigger revs" choice of sweepCenter: a thicker sweep, with the speed and gear smaller under it
+ARC_TACH = [82, 960, 2985, 175]
 
 
 def f_to_c(f):
@@ -75,7 +77,8 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
                 zonesD=[dict(signal='coolant', above=f_to_c(240), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
                 coldLimit=[f_to_c(120), f_to_c(160), 4000], yellowLines=2, waveFrom=6000,
                 hex=HEX, tab=TAB, holeWhen='mapWindow', gearGap=GEAR_GAP,
-                noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D))]
+                noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D,
+                           altKey='sweepCenter', alt=dict(tach=dict(arc=ARC_TACH))))]
 for i in range(9):
     for name, curve in [('even', 1)] + list(REV_CURVES.items()):
         x = SPAN[0] + (SPAN[1] - SPAN[0]) * rev_pos(i / 8, curve)
@@ -83,12 +86,22 @@ for i in range(9):
                             toggle='revScale=' + name, toggle2='mapWindow'))
         x = SPAN_OFF[0] + (SPAN_OFF[1] - SPAN_OFF[0]) * rev_pos(i / 8, curve) + ARC_OFF[3] * 0.45
         widgets.append(text('b%s_%d' % (name, i), x, bottom(x, ARC_OFF) + 31, 60, str(i), 't_num', 'hot' if i == 8 else 'fg', 'center',
-                            toggle='revScale=' + name, toggle2='!mapWindow'))
+                            toggle='revScale=' + name, toggle2='!mapWindow&!sweepCenter=tach'))
+        x = SPAN_OFF[0] + (SPAN_OFF[1] - SPAN_OFF[0]) * rev_pos(i / 8, curve) + ARC_TACH[3] * 0.45
+        widgets.append(text('t%s_%d' % (name, i), x, bottom(x, ARC_TACH) + 31, 60, str(i), 't_num', 'hot' if i == 8 else 'fg', 'center',
+                            toggle='revScale=' + name, toggle2='!mapWindow&sweepCenter=tach'))
 widgets += [
     # no speed of ours with the map on: in Map view BMW's own speed shows in the map window
-    text('speed_hero', 960, 505, 430, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),
-    text('hero_unit', 960, 625, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow'),
-    text('gear_top', 960, 305, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
+    # the middle with the map off, by the sweepCenter setting: big speed (speed), big gear (gear), or a bigger sweep (tach)
+    text('speed_hero', 960, 505, 430, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow&sweepCenter=speed', color2='chrome'),
+    text('hero_unit', 960, 625, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow&sweepCenter=speed'),
+    text('gear_top', 960, 305, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow&sweepCenter=speed'),
+    text('gear_hero', 960, 505, 300, '{{gear}}', 'u_gearbig', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow&sweepCenter=gear'),
+    text('speed_top', 960, 305, 260, '{{speed}}', 'u_gear', align='center', color2='chrome', toggle='!mapWindow&sweepCenter=gear'),
+    text('top_unit', 960, 374, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow&sweepCenter=gear'),
+    text('gear_mid', 960, 382, 160, '{{gear}}', 'u_gearsm', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
+    text('speed_mid', 960, 505, 300, '{{speed}}', 'u_speed', align='center', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
+    text('mid_unit', 960, 590, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow&sweepCenter=tach'),
     text('ambient', 1820, 682, 100, '{{ambient}}', 't_label', align='right'),
     text('ambient_unit', 1825, 682, 40, '{{u:temp}}', 't_label', 'dim'),
     text('gear', 1880, 420, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome', toggle='mapWindow'),
