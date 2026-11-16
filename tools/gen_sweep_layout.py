@@ -106,6 +106,9 @@ widgets += [
     text('gear_mid', 960, 382, 160, '{{gear}}', 'u_gearsm', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
     text('speed_mid', 960, 505, 300, '{{speed}}', 'u_speed', align='center', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
     text('mid_unit', 960, 590, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow&sweepCenter=tach'),
+    # ethanol content from a flex fuel kit (OBD PID 0x52), as the blend's name (E42); after the range when that shows
+    text('eth', 60, 682, 160, 'E{{ethanol}}', 't_label', toggle='showEthanol&!intakeBar'),
+    text('eth_r', 300, 682, 160, 'E{{ethanol}}', 't_label', toggle='showEthanol&intakeBar'),
     # miles to empty, bold and yellow under 60 miles (the car sends km)
     text('rng', 60, 682, 200, '{{range}} {{u:distLc}}', 't_label', align='left', toggle='intakeBar',
          lowWhen=dict(signal='range', below=round(60 * 1.609344, 2), color='low', font='u_bold')),

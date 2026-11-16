@@ -1560,6 +1560,34 @@
       "toggle": "!mapWindow&sweepCenter=tach"
     },
     {
+      "id": "eth",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 664,
+      "w": 160,
+      "h": 35,
+      "text": "E{{ethanol}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "left",
+      "toggle": "showEthanol&!intakeBar"
+    },
+    {
+      "id": "eth_r",
+      "type": "text",
+      "z": 5,
+      "x": 300,
+      "y": 664,
+      "w": 160,
+      "h": 35,
+      "text": "E{{ethanol}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "left",
+      "toggle": "showEthanol&intakeBar"
+    },
+    {
       "id": "rng",
       "type": "text",
       "z": 5,

@@ -503,6 +503,8 @@ class HudApp {
         this.needsBoost = false;         // a shown widget uses boost (the engine unit is only asked then)
         this.intakeDme = null; this.intakeDmeAt = 0;  // C, intake air from the engine unit (config.dme.intake)
         this.needsIntake = false;        // a shown widget uses the intake temperature
+        this.ethanolDme = null; this.ethanolDmeAt = 0;  // %, ethanol content from the engine unit (config.dme.ethanol)
+        this.needsEthanol = false;
         this.hvSoc = null; this.hvSocAt = 0;  // %, a plug-in hybrid's battery charge (HV_SOC)
         this.needsHv = false;            // a shown widget uses it
         this.fuelObd = null; this.fuelObdAt = 0;  // %, the fuel level from the engine unit (FUEL_OBD)
@@ -614,6 +616,7 @@ class HudApp {
         const j = JSON.stringify(shown) + ' ' + ids.join(' ');
         this.needsBoost = /boost/.test(j);
         this.needsIntake = /intake/.test(j);
+        this.needsEthanol = /ethanol/.test(j);
         this.needsHv = /hvSoc/.test(j);
         this.needsFuel = /fuel/i.test(j);
     }
@@ -929,7 +932,8 @@ class HudApp {
         const dme = this.config.dme;
         const hasBoost = !!(dme && Array.isArray(dme.boost) && dme.boost.length);
         const hasIntake = !!(dme && Array.isArray(dme.intake) && dme.intake.length);
-        let rd = null, busy = false, probeAsk = 0, baro = 101.3, baroAt = 0, intakeAsk = 0, hvAsk = 0, hvMiss = 0, fuelAsk = 0, fuelMiss = 0;
+        const hasEthanol = !!(dme && Array.isArray(dme.ethanol));   // ethanol content, a flex fuel kit's (config.dme.ethanol)
+        let rd = null, busy = false, probeAsk = 0, baro = 101.3, baroAt = 0, intakeAsk = 0, ethAsk = 0, hvAsk = 0, hvMiss = 0, fuelAsk = 0, fuelMiss = 0;
         try {
             // the kit's read-only link: anything but a read (22 / OBD 01) is refused before it leaves the head unit.
             // silentAfter Infinity: never skip a unit that stopped answering; the retry timers below pace that.
@@ -943,11 +947,12 @@ class HudApp {
             const now = Date.now();
             const wantBoost = hasBoost && this.needsBoost && now - this.boostFesAt >= FRESH_MS;
             const wantIntake = hasIntake && this.needsIntake && now - intakeAsk >= 2000;   // a temperature: every 2 s is plenty
+            const wantEthanol = hasEthanol && this.needsEthanol && now - ethAsk >= 5000;   // the blend changes only after a fill-up
             const wantHv = this.needsHv && now - hvAsk >= (hvMiss >= 3 ? HV_RETRY_MS : HV_EVERY_MS);
             const wantFuel = this.needsFuel && now - fuelAsk >= (fuelMiss >= 3 ? FUEL_RETRY_MS : FUEL_EVERY_MS);
             // the intake probe (setting "intakeProbe", app.json config.dme.intakeProbe): every candidate in turn, for a photo
             const wantProbe = this.setting('intakeProbe') === true && dme && Array.isArray(dme.intakeProbe) && now - probeAsk >= 3000;
-            if (busy || this.car.data().demo || (!wantBoost && !wantIntake && !wantHv && !wantFuel && !wantProbe)) return;
+            if (busy || this.car.data().demo || (!wantBoost && !wantIntake && !wantEthanol && !wantHv && !wantFuel && !wantProbe)) return;
             busy = true;
             (async () => {
                 if (wantFuel) {
@@ -980,6 +985,11 @@ class HudApp {
                     }
                     this.intakeProbeText = out.join('   ');
                     this.log.info('intake probe: ' + this.intakeProbeText + ' | ' + dme.intakeProbe.map((c) => c.label + ' ' + ((rd.raws[rd.key(c)] || {}).bytes || (rd.raws[rd.key(c)] || {}).why || '')).join(' | '));
+                }
+                if (wantEthanol) {
+                    ethAsk = now;
+                    const e = await rd.value('ethanol', dme.ethanol);
+                    if (isNum(e)) { this.ethanolDme = e; this.ethanolDmeAt = Date.now(); }
                 }
                 if (wantIntake) {
                     intakeAsk = now;
@@ -1607,6 +1617,10 @@ class HudApp {
             const g = this.car.data()[name];
             return isNum(g) && Math.abs(g) <= G_BAD ? g : null;
         }
+        if (name === 'ethanol') {
+            if (isNum(this.ethanolDme) && Date.now() - this.ethanolDmeAt < 30000) return this.ethanolDme;
+            return this.car.data().demo ? 42 : null;
+        }
         if (name === 'intake') {
             if (isNum(this.intakeDme) && Date.now() - this.intakeDmeAt < 10000) return this.intakeDme;
             return this.car.data().demo ? 31 : null;
@@ -1683,6 +1697,7 @@ class HudApp {
         switch (tok) {
             case 'u:pressure': return us ? 'psi' : 'bar';
             case 'intakeProbe': return this.setting('intakeProbe') === true ? (this.intakeProbeText || 'PROBE ASKING') : '';
+            case 'ethanol': { const v = this._raw('ethanol'); return fix(v, 0); }
             case 'intake': { const v = this._raw('intake'); return fix(isNum(v) ? (us ? v * 9 / 5 + 32 : v) : v, 0); }
             case 'boostPeak': { const v = this.boostPeak; return us ? fix(isNum(v) ? v * 14.5038 : v, 1) : fix(v, 2); }
             case 'run': { const v = this.runs.shown(Date.now()); return isNum(v) ? v.toFixed(this.runs.state === 'run' ? 1 : 2) : '0.00'; }

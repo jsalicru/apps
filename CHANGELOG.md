@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 16 2026
+
+- **Cluster Themes 0.18.17 (jsalicru's fork):** "Show ethanol content (flex fuel)" puts the blend (E42) at the bottom left, read over OBD PID 0x52. For a flex fuel kit like MHD's; untested whether the tune reports it there.
+
 ## Nov 15 2026
 
 - **Cluster Themes 0.18.16 (jsalicru's fork):** intake air from OBD service 01 PID 0x0F, the one PID the car answered in the test (the others were refused); the test readout is gone.
