@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 15 2026
 
+- **Cluster Themes 0.18.6 (jsalicru's fork):** Sweep's 7400 to 8000 rpm is one solid block at half its width; the rest of the scale spreads into the room. Not yet tested on a car.
 - **Cluster Themes 0.18.5 (jsalicru's fork):** Sweep's oil and water bars get a thin blue bracket under their first 4 segments and up the bar's start, and a red one over their last 4 and down its end. Oil now runs 125 to 275°F (cold to 150, red from 250), water 115 to 265°F (cold to 140, red from 240, was 230). Not yet tested on a car.
 - **Cluster Themes 0.18.4 (jsalicru's fork):** the app is called P3 Clusters on the iDrive screen. Not yet tested on a car.
 - **Cluster Themes 0.18.3 (jsalicru's fork):** Sweep's rev sweep and gear move down, clear of BMW's turn signal arrows (measured from an M3 photo). With the map window on, the sweep is thinner and the window's top edge a little lower, so the rev numbers sit between them. Not yet tested on a car.

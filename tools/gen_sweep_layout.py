@@ -15,6 +15,16 @@ SPAN = [125, 1795]             # x at 0 rpm, x at 8000
 HEX = [963, 172, 341, 580, 323, 438, 357]   # top lowered from 141 (Nov 15 2026) to leave the rev numbers room under the sweep   # centre x, y top, widest, bottom; half widths at top, widest, bottom
 TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for two, for three, height: BMW's speed, right-aligned at about x 630, stops above its line
 # the race scales: the band's middle is at this rpm, and each thousand gets wider towards the top
+TAIL_FROM, TAIL_SCALE = 7400, 0.5   # 7400 to 8000 rpm: one solid block, half its width
+
+
+def rev_pos(v, curve):
+    """Where rpm v (0..1 of the scale) sits along the sweep (0..1), as the shader has it (u_tail, u_curve)."""
+    p0, p = (TAIL_FROM / 8000) ** curve, v ** curve
+    s0 = 1 - (1 - p0) * TAIL_SCALE
+    return p * s0 / p0 if v <= TAIL_FROM / 8000 else s0 + (p - p0) * TAIL_SCALE
+
+
 REV_CURVES = {name: math.log(0.5) / math.log(rpm / 8000) for name, rpm in (('race', 5000), ('race55', 5500))}
 BAR_C = [60, 553, 320, 13]     # boost, left
 BAR_B = [60, 633, 320, 13]     # fuel, left
@@ -52,7 +62,7 @@ def bottom(x, arc=ARC):
     return arc[0] + dx * dx / (2 * arc[2]) + arc[3]
 
 
-widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, revCurves={k: round(v, 4) for k, v in REV_CURVES.items()},
+widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, tailFrom=TAIL_FROM, tailScale=TAIL_SCALE, revCurves={k: round(v, 4) for k, v in REV_CURVES.items()},
                 # oil: 24 segments of 6.25F, so the 4th ends at 150 and the 4th from last starts at 250 (the zone lines)
                 barA=BAR_A, signalA='oil', rangeA=[f_to_c(125), f_to_c(275)], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
                 zonesA=[dict(signal='oil', above=f_to_c(250), color='hot'), dict(signal='oil', above=f_to_c(235), color='warn'),
@@ -68,10 +78,10 @@ widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0,
                 noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D))]
 for i in range(9):
     for name, curve in [('even', 1)] + list(REV_CURVES.items()):
-        x = SPAN[0] + (SPAN[1] - SPAN[0]) * (i / 8) ** curve
+        x = SPAN[0] + (SPAN[1] - SPAN[0]) * rev_pos(i / 8, curve)
         widgets.append(text('n%s_%d' % (name, i), x + 24, bottom(x + 24) + 23, 50, str(i), 't_mini', 'hot' if i == 8 else 'fg', 'center',
                             toggle='revScale=' + name, toggle2='mapWindow'))
-        x = SPAN_OFF[0] + (SPAN_OFF[1] - SPAN_OFF[0]) * (i / 8) ** curve + ARC_OFF[3] * 0.45
+        x = SPAN_OFF[0] + (SPAN_OFF[1] - SPAN_OFF[0]) * rev_pos(i / 8, curve) + ARC_OFF[3] * 0.45
         widgets.append(text('b%s_%d' % (name, i), x, bottom(x, ARC_OFF) + 31, 60, str(i), 't_num', 'hot' if i == 8 else 'fg', 'center',
                             toggle='revScale=' + name, toggle2='!mapWindow'))
 widgets += [

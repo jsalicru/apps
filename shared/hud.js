@@ -101,7 +101,8 @@
  *   sweepdash effect layer; the whole Sweep theme (shaders.js sweepdash): "noMap" { arc, span, barA..barD } replaces those while
  *             the map window is off; "coldLimit" [oil deg C cold, oil deg C warm, rpm]: the red zone starts at that rpm when
  *             cold and rises to the redline as the oil warms; "yellowLines": how many lines just below the red zone are always yellow; "waveFrom" rpm: from here to the redline, the lit segments turn yellow from the red zone back to 0; "arc" [y of the top at the middle, centre x,
- *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "revCurves" { value of the "revScale" setting:
+ *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "tailFrom" rpm: the scale above it is one solid block, squeezed to
+ *             "tailScale" times its width; "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zoneMarks": thin cold and hot lines over the first and last 4 of
  *             bars A and D's 24 segments; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
@@ -2183,6 +2184,7 @@ class HudApp {
             c.uniform(ref, 'u_barB', noMap.barB);
             c.uniform(ref, 'u_barC', noMap.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? noMap.barC : [0, 0, 0, 0]);
             c.uniform(ref, 'u_curve', [isNum((w.revCurves || {})[this.setting('revScale')]) ? w.revCurves[this.setting('revScale')] : 1]);
+            c.uniform(ref, 'u_tail', [isNum(w.tailFrom) ? w.tailFrom / (w.max || 8000) : 2, isNum(w.tailScale) ? w.tailScale : 1]);
             c.uniform(ref, 'u_barD', noMap.barD || [0, 0, 0, 0]);
             c.uniform(ref, 'u_marks', [w.zoneMarks ? 1 : 0]);
             c.uniform(ref, 'u_cold', rgb(color(t, 'cold')));

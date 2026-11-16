@@ -1711,6 +1711,7 @@ const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL
 //   u_wave   lit segments from here up to the red zone are yellow, 0..1 of the scale: it falls from the red zone to 0 as the revs
 //            climb to the redline, so the yellow spreads back down the sweep
 //   u_flash  1: the lit segments turn red for this frame of the shift flash
+//   u_tail   x: the top of the scale from here (0..1 of the rpm) is one solid block, squeezed to y times its width (x above 1 = none)
 //   u_curve  how the scale is spread along the band: 1 = even, above 1 = the top of the rev range gets more of the band
 //   u_barA, u_barB, u_barC, u_barD, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C, w: D)
 //   u_colA, u_colB, u_colD  the colours of bars A, B and D (C is u_amber)
@@ -1737,6 +1738,7 @@ uniform float u_wave;
 uniform float u_flash;
 uniform vec3 u_yellow;
 uniform float u_curve;
+uniform vec2 u_tail;
 uniform float u_metal;
 uniform vec4 u_barA;
 uniform vec4 u_barB;
@@ -1802,13 +1804,18 @@ void main() {
     if (dy > -60.0 && dy < h + 60.0) {
         float span = u_span.y - u_span.x;
         float along = span * s;
+        // the band's position s to the rpm v: P = v ^ curve spreads the scale, and the tail above u_tail.x is squeezed
+        float tail = min(u_tail.x, 1.0), P0 = pow(tail, u_curve), s0 = 1.0 - (1.0 - P0) * u_tail.y;
         float sc = max(s, 0.001);
-        float v = pow(sc, 1.0 / u_curve);                      // the rpm (0..1) at this point of the band
-        float width = span / (u_segs * (1.0 / u_curve) * pow(sc, 1.0 / u_curve - 1.0));   // this segment's width in px
+        float P = sc <= s0 ? sc * P0 / s0 : P0 + (sc - s0) / u_tail.y;
+        float dP = sc <= s0 ? P0 / s0 : 1.0 / u_tail.y;
+        float v = pow(max(P, 0.0001), 1.0 / u_curve);         // the rpm (0..1) at this point of the band
+        float width = span / (u_segs * (1.0 / u_curve) * pow(max(P, 0.0001), 1.0 / u_curve - 1.0) * dP);   // this segment's width in px
         float f = fract(v * u_segs);
         float band = cov(-dy) * cov(dy - h) * cov(-along) * cov((s - 1.0) * span);
-        // segments too narrow to show their gaps merge into a solid strip
-        float seg = band * mix(1.0, cov((abs(f - 0.47) - 0.40) * width), smoothstep(3.0, 7.0, width));
+        // segments too narrow to show their gaps merge into a solid strip, and the tail is one solid block
+        float gaps = u_tail.x <= 1.0 && v > tail ? 0.0 : smoothstep(3.0, 7.0, width);
+        float seg = band * mix(1.0, cov((abs(f - 0.47) - 0.40) * width), gaps);
         float mid = (floor(v * u_segs) + 0.5) / u_segs;
         bool on = mid < rpm;
         bool hot = mid >= u_red;
