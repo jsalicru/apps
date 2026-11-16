@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 15 2026
 
+- **Cluster Themes 0.18.10 (jsalicru's fork):** Sweep shows the intake air after the intercooler (IAT, OBD PID 0x77) at the bottom left. The 0x0F fallback is gone, so it reads -- rather than the wrong sensor. Not yet tested on a car.
 - **Cluster Themes 0.18.9 (jsalicru's fork):** Sweep without the map gets a "middle" setting: big speed with a small gear (as before), big gear with a small speed, or a bigger rev sweep with a smaller speed and gear. Layout toggles accept "a&b". Not yet tested on a car.
 - **Cluster Themes 0.18.8 (jsalicru's fork):** only Sweep, Rally, Dyno and Ribbon are left (plus BMW's own cluster and the Calibration grid); the other themes are gone. Not yet tested on a car.
 - **Cluster Themes 0.18.7 (jsalicru's fork):** Sweep's 7400 to 8000 rpm block is a quarter narrower, and the boost and fuel bars get the temperature bars' brackets in the bar colour (fuel's turn yellow when low). Not yet tested on a car.

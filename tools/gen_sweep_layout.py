@@ -102,6 +102,10 @@ widgets += [
     text('gear_mid', 960, 382, 160, '{{gear}}', 'u_gearsm', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
     text('speed_mid', 960, 505, 300, '{{speed}}', 'u_speed', align='center', color2='chrome', toggle='!mapWindow&sweepCenter=tach'),
     text('mid_unit', 960, 590, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow&sweepCenter=tach'),
+    # intake air after the intercooler (OBD PID 0x77, app.json config.dme.intake), bottom left, mirroring the outside temperature
+    text('iat_label', 60, 682, 60, 'IAT', 't_label', 'dim'),
+    text('iat', 160, 682, 80, '{{intake}}', 't_label', align='right'),
+    text('iat_unit', 165, 682, 40, '{{u:temp}}', 't_label', 'dim'),
     text('ambient', 1820, 682, 100, '{{ambient}}', 't_label', align='right'),
     text('ambient_unit', 1825, 682, 40, '{{u:temp}}', 't_label', 'dim'),
     text('gear', 1880, 420, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome', toggle='mapWindow'),
