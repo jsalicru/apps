@@ -53,13 +53,16 @@ def bottom(x, arc=ARC):
 
 
 widgets = [dict(id='dash', type='sweepdash', **{'class': 'ambient'}, z=-10, x=0, y=0, w=1920, h=720, arc=ARC, span=SPAN, max=8000, revCurves={k: round(v, 4) for k, v in REV_CURVES.items()},
-                barA=BAR_A, signalA='oil', rangeA=[f_to_c(100), f_to_c(280)], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
+                # oil: 24 segments of 6.25F, so the 4th ends at 150 and the 4th from last starts at 250 (the zone lines)
+                barA=BAR_A, signalA='oil', rangeA=[f_to_c(125), f_to_c(275)], barB=BAR_B, signalB='fuel', rangeB=[0, 1],
                 zonesA=[dict(signal='oil', above=f_to_c(250), color='hot'), dict(signal='oil', above=f_to_c(235), color='warn'),
-                        dict(signal='oil', below=f_to_c(140), color='cold')],
+                        dict(signal='oil', below=f_to_c(150), color='cold')],
+                zoneMarks=True,
                 zonesB=[dict(signal='range', below=round(50 * 1.609344, 2), color='low')],
                 barC=BAR_C, signalC='boost', rangeC=[0, 2.0684], toggleC='showBoost',
-                barD=BAR_D, signalD='coolant', rangeD=[f_to_c(100), f_to_c(260)],
-                zonesD=[dict(signal='coolant', above=f_to_c(230), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
+                # water: the 4th segment ends at 140, the 4th from last starts at 240
+                barD=BAR_D, signalD='coolant', rangeD=[f_to_c(115), f_to_c(265)],
+                zonesD=[dict(signal='coolant', above=f_to_c(240), color='hot'), dict(signal='coolant', below=f_to_c(140), color='cold')],
                 coldLimit=[f_to_c(120), f_to_c(160), 4000], yellowLines=2, waveFrom=6000,
                 hex=HEX, tab=TAB, holeWhen='mapWindow', gearGap=GEAR_GAP,
                 noMap=dict(arc=ARC_OFF, span=SPAN_OFF, barA=BIG_A, barB=BIG_B, barC=BIG_C, barD=BIG_D))]

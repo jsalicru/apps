@@ -103,7 +103,8 @@
  *             cold and rises to the redline as the oil warms; "yellowLines": how many lines just below the red zone are always yellow; "waveFrom" rpm: from here to the redline, the lit segments turn yellow from the red zone back to 0; "arc" [y of the top at the middle, centre x,
  *             curve radius, band height], "span" [x at 0, x at max], "max" rpm (8000), "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
- *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
+ *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zoneMarks": thin cold and hot lines over the first and last 4 of
+ *             bars A and D's 24 segments; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
  *             color }], the first that matches colours that bar; "hex" [centre x, y top, y widest, y bottom, half width
  *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on, joined to the
  *             optional soft "tab" [right x, y, left x for one digit, for two, for three, h], room for BMW's own speed; "gearGap"
@@ -2183,6 +2184,8 @@ class HudApp {
             c.uniform(ref, 'u_barC', noMap.barC && (!w.toggleC || this._toggleOn(w.toggleC)) ? noMap.barC : [0, 0, 0, 0]);
             c.uniform(ref, 'u_curve', [isNum((w.revCurves || {})[this.setting('revScale')]) ? w.revCurves[this.setting('revScale')] : 1]);
             c.uniform(ref, 'u_barD', noMap.barD || [0, 0, 0, 0]);
+            c.uniform(ref, 'u_marks', [w.zoneMarks ? 1 : 0]);
+            c.uniform(ref, 'u_cold', rgb(color(t, 'cold')));
             c.uniform(ref, 'u_rpm', [0]);
             c.uniform(ref, 'u_lvl', [0, 0, 0, 0]);
             c.uniform(ref, 'u_hex', hexOn ? w.hex.slice(0, 4) : [0, 0, 0, 0]);

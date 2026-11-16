@@ -1714,6 +1714,7 @@ const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL
 //   u_curve  how the scale is spread along the band: 1 = even, above 1 = the top of the rev range gets more of the band
 //   u_barA, u_barB, u_barC, u_barD, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C, w: D)
 //   u_colA, u_colB, u_colD  the colours of bars A, B and D (C is u_amber)
+//   u_marks  1: thin lines over the first and last 4 segments of bars A and D (cold in u_cold, hot in u_hot)
 //   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
 //   u_gap    a see-through box over BMW's gear letter in its bottom strip: x, y, w, h (w 0 = none). BMW draws a black box
 //            of its own while a theme covers that letter (bimmer-lab, issue #5)
@@ -1745,6 +1746,8 @@ uniform vec4 u_lvl;
 uniform vec3 u_colA;
 uniform vec3 u_colB;
 uniform vec3 u_colD;
+uniform float u_marks;
+uniform vec3 u_cold;
 uniform vec4 u_hex;
 uniform vec3 u_hexW;
 uniform vec4 u_tab;
@@ -1769,6 +1772,18 @@ vec3 bar(vec3 c, vec2 p, vec4 b, float lvl, vec3 lit) {
     bool on = (floor(s * n) + 0.5) / n < lvl;
     float g = clamp(dy / b.w, 0.0, 1.0);
     return mix(c, on ? lit * mix(1.08, 0.66, g) : vec3(0.11) * mix(1.25, 0.8, g), seg);
+}
+
+// a bar's cold and hot ends: a thin line over its first and last 4 segments, on the segments' slant
+vec3 marks(vec3 c, vec2 p, vec4 b, vec3 cold, vec3 hot) {
+    if (b.z <= 0.0) return c;
+    float y = b.y - max(5.0, b.w * 0.32);
+    float d = abs(p.y - y);
+    if (d > 3.0 || p.x < b.x - 30.0 || p.x > b.x + b.z + 4.0) return c;
+    float s = (p.x - b.x + (y - b.y - b.w) * 0.35) / b.z, L = b.z, k = 4.0 / 24.0;
+    float line = cov(d - 0.9);
+    c = mix(c, cold, line * cov(-s * L) * cov((s - k) * L + 2.0));
+    return mix(c, hot, line * cov((1.0 - k - s) * L + 2.0) * cov((s - 1.0) * L));
 }
 
 void main() {
@@ -1821,6 +1836,10 @@ void main() {
     c = bar(c, p, u_barB, u_lvl.y, u_colB);
     c = bar(c, p, u_barC, u_lvl.z, u_amber);
     c = bar(c, p, u_barD, u_lvl.w, u_colD);
+    if (u_marks > 0.5) {
+        c = marks(c, p, u_barA, u_cold, u_hot);
+        c = marks(c, p, u_barD, u_cold, u_hot);
+    }
     float a = 1.0;
     if (u_hexW.x > 0.0) {
         vec2 q = vec2(abs(p.x - u_hex.x), p.y);

@@ -36,8 +36,8 @@
       ],
       "signalA": "oil",
       "rangeA": [
-        37.78,
-        137.78
+        51.67,
+        135.0
       ],
       "barB": [
         60,
@@ -63,10 +63,11 @@
         },
         {
           "signal": "oil",
-          "below": 60.0,
+          "below": 65.56,
           "color": "cold"
         }
       ],
+      "zoneMarks": true,
       "zonesB": [
         {
           "signal": "range",
@@ -94,13 +95,13 @@
       ],
       "signalD": "coolant",
       "rangeD": [
-        37.78,
-        126.67
+        46.11,
+        129.44
       ],
       "zonesD": [
         {
           "signal": "coolant",
-          "above": 110.0,
+          "above": 115.56,
           "color": "hot"
         },
         {
