@@ -1774,16 +1774,21 @@ vec3 bar(vec3 c, vec2 p, vec4 b, float lvl, vec3 lit) {
     return mix(c, on ? lit * mix(1.08, 0.66, g) : vec3(0.11) * mix(1.25, 0.8, g), seg);
 }
 
-// a bar's cold and hot ends: a thin line over its first and last 4 segments, on the segments' slant
+// a bar's cold and hot ends: a thin bracket round its first 4 segments (under them and up the bar's start) and its last 4 (over them
+// and down the bar's end), the sides on the segments' slant
 vec3 marks(vec3 c, vec2 p, vec4 b, vec3 cold, vec3 hot) {
-    if (b.z <= 0.0) return c;
-    float y = b.y - max(5.0, b.w * 0.32);
-    float d = abs(p.y - y);
-    if (d > 3.0 || p.x < b.x - 30.0 || p.x > b.x + b.z + 4.0) return c;
-    float s = (p.x - b.x + (y - b.y - b.w) * 0.35) / b.z, L = b.z, k = 4.0 / 24.0;
-    float line = cov(d - 0.9);
-    c = mix(c, cold, line * cov(-s * L) * cov((s - k) * L + 2.0));
-    return mix(c, hot, line * cov((1.0 - k - s) * L + 2.0) * cov((s - 1.0) * L));
+    if (b.z <= 0.0 || p.y < b.y - 10.0 || p.y > b.y + b.w + 10.0 || p.x < b.x - 40.0 || p.x > b.x + b.z + 20.0) return c;
+    float g = max(4.0, b.w * 0.22), L = b.z, k = 4.0 / 24.0 * L;
+    float e = p.x - b.x + (p.y - b.y - b.w) * 0.35;           // px along the bar from its start, on the slant
+    float lo = b.y + b.w + g, hi = b.y - g;
+    // cold: along the bottom, then up the start
+    float cb = cov(abs(p.y - lo) - 0.9) * cov(-g - e) * cov(e - k + 2.0);
+    float cs = cov(abs(e + g) - 0.9) * cov(b.y - p.y) * cov(p.y - lo);
+    c = mix(c, cold, max(cb, cs));
+    // hot: along the top, then down the end
+    float ht = cov(abs(p.y - hi) - 0.9) * cov(L - k + 2.0 - e) * cov(e - L - g);
+    float hs = cov(abs(e - L - g) - 0.9) * cov(hi - p.y) * cov(p.y - b.y - b.w);
+    return mix(c, hot, max(ht, hs));
 }
 
 void main() {
