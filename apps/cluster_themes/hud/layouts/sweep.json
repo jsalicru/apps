@@ -70,6 +70,24 @@
         }
       ],
       "zoneMarks": true,
+      "altB": {
+        "key": "leftBar",
+        "intake": {
+          "signal": "intake",
+          "range": [
+            4.44,
+            97.78
+          ],
+          "hotMarks": true,
+          "zones": [
+            {
+              "signal": "intake",
+              "above": 82.22,
+              "color": "hot"
+            }
+          ]
+        }
+      },
       "zonesB": [
         {
           "signal": "range",
@@ -1552,7 +1570,8 @@
       "text": "IAT",
       "font": "t_label",
       "color": "dim",
-      "align": "left"
+      "align": "left",
+      "toggle": "!leftBar=intake"
     },
     {
       "id": "iat",
@@ -1565,7 +1584,8 @@
       "text": "{{intake}}",
       "font": "t_label",
       "color": "fg",
-      "align": "right"
+      "align": "right",
+      "toggle": "!leftBar=intake"
     },
     {
       "id": "iat_unit",
@@ -1578,7 +1598,28 @@
       "text": "{{u:temp}}",
       "font": "t_label",
       "color": "dim",
-      "align": "left"
+      "align": "left",
+      "toggle": "!leftBar=intake"
+    },
+    {
+      "id": "rng",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 664,
+      "w": 200,
+      "h": 35,
+      "text": "{{range}} {{u:distLc}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "left",
+      "toggle": "leftBar=intake",
+      "lowWhen": {
+        "signal": "range",
+        "below": 96.56,
+        "color": "low",
+        "font": "u_bold"
+      }
     },
     {
       "id": "ambient",
@@ -1724,7 +1765,8 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "mapWindow"
+      "toggle": "!leftBar=intake",
+      "toggle2": "mapWindow"
     },
     {
       "id": "fuel_val",
@@ -1738,7 +1780,8 @@
       "font": "t_label",
       "color": "fg",
       "align": "right",
-      "toggle": "mapWindow"
+      "toggle": "!leftBar=intake",
+      "toggle2": "mapWindow"
     },
     {
       "id": "fuel_unit",
@@ -1752,7 +1795,8 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "mapWindow"
+      "toggle": "!leftBar=intake",
+      "toggle2": "mapWindow"
     },
     {
       "id": "fuel_big_label",
@@ -1766,7 +1810,8 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "!mapWindow"
+      "toggle": "!leftBar=intake",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "fuel_big_val",
@@ -1780,7 +1825,8 @@
       "font": "u_val",
       "color": "fg",
       "align": "right",
-      "toggle": "!mapWindow"
+      "toggle": "!leftBar=intake",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "fuel_big_unit",
@@ -1794,7 +1840,98 @@
       "font": "t_label",
       "color": "dim",
       "align": "left",
-      "toggle": "!mapWindow"
+      "toggle": "!leftBar=intake",
+      "toggle2": "!mapWindow"
+    },
+    {
+      "id": "intake_label",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 592,
+      "w": 140,
+      "h": 35,
+      "text": "INTAKE",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "leftBar=intake",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "intake_val",
+      "type": "text",
+      "z": 5,
+      "x": 232,
+      "y": 592,
+      "w": 100,
+      "h": 35,
+      "text": "{{intake}}",
+      "font": "t_label",
+      "color": "fg",
+      "align": "right",
+      "toggle": "leftBar=intake",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "intake_unit",
+      "type": "text",
+      "z": 5,
+      "x": 337,
+      "y": 592,
+      "w": 48,
+      "h": 35,
+      "text": "{{u:temp}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "leftBar=intake",
+      "toggle2": "mapWindow"
+    },
+    {
+      "id": "intake_big_label",
+      "type": "text",
+      "z": 5,
+      "x": 60,
+      "y": 558,
+      "w": 220,
+      "h": 35,
+      "text": "INTAKE",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "leftBar=intake",
+      "toggle2": "!mapWindow"
+    },
+    {
+      "id": "intake_big_val",
+      "type": "text",
+      "z": 5,
+      "x": 410,
+      "y": 555,
+      "w": 150,
+      "h": 34,
+      "text": "{{intake}}",
+      "font": "u_val",
+      "color": "fg",
+      "align": "right",
+      "toggle": "leftBar=intake",
+      "toggle2": "!mapWindow"
+    },
+    {
+      "id": "intake_big_unit",
+      "type": "text",
+      "z": 5,
+      "x": 566,
+      "y": 558,
+      "w": 58,
+      "h": 35,
+      "text": "{{u:temp}}",
+      "font": "t_label",
+      "color": "dim",
+      "align": "left",
+      "toggle": "leftBar=intake",
+      "toggle2": "!mapWindow"
     },
     {
       "id": "oil_label",

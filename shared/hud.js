@@ -105,7 +105,7 @@
  *             "tailScale" times its width; "revCurves" { value of the "revScale" setting:
  *             the spread, where the band's position is (rpm / max) ^ spread; any other value is even }, "barA" / "barB" [x, y, w, h] with
  *             "signalA" / "signalB" and "rangeA" / "rangeB" [min, max], the same with C for an optional third, shown while "toggleC" is on; "barD" with "signalD", "rangeD" a fourth; "zoneMarks": thin cold and hot lines over the first and last 4 of
- *             bars A and D's 24 segments; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
+ *             bars A and D's 24 segments; "altB" { key: setting, <value>: { signal, range, zones, hotMarks } } swaps bar B by a setting; "zonesA" / "zonesB" / "zonesD" [{ signal, below | above,
  *             color }], the first that matches colours that bar; "hex" [centre x, y top, y widest, y bottom, half width
  *             at top, at widest, at bottom], the six-sided map window, cut while the bool setting "holeWhen" is on, joined to the
  *             optional soft "tab" [right x, y, left x for one digit, for two, for three, h], room for BMW's own speed; "gearGap"
@@ -200,7 +200,7 @@
  * "mapInTheme" setting); the map is a content z 0 layer, so a frame meant to sit over it is content z 1 or more.
  * "themes": [...] shows it only in those themes. Text "color2": a second role, the colour at the bottom
  * of the box (a top-to-bottom gradient, the chrome look). Text: "hotWhen": "now" turns it the shift red
- * at the shift point; "coldWhen": "cold" turns it blue while the cold guard lowers the shift point.
+ * at the shift point; "lowWhen" { signal, below, color, font } recolours it (and swaps the font) under a value; "coldWhen": "cold" turns it blue while the cold guard lowers the shift point.
  * scale: "over" as revbar; "redFrom": true draws the numbers from the redline on in red.
  * lights: "count" (12), "from" rpm (3000) where the first light comes on, "tail" (0): the last "tail" lights are blue
  *   (the GT3 look); "round": true for dots; with the setting "shiftCue" on "countin" (the default) the lights count in
@@ -2190,6 +2190,8 @@ class HudApp {
             c.uniform(ref, 'u_tail', [isNum(w.tailFrom) ? w.tailFrom / (w.max || 8000) : 2, isNum(w.tailScale) ? w.tailScale : 1]);
             c.uniform(ref, 'u_barD', noMap.barD || [0, 0, 0, 0]);
             c.uniform(ref, 'u_marks', [w.zoneMarks ? 1 : 0]);
+            const altB = w.altB && w.altB[this.setting(w.altB.key)];
+            c.uniform(ref, 'u_bHot', [altB && altB.hotMarks ? 1 : 0]);
             c.uniform(ref, 'u_cold', rgb(color(t, 'cold')));
             c.uniform(ref, 'u_rpm', [0]);
             c.uniform(ref, 'u_lvl', [0, 0, 0, 0]);
@@ -2544,16 +2546,23 @@ class HudApp {
                 if (w.hotWhen && sp[w.hotWhen]) role = 'hot';
             }
             role = smartTemps.role(this, w, role);       // temperature bands (cold, warming, hot), outside ice
+            // "lowWhen" { signal, below, color, font }: under that value the text takes that colour (and font), e.g. low fuel range
+            let lowFont = null;
+            if (w.lowWhen) {
+                const v = this._raw(w.lowWhen.signal);
+                if (isNum(v) && v < w.lowWhen.below) { role = w.lowWhen.color || 'low'; lowFont = w.lowWhen.font || null; }
+            }
             // over its warning limit: the value flashes in the shift red
             // ("warnFlash": false: not on a tile that turns red itself, the Dyno theme's)
             if (w.warnFlash !== false && this._warning(w) && Math.floor(now / WARN_FLASH_MS) % 2 === 0) role = 'hot';
-            const key = s + '|' + role;
+            const key = s + '|' + role + '|' + lowFont;
             if (!force && key === x.last) return;
             x.last = key; x.lastPaint = now;
             // "fit": smaller fonts to fall back on when the text is wider than the box (a readout slot showing a
             // longer value than its default) or has a character the font lacks (Retro's seven-segment digits have no
             // letters, + or °), on the same baseline
             let font = w.font, offsetY = 0;
+            if (lowFont) { offsetY = textRaster.loadFont(w.font).metrics.baseline - textRaster.loadFont(lowFont).metrics.baseline; font = lowFont; }
             const has = (n) => { const g = textRaster.loadFont(n).metrics.glyphs; return s.split('').every((ch) => ch === ' ' || g[ch]); };
             if (w.fit && (textRaster.measure(s, font, w.spacing) > w.w || !has(font))) {
                 const f = w.fit.find((n) => has(n) && textRaster.measure(s, n, w.spacing) <= w.w) || w.fit[w.fit.length - 1];
@@ -2676,9 +2685,12 @@ class HudApp {
             if (w.peak) x.c.uniform(x.ref, 'u_peak', [pk > q ? pk : -1]);
         } else if (w.type === 'sweepdash') {
             const rpm = this._raw('rpm');
+            // bar B swapped by a setting (altB: { key, <value>: { signal, range, zones } }), e.g. intake air for fuel
+            const altB = (w.altB && w.altB[this.setting(w.altB.key)]) || {};
+            const sigB = altB.signal || w.signalB, rangeB = altB.range || w.rangeB, zonesB = altB.zones || w.zonesB;
             const lvl = (sig, r) => { const v = this._raw(sig); return isNum(v) ? Math.round(Math.min(1, Math.max(0, (v - r[0]) / (r[1] - r[0]))) * 200) / 200 : 0; };
             const vals = [isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (w.max || 8000))) * 800) / 800 : 0,
-                lvl(w.signalA, w.rangeA), lvl(w.signalB, w.rangeB), w.barC ? lvl(w.signalC, w.rangeC) : 0, w.barD ? lvl(w.signalD, w.rangeD) : 0];
+                lvl(w.signalA, w.rangeA), lvl(sigB, rangeB), w.barC ? lvl(w.signalC, w.rangeC) : 0, w.barD ? lvl(w.signalD, w.rangeD) : 0];
             // the tab opens only as far as BMW's speed needs: a little early, BMW's reading runs above the signal
             const sp = this._raw('speed');
             const shown = isNum(sp) ? (this.setting('units') === 'us' ? sp * 0.621371 : sp) : 0;
@@ -2691,7 +2703,7 @@ class HudApp {
                 })[0];
                 return hit ? hit.color : x.barColor;
             };
-            const colA = zone(w.zonesA), colB = zone(w.zonesB), colD = zone(w.zonesD);
+            const colA = zone(w.zonesA), colB = zone(zonesB), colD = zone(w.zonesD);
             // the red zone starts low on a cold engine and rises to the redline as the oil warms; the yellow zone below it moves too
             const redline = this.setting('redline'), max = w.max || 8000, oil = this._raw('oil');
             let limit = redline;

@@ -1750,6 +1750,7 @@ uniform vec3 u_colA;
 uniform vec3 u_colB;
 uniform vec3 u_colD;
 uniform float u_marks;
+uniform float u_bHot;   // 1: bar B is a temperature (intake air): no cold mark, the hot one in u_hot
 uniform vec3 u_cold;
 uniform vec4 u_hex;
 uniform vec3 u_hexW;
@@ -1787,7 +1788,7 @@ vec3 marks(vec3 c, vec2 p, vec4 b, vec3 cold, vec3 hot) {
     // cold: along the bottom, then up the start
     float cb = cov(abs(p.y - lo) - 0.9) * cov(-g - e) * cov(e - k + 2.0);
     float cs = cov(abs(e + g) - 0.9) * cov(b.y - p.y) * cov(p.y - lo);
-    c = mix(c, cold, max(cb, cs));
+    if (cold.r >= 0.0) c = mix(c, cold, max(cb, cs));   // a negative colour: no cold mark
     // hot: along the top, then down the end
     float ht = cov(abs(p.y - hi) - 0.9) * cov(L - k + 2.0 - e) * cov(e - L - g);
     float hs = cov(abs(e - L - g) - 0.9) * cov(hi - p.y) * cov(p.y - b.y - b.w);
@@ -1852,7 +1853,8 @@ void main() {
     if (u_marks > 0.5) {
         c = marks(c, p, u_barA, u_cold, u_hot);
         c = marks(c, p, u_barD, u_cold, u_hot);
-        c = marks(c, p, u_barB, u_colB, u_colB);              // fuel: its bar's colour, yellow when low
+        if (u_bHot > 0.5) c = marks(c, p, u_barB, vec3(-1.0), u_hot);   // intake air: only the hot bracket
+        else c = marks(c, p, u_barB, u_colB, u_colB);              // fuel: its bar's colour, yellow when low
         c = marks(c, p, u_barC, u_amber, u_amber);            // boost: the bar colour
     }
     float a = 1.0;
