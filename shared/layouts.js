@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const data = require('./hud_data');
 const visible = require('./visible');
+const sensors = require('./sensors');
 
 const TYPES = {
     text: ['text', 'font'],
@@ -28,11 +29,21 @@ const TYPES = {
     segbar: ['signal', 'max'],
     mdash: [],
     sdash: ['geo', 'k', 'band', 'ticks', 'fuelSeg', 'oilSeg', 'strip', 'topEnd'],
+    mview: ['path', 'scale', 'dial', 'dialAng', 'line'],
     mtach: ['side', 'y0', 'y8', 'ym', 'xm', 'kTop', 'kBot', 'wBot', 'wTop'],
     icon: ['icon'],
     swatch: [],
     swatchimg: [],
     boxes: ['boxes'],
+    atext: ['text', 'font'],
+    dial: ['measure'],
+    meter: ['signal', 'min', 'max'],
+    gmeter: [],
+    tiles: ['tiles'],
+    revarc: ['center', 'r', 'start', 'sweep'],
+    ribbon: ['curve', 'span'],
+    deco: [],
+    nav: [],
     twinface: ['dials'],
     twinneedle: ['needles'],
     sweepdash: ['arc', 'span', 'barA', 'barB'],
@@ -68,7 +79,15 @@ class Layouts {
         // Warn (never refuse) about widgets the driver cannot see: under the hood, under BMW's
         // gear box or belt light on the cluster, outside the windshield window on the HUD.
         const target = this.size[0] === 1920 ? 'panel' : 'hud';
-        visible.check(raw.widgets, target).forEach((w) => this.log.warn('layout "' + name + '": ' + w));
+        // once per warning per run: layouts are loaded again and again (previews, the page), and repeating the same
+        // lines rotated the app's log away in seconds on the car (Nov 10 2026)
+        if (!this._warned) this._warned = new Set();
+        visible.check(raw.widgets, target).forEach((w) => {
+            const line = 'layout "' + name + '": ' + w;
+            if (this._warned.has(line)) return;
+            this._warned.add(line);
+            this.log.warn(line);
+        });
         return raw;
     }
 
@@ -77,6 +96,13 @@ class Layouts {
         if (!p || typeof p !== 'object') bad('not an object');
         if (p.schemaVersion !== 2) bad('schemaVersion must be 2 (got ' + p.schemaVersion + ')');
         if (!Array.isArray(p.widgets)) bad('missing widgets array');
+        if (p.slots !== undefined) {
+            if (!Array.isArray(p.slots)) bad('"slots" must be a list');
+            p.slots.forEach((sl, i) => {
+                if (!sl || !sl.id) bad('slots[' + i + '] has no id');
+                if (!sensors.get(sl.default)) bad('slot "' + sl.id + '": default "' + sl.default + '" is not a sensor (shared/sensors.js)');
+            });
+        }
         const ids = {};
         p.widgets.forEach((w, i) => {
             const at = 'widgets[' + i + '] ("' + w.id + '")';

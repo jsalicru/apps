@@ -1,8 +1,8 @@
 {
   "id": "cluster_themes",
   "title": "Cluster Themes",
-  "description": "Redraws the instrument cluster: Sweep, Twin Dial, GT3 race dash, M-style or Sport, with shift lights, boost, temps and shift scoring",
-  "version": "0.9.20",
+  "description": "Redraws the instrument cluster: Sweep, Twin Dial, GT3 race dash, M-style, M view, Sport, Minimal, Track, Drag, Rally, Retro 80s, Cruise, Dyno (BMW-coloured readout tiles) or Ribbon (with holiday editions), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
+  "version": "0.18.2",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
@@ -15,10 +15,25 @@
     "shaders.js",
     "icons.js",
     "shift_score.js",
+    "demo_script.js",
     "sun.js",
     "cluster_render_client.js",
     "calibration.js",
-    "visible.js"
+    "visible.js",
+    "page.js",
+    "waze.js",
+    "previews.js",
+    "sensors.js",
+    "badges.js",
+    "screen.js",
+    "runs.js",
+    "tz.js",
+    "holidays.js",
+    "vehicle_state.js",
+    "shift_cue.js",
+    "smart_temps.js",
+    "hud_holiday.js",
+    "garland.js"
   ],
   "signals": {
     "de.bmw.infotainment.vehicle.CDS": {
@@ -54,21 +69,37 @@
     "de.bmw.infotainment.KombiIF": {
       "statusRangeTankStatus": "rs"
     },
+    "de.bmw.infotainment.vehicle.Vehicle": {
+      "statusNewCurrentUnitsStatusExt": "rs",
+      "_optional": "the car's pressure and temperature units, for the tyre block"
+    },
+    "de.bmw.infotainment.misc.MDrive": {
+      "dataDisplayGearbox": "s",
+      "controlDisplayMSystems": "rs",
+      "_optional": "S or M next to the gear; controlDisplayMSystems: an M car's drive mode (issue #8)"
+    },
+    "de.bmw.infotainment.vehicle.TPMS": {
+      "statusTyrePressure": "rs",
+      "statusTyreTemperature": "rs",
+      "_optional": "tyre pressures and temperatures in the M theme"
+    },
     "de.bmw.infrastructure.EnvironmentalInformation": {
       "ExteriorTemperature": "s"
+    },
+    "de.bmw.infrastructure.VehicleCondition": {
+      "VehicleCondition": "s",
+      "_optional": "the car switching off: no new layer while it does (cluster-render's switch-off guard)"
     }
   },
   "screens": [
     {
       "name": "MAIN",
-      "kind": "menu",
+      "kind": "canvas",
       "title": "Cluster Themes",
-      "settings": true,
-      "items": [
+      "buttons": [
         [
-          "text",
-          "STATUS",
-          "Starting the cluster"
+          "BTN_SETTINGS",
+          "All settings"
         ]
       ]
     }
@@ -101,12 +132,52 @@
           "M"
         ],
         [
+          "mview",
+          "M view"
+        ],
+        [
           "sport",
           "Sport"
         ],
         [
+          "minimal",
+          "Minimal"
+        ],
+        [
+          "track",
+          "Track"
+        ],
+        [
+          "drag",
+          "Drag"
+        ],
+        [
+          "rally",
+          "Rally"
+        ],
+        [
+          "retro80s",
+          "Retro 80s"
+        ],
+        [
+          "cruise",
+          "Cruise"
+        ],
+        [
+          "dyno",
+          "Dyno"
+        ],
+        [
+          "ribbon",
+          "Ribbon"
+        ],
+        [
           "grid",
           "Calibration grid"
+        ],
+        [
+          "mapcal",
+          "Map calibration"
         ]
       ]
     },
@@ -143,8 +214,44 @@
           "M"
         ],
         [
+          "mview",
+          "M view"
+        ],
+        [
           "sport",
           "Sport"
+        ],
+        [
+          "minimal",
+          "Minimal"
+        ],
+        [
+          "track",
+          "Track"
+        ],
+        [
+          "drag",
+          "Drag"
+        ],
+        [
+          "rally",
+          "Rally"
+        ],
+        [
+          "retro80s",
+          "Retro 80s"
+        ],
+        [
+          "cruise",
+          "Cruise"
+        ],
+        [
+          "dyno",
+          "Dyno"
+        ],
+        [
+          "ribbon",
+          "Ribbon"
         ]
       ]
     },
@@ -175,8 +282,44 @@
           "M"
         ],
         [
+          "mview",
+          "M view"
+        ],
+        [
           "sport",
           "Sport"
+        ],
+        [
+          "minimal",
+          "Minimal"
+        ],
+        [
+          "track",
+          "Track"
+        ],
+        [
+          "drag",
+          "Drag"
+        ],
+        [
+          "rally",
+          "Rally"
+        ],
+        [
+          "retro80s",
+          "Retro 80s"
+        ],
+        [
+          "cruise",
+          "Cruise"
+        ],
+        [
+          "dyno",
+          "Dyno"
+        ],
+        [
+          "ribbon",
+          "Ribbon"
         ]
       ]
     },
@@ -207,14 +350,105 @@
           "M"
         ],
         [
+          "mview",
+          "M view"
+        ],
+        [
           "sport",
           "Sport"
+        ],
+        [
+          "minimal",
+          "Minimal"
+        ],
+        [
+          "track",
+          "Track"
+        ],
+        [
+          "drag",
+          "Drag"
+        ],
+        [
+          "rally",
+          "Rally"
+        ],
+        [
+          "retro80s",
+          "Retro 80s"
+        ],
+        [
+          "cruise",
+          "Cruise"
+        ],
+        [
+          "dyno",
+          "Dyno"
+        ],
+        [
+          "ribbon",
+          "Ribbon"
         ]
       ]
     },
     {
+      "key": "mapInTheme",
+      "label": "Show Waze map inside the theme",
+      "type": "bool",
+      "default": false
+    },
+    {
       "key": "mapWindow",
-      "label": "Leave room for the map",
+      "label": "Map window (Sweep)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "gearGap",
+      "label": "Leave BMW's gear letter open (Sweep)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "sweepColor",
+      "label": "Color (Sweep)",
+      "type": "choice",
+      "default": "silver",
+      "reset": 1,
+      "options": [
+        [
+          "silver",
+          "Silver"
+        ],
+        [
+          "orange",
+          "Orange"
+        ]
+      ]
+    },
+    {
+      "key": "revScale",
+      "label": "Rev scale (Sweep)",
+      "type": "choice",
+      "default": "even",
+      "options": [
+        [
+          "even",
+          "Even"
+        ],
+        [
+          "race",
+          "Race, 5000 rpm in the middle"
+        ],
+        [
+          "race55",
+          "Race, 5500 rpm in the middle"
+        ]
+      ]
+    },
+    {
+      "key": "shiftFlash",
+      "label": "Flash revs at shift point (Sweep)",
       "type": "bool",
       "default": true
     },
@@ -251,40 +485,235 @@
       ]
     },
     {
-      "key": "sweepColor",
-      "label": "Color (Sweep)",
-      "type": "choice",
-      "default": "silver",
-      "options": [
-        [
-          "silver",
-          "Silver"
-        ],
-        [
-          "orange",
-          "Orange"
-        ]
+      "key": "timeZone",
+      "label": "Time zone (clock)",
+      "type": "number",
+      "default": 10002,
+      "steps": [
+        -9999,
+        10001,
+        10002,
+        10003,
+        10004,
+        10005,
+        10006,
+        10007,
+        10008,
+        10009,
+        10011,
+        10012,
+        10013,
+        -720,
+        -690,
+        -660,
+        -630,
+        -600,
+        -570,
+        -540,
+        -510,
+        -480,
+        -450,
+        -420,
+        -390,
+        -360,
+        -330,
+        -300,
+        -270,
+        -240,
+        -210,
+        -180,
+        -150,
+        -120,
+        -90,
+        -60,
+        -30,
+        0,
+        30,
+        60,
+        90,
+        120,
+        150,
+        180,
+        210,
+        240,
+        270,
+        300,
+        330,
+        360,
+        390,
+        420,
+        450,
+        480,
+        510,
+        540,
+        570,
+        600,
+        630,
+        660,
+        690,
+        720,
+        750,
+        780,
+        810,
+        840
       ],
-      "reset": 1
+      "labels": {
+        "-9999": "Not set (UTC)",
+        "10001": "US Eastern",
+        "10002": "US Central",
+        "10003": "US Mountain",
+        "10004": "Arizona",
+        "10005": "US Pacific",
+        "10006": "Alaska",
+        "10007": "Hawaii",
+        "10008": "Canada Atlantic",
+        "10009": "Mexico",
+        "10011": "UK, Ireland, Portugal",
+        "10012": "Central Europe",
+        "10013": "Eastern Europe",
+        "-720": "UTC-12",
+        "-690": "UTC-11:30",
+        "-660": "UTC-11",
+        "-630": "UTC-10:30",
+        "-600": "UTC-10",
+        "-570": "UTC-9:30",
+        "-540": "UTC-9",
+        "-510": "UTC-8:30",
+        "-480": "UTC-8",
+        "-450": "UTC-7:30",
+        "-420": "UTC-7",
+        "-390": "UTC-6:30",
+        "-360": "UTC-6",
+        "-330": "UTC-5:30",
+        "-300": "UTC-5",
+        "-270": "UTC-4:30",
+        "-240": "UTC-4",
+        "-210": "UTC-3:30",
+        "-180": "UTC-3",
+        "-150": "UTC-2:30",
+        "-120": "UTC-2",
+        "-90": "UTC-1:30",
+        "-60": "UTC-1",
+        "-30": "UTC-0:30",
+        "0": "UTC",
+        "30": "UTC+0:30",
+        "60": "UTC+1",
+        "90": "UTC+1:30",
+        "120": "UTC+2",
+        "150": "UTC+2:30",
+        "180": "UTC+3",
+        "210": "UTC+3:30",
+        "240": "UTC+4",
+        "270": "UTC+4:30",
+        "300": "UTC+5",
+        "330": "UTC+5:30",
+        "360": "UTC+6",
+        "390": "UTC+6:30",
+        "420": "UTC+7",
+        "450": "UTC+7:30",
+        "480": "UTC+8",
+        "510": "UTC+8:30",
+        "540": "UTC+9",
+        "570": "UTC+9:30",
+        "600": "UTC+10",
+        "630": "UTC+10:30",
+        "660": "UTC+11",
+        "690": "UTC+11:30",
+        "720": "UTC+12",
+        "750": "UTC+12:30",
+        "780": "UTC+13",
+        "810": "UTC+13:30",
+        "840": "UTC+14"
+      }
     },
     {
-      "key": "revScale",
-      "label": "Rev scale (Sweep)",
-      "type": "choice",
-      "default": "even",
-      "options": [
-        [
-          "even",
-          "Even"
-        ],
-        [
-          "race",
-          "Race, 5000 rpm in the middle"
-        ],
-        [
-          "race55",
-          "Race, 5500 rpm in the middle"
-        ]
+      "key": "tankLitres",
+      "label": "Fuel tank size",
+      "type": "number",
+      "unit": "L",
+      "default": 59,
+      "steps": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110
       ]
     },
     {
@@ -319,20 +748,456 @@
       ]
     },
     {
-      "key": "shiftFlash",
-      "label": "Flash revs at shift point (Sweep)",
-      "type": "bool",
-      "default": true
-    },
-    {
       "key": "coldGuard",
       "label": "Cold-engine rev guard",
       "type": "bool",
       "default": true
     },
     {
+      "key": "shiftCue",
+      "label": "Shift lights",
+      "type": "choice",
+      "default": "countin",
+      "options": [
+        [
+          "countin",
+          "Count in, by how fast the revs climb"
+        ],
+        [
+          "rpm",
+          "Fixed rpm band, as before"
+        ]
+      ]
+    },
+    {
+      "key": "smartTemps",
+      "label": "Show temperatures only when they matter",
+      "type": "bool",
+      "default": false
+    },
+    {
       "key": "showBoost",
       "label": "Show boost",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "cameraNotch",
+      "label": "Leave room for the driver camera",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "holiday",
+      "label": "Holiday editions",
+      "type": "choice",
+      "default": "auto",
+      "options": [
+        [
+          "auto",
+          "Auto, by the date"
+        ],
+        [
+          "off",
+          "Off"
+        ],
+        [
+          "xmas",
+          "Christmas"
+        ],
+        [
+          "thanks",
+          "Thanksgiving"
+        ],
+        [
+          "newyear",
+          "New Year"
+        ],
+        [
+          "july4",
+          "Fourth of July"
+        ]
+      ]
+    },
+    {
+      "key": "warnOil",
+      "label": "Oil temperature warning",
+      "type": "number",
+      "unit": "°C",
+      "default": 130,
+      "steps": [
+        0,
+        110,
+        115,
+        120,
+        125,
+        130,
+        135,
+        140,
+        145,
+        150
+      ]
+    },
+    {
+      "key": "warnCoolant",
+      "label": "Coolant temperature warning",
+      "type": "number",
+      "unit": "°C",
+      "default": 115,
+      "steps": [
+        0,
+        100,
+        105,
+        110,
+        115,
+        120,
+        125
+      ]
+    },
+    {
+      "key": "warnBoost",
+      "label": "Boost warning",
+      "type": "number",
+      "unit": "bar",
+      "default": 0,
+      "steps": [
+        0,
+        0.8,
+        1.0,
+        1.2,
+        1.4,
+        1.6,
+        1.8,
+        2.0
+      ]
+    },
+    {
+      "key": "gFlipLat",
+      "label": "G-meter: swap left / right",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "gFlipLong",
+      "label": "G-meter: brake on top",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "gRange",
+      "label": "G-meter range",
+      "type": "choice",
+      "default": 1.2,
+      "options": [
+        [
+          0.8,
+          "0.8 g"
+        ],
+        [
+          1.0,
+          "1.0 g"
+        ],
+        [
+          1.2,
+          "1.2 g"
+        ],
+        [
+          1.5,
+          "1.5 g"
+        ],
+        [
+          2.0,
+          "2.0 g"
+        ]
+      ]
+    },
+    {
+      "key": "gTrail",
+      "label": "G-meter trail",
+      "type": "choice",
+      "default": 2,
+      "options": [
+        [
+          0,
+          "Off"
+        ],
+        [
+          1,
+          "1 s"
+        ],
+        [
+          2,
+          "2 s"
+        ],
+        [
+          4,
+          "4 s"
+        ]
+      ]
+    },
+    {
+      "key": "nightDim",
+      "label": "Night colours",
+      "type": "choice",
+      "default": "auto",
+      "options": [
+        [
+          "auto",
+          "Auto (dimmer after sunset)"
+        ],
+        [
+          "off",
+          "Off"
+        ]
+      ]
+    },
+    {
+      "key": "badge",
+      "label": "Badge",
+      "type": "choice",
+      "default": "none",
+      "options": [
+        [
+          "none",
+          "None"
+        ],
+        [
+          "128ti",
+          "128ti"
+        ],
+        [
+          "M135i",
+          "M135i"
+        ],
+        [
+          "228i",
+          "228i"
+        ],
+        [
+          "230i",
+          "230i"
+        ],
+        [
+          "M235i",
+          "M235i"
+        ],
+        [
+          "M240i",
+          "M240i"
+        ],
+        [
+          "320i",
+          "320i"
+        ],
+        [
+          "330i",
+          "330i"
+        ],
+        [
+          "330e",
+          "330e"
+        ],
+        [
+          "M340i",
+          "M340i"
+        ],
+        [
+          "430i",
+          "430i"
+        ],
+        [
+          "M440i",
+          "M440i"
+        ],
+        [
+          "i4 eDrive40",
+          "i4 eDrive40"
+        ],
+        [
+          "i4 M50",
+          "i4 M50"
+        ],
+        [
+          "530i",
+          "530i"
+        ],
+        [
+          "530e",
+          "530e"
+        ],
+        [
+          "540i",
+          "540i"
+        ],
+        [
+          "545e",
+          "545e"
+        ],
+        [
+          "M550i",
+          "M550i"
+        ],
+        [
+          "i5 M60",
+          "i5 M60"
+        ],
+        [
+          "740i",
+          "740i"
+        ],
+        [
+          "760i",
+          "760i"
+        ],
+        [
+          "i7 M70",
+          "i7 M70"
+        ],
+        [
+          "840i",
+          "840i"
+        ],
+        [
+          "M850i",
+          "M850i"
+        ],
+        [
+          "X1 M35i",
+          "X1 M35i"
+        ],
+        [
+          "X2 M35i",
+          "X2 M35i"
+        ],
+        [
+          "X3 30i",
+          "X3 30i"
+        ],
+        [
+          "X3 M40i",
+          "X3 M40i"
+        ],
+        [
+          "X3 M50",
+          "X3 M50"
+        ],
+        [
+          "X4 M40i",
+          "X4 M40i"
+        ],
+        [
+          "X5 40i",
+          "X5 40i"
+        ],
+        [
+          "X5 M60i",
+          "X5 M60i"
+        ],
+        [
+          "X6 M60i",
+          "X6 M60i"
+        ],
+        [
+          "X7 M60i",
+          "X7 M60i"
+        ],
+        [
+          "XM",
+          "XM"
+        ],
+        [
+          "Z4 30i",
+          "Z4 30i"
+        ],
+        [
+          "Z4 M40i",
+          "Z4 M40i"
+        ],
+        [
+          "i4",
+          "i4"
+        ],
+        [
+          "i5",
+          "i5"
+        ],
+        [
+          "i7",
+          "i7"
+        ],
+        [
+          "iX",
+          "iX"
+        ],
+        [
+          "iX M60",
+          "iX M60"
+        ],
+        [
+          "M2",
+          "M2"
+        ],
+        [
+          "M3",
+          "M3"
+        ],
+        [
+          "M4",
+          "M4"
+        ],
+        [
+          "M5",
+          "M5"
+        ],
+        [
+          "M8",
+          "M8"
+        ],
+        [
+          "X3 M",
+          "X3 M"
+        ],
+        [
+          "X4 M",
+          "X4 M"
+        ],
+        [
+          "X5 M",
+          "X5 M"
+        ],
+        [
+          "X6 M",
+          "X6 M"
+        ],
+        [
+          "B3",
+          "B3"
+        ],
+        [
+          "B4",
+          "B4"
+        ],
+        [
+          "B5",
+          "B5"
+        ],
+        [
+          "B8",
+          "B8"
+        ],
+        [
+          "XB7",
+          "XB7"
+        ],
+        [
+          "XD3",
+          "XD3"
+        ]
+      ]
+    },
+    {
+      "key": "badgeBMW",
+      "label": "BMW lettering on the badge",
       "type": "bool",
       "default": true
     },
@@ -362,15 +1227,15 @@
     "target": "panel",
     "statusName": "Cluster",
     "socketPath": "/dev/shm/cluster-render/render.sock",
-    "location": {
-      "lat": 35.2271,
-      "lon": -80.8431
+    "utcOffsetMinutes": null,
+    "waze": {
+      "comment": "Show Waze map inside the theme (shared/waze.js): waze-on-cluster's status file (read every second) and its control socket (one short 'start' command, then closed). Paths from waze-on-cluster 0.9.3.",
+      "status": "/run/waze-on-cluster/status.json",
+      "control": "/dev/shm/waze-on-cluster/ctl.sock"
     },
-    "utcOffsetMinutes": -360,
-    "usDst": true,
-    "_comment": "target panel: the whole 1920x720 instrument cluster, drawn over BMW's gauges. socketPath: cluster-render's documented default. location and utcOffsetMinutes: as in HUD Widgets (the clock box). tankLitres: the fuel gauge's full mark (the car sends litres, not the tank size; a G80 M3 holds 59, a G01 X3 65). engine: the peak crank torque (Nm) and power (kW) the {{torquePct}} and {{powerPct}} tokens count from (an M40i: 500 Nm, 285 kW / 382 hp).",
+    "_comment": "target panel: the whole 1920x720 instrument cluster, drawn over BMW's gauges. socketPath: cluster-render's documented default. utcOffsetMinutes: as in HUD Widgets (the clock box). tankLitres: the fuel gauge's full mark (the car sends litres, not the tank size; a G80 M3 holds 59, a G01 X3 65). engine: the peak crank torque (Nm) and power (kW) the {{torquePct}} and {{powerPct}} tokens count from (an M40i: 500 Nm, 285 kW / 382 hp).",
     "dme": {
-      "comment": "Boost from the engine unit (DME, ecu 18) over read-only UDS 0x22, only while the sport display sends no boost and a boost readout is shown. Absolute kPa, the outside air pressure (baro) is subtracted. Candidates tried in order, the first plausible one wins. From cauliflowermossgrape's car_vitals (MIT).",
+      "comment": "Boost from the engine unit (DME, ecu 18) over read-only UDS 0x22, only while the sport display sends no boost and a boost readout is shown. Absolute kPa, the outside air pressure (baro) is subtracted. Candidates tried in order, the first plausible one wins. From cauliflowermossgrape's car_vitals (MIT). Intake air temperature the same way (config.dme.intake, every 2 s, only while an intake readout shows); candidates from cruzen991/Cluster's signal table (MIT), unverified on this car.",
       "ecu": 18,
       "boost": [
         {
@@ -434,6 +1299,38 @@
           "min": 50,
           "max": 115,
           "note": "OBD service 01 PID 0x33 (same as F433)"
+        }
+      ],
+      "intake": [
+        {
+          "did": "F40F",
+          "bytes": 1,
+          "at": 0,
+          "factor": 1,
+          "offset": -40,
+          "min": -35,
+          "max": 150,
+          "note": "OBD PID 0x0F intake air temperature, C + 40"
+        },
+        {
+          "did": "F477",
+          "bytes": 1,
+          "at": 1,
+          "factor": 1,
+          "offset": -40,
+          "min": -35,
+          "max": 150,
+          "note": "OBD PID 0x77 charge air cooler temperature, bank 1 sensor 1 (byte after the support byte), C + 40"
+        },
+        {
+          "obd": "0F",
+          "bytes": 1,
+          "at": 0,
+          "factor": 1,
+          "offset": -40,
+          "min": -35,
+          "max": 150,
+          "note": "OBD service 01 PID 0x0F (same as F40F)"
         }
       ]
     },

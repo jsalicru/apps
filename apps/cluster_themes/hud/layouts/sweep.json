@@ -134,6 +134,12 @@
         94
       ],
       "holeWhen": "mapWindow",
+      "gearGap": [
+        1405,
+        650,
+        125,
+        70
+      ],
       "noMap": {
         "arc": [
           10,
