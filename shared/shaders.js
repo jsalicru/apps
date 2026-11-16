@@ -1853,7 +1853,7 @@ void main() {
     if (u_marks > 0.5) {
         c = marks(c, p, u_barA, u_cold, u_hot);
         c = marks(c, p, u_barD, u_cold, u_hot);
-        if (u_bHot > 0.5) c = marks(c, p, u_barB, vec3(-1.0), u_hot);   // intake air: only the hot bracket
+        if (u_bHot > 0.5) c = marks(c, p, u_barB, u_amber, u_hot);   // intake air: the bar's silver at the start, red at the hot end
         else c = marks(c, p, u_barB, u_colB, u_colB);              // fuel: its bar's colour, yellow when low
         c = marks(c, p, u_barC, u_amber, u_amber);            // boost: the bar colour
     }
