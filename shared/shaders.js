@@ -1715,7 +1715,8 @@ const SWEEPDASH = `// The Sweep theme in one cluster-render "effect" layer (GLSL
 //   u_curve  how the scale is spread along the band: 1 = even, above 1 = the top of the rev range gets more of the band
 //   u_barA, u_barB, u_barC, u_barD, u_lvl  the bars' x, y, w, h (w 0 = none) and their levels 0..1 (x: A, y: B, z: C, w: D)
 //   u_colA, u_colB, u_colD  the colours of bars A, B and D (C is u_amber)
-//   u_marks  1: thin lines over the first and last 4 segments of bars A and D (cold in u_cold, hot in u_hot)
+//   u_marks  1: thin brackets round the first and last 4 segments of each bar (A and D cold in u_cold, hot in u_hot; B in u_colB,
+//            C in u_amber)
 //   u_hex, u_hexW  the map window: centre x, y of its top, widest point and bottom; half widths there (top 0 = none)
 //   u_gap    a see-through box over BMW's gear letter in its bottom strip: x, y, w, h (w 0 = none). BMW draws a black box
 //            of its own while a theme covers that letter (bimmer-lab, issue #5)
@@ -1851,6 +1852,8 @@ void main() {
     if (u_marks > 0.5) {
         c = marks(c, p, u_barA, u_cold, u_hot);
         c = marks(c, p, u_barD, u_cold, u_hot);
+        c = marks(c, p, u_barB, u_colB, u_colB);              // fuel: its bar's colour, yellow when low
+        c = marks(c, p, u_barC, u_amber, u_amber);            // boost: the bar colour
     }
     float a = 1.0;
     if (u_hexW.x > 0.0) {

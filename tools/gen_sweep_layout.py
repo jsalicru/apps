@@ -15,7 +15,7 @@ SPAN = [125, 1795]             # x at 0 rpm, x at 8000
 HEX = [963, 172, 341, 580, 323, 438, 357]   # top lowered from 141 (Nov 15 2026) to leave the rev numbers room under the sweep   # centre x, y top, widest, bottom; half widths at top, widest, bottom
 TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for two, for three, height: BMW's speed, right-aligned at about x 630, stops above its line
 # the race scales: the band's middle is at this rpm, and each thousand gets wider towards the top
-TAIL_FROM, TAIL_SCALE = 7400, 0.5   # 7400 to 8000 rpm: one solid block, half its width
+TAIL_FROM, TAIL_SCALE = 7400, 0.375   # 7400 to 8000 rpm: one solid block, 3/8 of its width
 
 
 def rev_pos(v, curve):
