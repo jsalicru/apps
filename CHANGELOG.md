@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 15 2026
 
+- **Cluster Themes 0.18.3 (jsalicru's fork):** Sweep's rev sweep and gear move down, clear of BMW's turn signal arrows (measured from an M3 photo). With the map window on, the sweep is thinner and the window's top edge a little lower, so the rev numbers sit between them. Not yet tested on a car.
 - **Cluster Themes 0.18.2 (jsalicru's fork):** bimmer-lab's 0.18.1 (not 0.19.0, whose Store update crashes: bimmer-lab issue #17) with the Sweep and Twin Dial themes set up for a 2022 M3. Sweep leaves BMW's gear letter open at the bottom right (a new setting), since BMW draws its own black box while a theme covers that letter; the place is measured from M3 photos. Sweep's map window switch is on the Map tab, its colour, rev scale and shift flash on the Settings tab. The clock uses US Central time, the tank is 59 L, and demo data stays off. Not yet tested on a car.
 - **HUD Widgets 0.14.9:** on Redline, two readouts showing the same long name (like TORQUE LB-FT in both) no longer run together into one line.
 - **Cluster Themes 0.18.1, HUD Widgets 0.14.8:**

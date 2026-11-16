@@ -7,9 +7,12 @@ import json, math, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'apps', 'cluster_themes', 'hud')
-ARC = [10, 960, 2985, 74]      # y of the top at the middle, centre x, curve radius, band height: clears the hood (shared/visible.js)
+# BMW's turn signal arrows, measured from a 2022 M3 photo (Nov 15 2026, about +-10 px): [x0, y0, x1, y1] each. The rev sweep
+# starts below them, and with the map window on it ends above the window, so it is thinner there.
+ARROWS = [[730, 17, 793, 72], [1085, 17, 1148, 72]]
+ARC = [82, 960, 2985, 52]      # y of the top at the middle, centre x, curve radius, band height: under the arrows, over the map window
 SPAN = [125, 1795]             # x at 0 rpm, x at 8000
-HEX = [963, 141, 341, 580, 302, 438, 357]   # centre x, y top, widest, bottom; half widths at top, widest, bottom
+HEX = [963, 172, 341, 580, 323, 438, 357]   # top lowered from 141 (Nov 15 2026) to leave the rev numbers room under the sweep   # centre x, y top, widest, bottom; half widths at top, widest, bottom
 TAB = [565, 312, 470, 385, 270, 94]   # right x, y, left x for one digit, for two, for three, height: BMW's speed, right-aligned at about x 630, stops above its line
 # the race scales: the band's middle is at this rpm, and each thousand gets wider towards the top
 REV_CURVES = {name: math.log(0.5) / math.log(rpm / 8000) for name, rpm in (('race', 5000), ('race55', 5500))}
@@ -21,7 +24,7 @@ GEAR_GAP = [1405, 650, 125, 70]
 BAR_A = [1540, 553, 320, 13]   # oil, right
 BAR_D = [1540, 633, 320, 13]   # water, right
 # with the map off the gauges take the room: a thicker sweep (shorter, so its slanted end clears BMW's PARK light) and wide bars
-ARC_OFF = [10, 960, 2985, 120]
+ARC_OFF = [82, 960, 2985, 120]
 SPAN_OFF = [125, 1760]
 BIG_C = [60, 488, 560, 25]
 BIG_B = [60, 603, 560, 25]
@@ -72,10 +75,10 @@ widgets += [
     # no speed of ours with the map on: in Map view BMW's own speed shows in the map window
     text('speed_hero', 960, 505, 430, '{{speed}}', 'u_hero', align='center', toggle='!mapWindow', color2='chrome'),
     text('hero_unit', 960, 625, 140, '{{u:speedLc}}', 't_label', 'dim', 'center', toggle='!mapWindow'),
-    text('gear_top', 960, 245, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
+    text('gear_top', 960, 305, 240, '{{gear}}', 'u_gear', align='center', hotWhen='now', color2='chrome', toggle='!mapWindow'),
     text('ambient', 1820, 682, 100, '{{ambient}}', 't_label', align='right'),
     text('ambient_unit', 1825, 682, 40, '{{u:temp}}', 't_label', 'dim'),
-    text('gear', 1880, 300, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome', toggle='mapWindow'),
+    text('gear', 1880, 420, 270, '{{gear}}', 'u_gear', align='right', hotWhen='now', color2='chrome', toggle='mapWindow'),
 ]
 for id, label, val, unit, small, big, cond in (
         ('boost', 'BOOST', '{{boost}}', '{{u:boost}}', (60, 530), (60, 460), 'showBoost'),
