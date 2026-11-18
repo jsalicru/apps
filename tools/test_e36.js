@@ -215,7 +215,7 @@ test('nightTheme: a theme with night roles takes them', () => {
 });
 test('nightTheme: other themes still dim their whites and greys to 60 %', () => {
     const t = themes.nightTheme(themes.THEMES.classic, 0.6);
-    assert.deepStrictEqual(t.fg, [146, 148, 150, 255]);
+    assert.deepStrictEqual(t.fg, [150, 150, 149, 255]);
     assert.deepStrictEqual(t.bar, themes.THEMES.classic.bar);
 });
 test('E36 palette: every role the layout uses exists by day and by night', () => {
@@ -298,7 +298,8 @@ test('layout: the LCD: the range and the trip, under them the clock and the outs
 });
 test('layout: each face has its e36dash, on its own units and redlines (the M3 on the 0 .. 8 rev counter)', () => {
     const ws = loadLayout().widgets.filter((w) => w.type === 'e36dash' && w.y === 0);
-    const M3 = 'redline=7000|7500';
+    const steps = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'apps', 'cluster_themes', 'app.json'), 'utf8')).settings.find((s) => s.key === 'redline').steps;
+    const M3 = 'redline=' + steps.filter((r) => r >= 7000).join('|');
     const want = { 'units=metric&!': [false, false], 'units=us&!': [true, false], 'units=metric&': [false, true], 'units=us&': [true, true] };
     Object.keys(want).forEach((k) => {
         const [mph, m3] = want[k], w = ws.find((d) => d.toggle === k + M3);

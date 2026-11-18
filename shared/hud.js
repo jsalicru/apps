@@ -852,6 +852,7 @@ class HudApp {
             this.layerStates.set(key, st);
             const name = () => { const w = this._widgetOf(ci, ref); return 'layer ' + ref + tag + (w ? ' (' + w + ')' : ''); };
             if (state === 'error' || (state === 'waiting' && !same)) this.log.warn(name() + ' ' + state + (reason ? ': ' + reason : ''));
+            if (state === 'shown' && !same) this.widgets.forEach((x) => { if (x.ci === ci && x.ref === ref && x.w.type === 'e36needles') { x.t0 = mono(); x.path = null; } });
             if (state === 'stalled' && !same) {
                 // normal for a moment after a rebuild (pixels on their way); a problem only if it lasts
                 clearTimeout(this.stallTimers.get(key));
@@ -2106,7 +2107,7 @@ class HudApp {
         if (t.indexOf('&') > 0) return t.split('&').every((p) => this._toggleOn(p));   // "a&b": both
         const not = t.charAt(0) === '!';
         const k = not ? t.slice(1) : t, eq = k.indexOf('=');
-        const on = eq > 0 ? String(this.setting(k.slice(0, eq))) === k.slice(eq + 1) : this.setting(k) !== false;
+        const on = eq > 0 ? k.slice(eq + 1).split('|').indexOf(String(this.setting(k.slice(0, eq)))) >= 0 : this.setting(k) !== false;
         return not ? !on : on;
     }
 
@@ -2118,7 +2119,7 @@ class HudApp {
             c = this._clientAt(this._connOf(w));
             const base = { target: this.target, klass: w.class || 'content', z: w.z || 0, x: w.x, y: w.y, w: w.w, h: w.h };
             if (IMAGE_TYPES[w.type]) ref = c.image(Object.assign({ iw: w.w, ih: w.h }, w.type === 'nav' ? this._navImage(w) : null, base));
-            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] }, base));
+            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] }, w.type === 'e36needles' ? { time: true } : null, base));
             if (!ref) { this.log.warn('widget "' + w.id + '": layer refused'); return; }
             this.placed.push({ c, ref, x: w.x, y: w.y, w: w.w, h: w.h });
         }
