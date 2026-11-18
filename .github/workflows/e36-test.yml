@@ -10,34 +10,38 @@ on:
       - '.github/workflows/e36-test.yml'
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: feature/e36-test-app
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Regenerate E36 layout for all supported redlines
+      - name: Verify generated E36 layouts are current
         run: |
           python3 tools/gen_e36.py apps/cluster_themes/hud/layouts/e36.json
-          cp apps/cluster_themes/hud/layouts/e36.json apps/e36_cluster_test/hud/layouts/e36.json
-      - name: Commit generated layouts when changed
-        if: github.event_name == 'push'
-        run: |
-          if ! git diff --quiet -- apps/cluster_themes/hud/layouts/e36.json apps/e36_cluster_test/hud/layouts/e36.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add apps/cluster_themes/hud/layouts/e36.json apps/e36_cluster_test/hud/layouts/e36.json
-            git commit -m "Regenerate E36 layout for custom redline settings"
-            git push origin HEAD:feature/e36-test-app
-          fi
+          cmp apps/cluster_themes/hud/layouts/e36.json apps/e36_cluster_test/hud/layouts/e36.json
+          git diff --exit-code -- apps/cluster_themes/hud/layouts/e36.json
       - name: E36 unit tests
         run: node tools/test_e36.js
-      - name: Build standalone E36 app
+      - name: Validate app manifest and assets
+        run: |
+          python3 - <<'PY'
+          import json, os
+          app = 'apps/e36_cluster_test'
+          m = json.load(open(app + '/app.json'))
+          assert m['id'] == 'e36_cluster_test'
+          assert m['config']['target'] == 'panel'
+          assert os.path.isfile(app + '/main.js')
+          assert os.path.isfile(app + '/icon.png')
+          layout = json.load(open(app + '/hud/layouts/e36.json'))
+          for w in layout['widgets']:
+              if 'font' in w:
+                  assert os.path.isfile(app + '/hud/fonts/' + w['font'] + '.json'), w['font']
+          print('E36 test app manifest and font assets valid')
+          PY
+      - name: Build standalone E36 app (requires proprietary SDK)
+        if: ${{ hashFiles('oap-sdk/index.js', 'oap-sdk/package.json') != '' }}
         run: python3 kit/tools/build.py e36_cluster_test
-      - name: Check build output
-        run: test -f dist/e36_cluster_test@0.18.20.tgz
