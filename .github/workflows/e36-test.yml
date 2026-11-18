@@ -1,0 +1,25 @@
+name: E36 Test App Validation
+on:
+  push:
+    branches: [feature/e36-test-app]
+  pull_request:
+    paths:
+      - 'apps/e36_cluster_test/**'
+      - 'shared/**'
+      - 'tools/test_e36.js'
+      - '.github/workflows/e36-test.yml'
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: E36 unit tests
+        run: node tools/test_e36.js
+      - name: Build standalone E36 app
+        run: python3 kit/tools/build.py e36_cluster_test
+      - name: Check build output
+        run: test -f dist/e36_cluster_test@0.18.20.tgz
