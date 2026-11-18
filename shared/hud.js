@@ -270,7 +270,7 @@ const path = require('path');
 const sensors = require('./sensors');
 const { ClusterRender, DEFAULT_PATH } = require('./cluster_render_client.js');
 const Layouts = require('./layouts');
-const { THEMES, M_STRIPE, LIGHTS, VERDICT, color } = require('./hud_themes');
+const { THEMES, M_STRIPE, LIGHTS, VERDICT, color, nightTheme } = require('./hud_themes');
 const ShiftScore = require('./shift_score');
 const visible = require('./visible');
 const sun = require('./sun');
@@ -289,6 +289,7 @@ const VehicleState = require('./vehicle_state');    // the switch-off guard: no 
 const ShiftCue = require('./shift_cue');            // the count-in shift lights (setting "shiftCue")
 const smartTemps = require('./smart_temps');        // "showWhen": "abnormal", temperature colours, slot bumping
 const hudHoliday = require('./hud_holiday');
+const e36 = require('./e36');
 const DemoShow = require('./demo_script');
 const Garland = require('./garland');               // the holiday light string (widget type "garland")
 const DEMO_AMBER = [255, 176, 40];      // the DEMO tag's colour
@@ -312,6 +313,15 @@ const MAX_CONN = 4;              // connections a layout may ask for ("conn"): 3
 const PIXEL_BYTES = 16 * 1024 * 1024;   // cluster-render's pixel memory for every app's images together (CompositorLimits.pixel_bytes)
 const SHEET_AREA_FRAC = 4;       // the first sheet size limit: 1/4 of the target area (see the header)
 const TICK_MS = 50;              // 20 Hz: shift bar and gauges
+// The E36's needles (e36needles): each follows its value with a real needle's inertia (shared/e36.js Needle) and goes
+// to the renderer as a path in its own clock (e36.nextPath, layer "time" 1), which it plays on every display frame.
+// Sent as angles they stepped on the car (Nov 17 2026), even at 60 Hz: cluster-render applies uniforms at its own
+// 30 Hz tick, out of step with the display. A path keeps the one before for PATH_KEEP s (longer than the tick and the
+// tick after which we send again), so one landing late still joins on.
+const NEEDLE_W = 28;             // 1/s: a steady sweep trails the value by 2 / 28 s (71 ms)
+const PATH_KEEP = 0.06;          // s
+const PATH_AHEAD = 0.07;         // s: then on to where the needle will be by then
+function mono() { const t = process.hrtime(); return t[0] * 1000 + t[1] / 1e6; }
 const TEXT_MS = 200;             // text re-draws at most 5 times a second (what BMW's own readouts do)
 const TARGET_SIZES = { hud: [800, 480], panel: [1920, 720] };
 const MODE_KEY = { comfort: 'inComfort', sport: 'inSport', eco: 'inEco' };
@@ -347,6 +357,9 @@ const TILE_BAR = {
 };
 const TILE_MAX = 14;       // half a flash: red, then the normal colour
 // widgets that show the shift cue (the reaction time is learned only while one of them is drawn)
+// the E36 shader's colour roles, in u_col order (hud_themes.js e36)
+const E36_ROLES = ['bezel', 'face', 'dial', 'mark', 'needle', 'hub', 'red', 'blue', 'orange', 'arrow', 'well', 'strip', 'bg'];
+const E36_ZONE_COLORS = ['red', 'blue', 'orange'];      // u_zoneB's colour codes
 const MVIEW_RPM = 8000;            // the M view theme's rev scale: 0..8
 const MVIEW_SPEED = { us: 200, metric: 330 };   // its speed scale: 0..200 mph by 20, 0..330 km/h by 30 (linear)
 const ROAD_DASH_M = 12;            // the Sport road: metres per dash and gap (shaders.js sdash u_road)
@@ -1663,6 +1676,12 @@ class HudApp {
         return [redFrom, redFrom - 700 / max];
     }
 
+    /** An e36dash's rev counter for the redline setting (tools/gen_e36.py "revs", one per step): { dial, map, ticks,
+     *  zones }, its ticks and zones added to the face's; none (the face's own) when the layout has no such face. */
+    _e36Revs(w) {
+        return (w.revs && w.revs[this.setting('redline')]) || { dial: -1, map: null, ticks: [], zones: [] };
+    }
+
     /** The scale label nearest the value now: 'speed' (SPEED_SCALE index) or 'rpm' (thousands); null without data. */
     _nearMark(kind) {
         if (kind === 'rpm') { const r = this._raw('rpm'); return isNum(r) ? Math.round(r / 1000) : null; }
@@ -1745,6 +1764,7 @@ class HudApp {
             case 'boostHi': return us ? '20' : '1.4';
             case 'boostMid': return us ? '10' : '0.7';
             case 'ampmLc': return this._token('ampm').toLowerCase();
+            case 'trip': return e36.tripText(this.tripKm, us);
             case 'gLat': case 'gLong': { const v = this._raw(tok); return isNum(v) ? Math.abs(v).toFixed(2) : '--'; }
             case 'gSide': case 'gFwd': {
                 // the car's left / right (gFlipLat: its sign the other way round); brake on top doesn't change the words
@@ -1903,7 +1923,7 @@ class HudApp {
         this.hudHoliday = this._hudHoliday();      // the HUD's holiday colours (hud_holiday.js), null for none
         if (this.hudHoliday) this.theme = hudHoliday.theme(this.theme, this.hudHoliday);
         this.nightOn = this._nightDim();
-        if (this.nightOn) this.theme = dimTheme(this.theme, NIGHT_DIM);
+        if (this.nightOn) this.theme = nightTheme(this.theme, NIGHT_DIM);
         this.log.info('layout "' + layout.name + '", theme ' + this.theme.name + (this.layoutTheme ? '' : ' (' + this.setting('hudTheme') + ')'));
         // full screen (Nov 14 2026): the layout's strip widgets (design/genlib.py full_screen) cover BMW's strip except a
         // window over its gear letter, and the theme's own strip row ("stripRow" l / r) shows the clock, range and outside
@@ -2140,6 +2160,63 @@ class HudApp {
             c.uniform(ref, 'u_strip', w.strip);
             c.uniform(ref, 'u_topEnd', [w.topEnd]);
             c.uniform(ref, 'u_road', w.road ? [w.road[0], w.road[1], 0, 1] : [0, 1, 0, 0]);
+        } else if (w.type === 'e36dash') {
+            // the E36 cluster (tools/gen_e36.py): every position in target px, the layer's own top-left in u_origin
+            const pad = (arr, n, fill) => { const out = arr.slice(0, n); while (out.length < n) out.push(fill); return out; };
+            const flat = (rows) => [].concat.apply([], rows);
+            const F = w.face, D = pad(w.dials || [], 4, null);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_origin', [w.x, w.y]);
+            // "needleColor": another role for the needles (the M3 face's red ones)
+            c.uniform(ref, 'u_col', flat(E36_ROLES.map((r) => rgb(color(t, r === 'needle' && w.needleColor ? w.needleColor : r)))), { type: 'vec3' });
+            c.uniform(ref, 'u_face', F.box);
+            c.uniform(ref, 'u_faceB', [F.radius, F.arch[0], F.arch[1], F.arch[2]]);
+            c.uniform(ref, 'u_bezel', [F.bezel || 0]);
+            c.uniform(ref, 'u_dial', flat(D.map((d) => (d ? [d.c[0], d.c[1], d.r, d.cut || 0] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_piv', flat(D.map((d) => (d ? [d.pivot[0], d.pivot[1]] : [0, 0]))), { type: 'vec2' });
+            const R = this._e36Revs(w);
+            const T = pad((w.ticks || []).concat(R.ticks), 10, null);    // [dial, first angle, last angle, count, outer r, length, width]
+            c.uniform(ref, 'u_tick', flat(T.map((g) => (g ? [g[1], g[2], g[3], g[4]] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_tickB', flat(T.map((g) => (g ? [g[5], g[6], g[0], 0] : [0, 0, -1, 0]))), { type: 'vec4' });
+            const Z = pad((w.zones || []).concat(R.zones), 6, null);    // [dial, from angle, to angle, inner r, outer r, colour, stripes]
+            c.uniform(ref, 'u_zone', flat(Z.map((z) => (z ? [z[1], z[2], z[3], z[4]] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_zoneB', flat(Z.map((z) => (z ? [z[0], E36_ZONE_COLORS.indexOf(z[5]) + 4 * (z[6] || 0)] : [-1, -1]))), { type: 'vec2' });
+            const Wn = pad(w.windows || [], 3, null);   // [x, y, w, h, radius]
+            c.uniform(ref, 'u_win', flat(Wn.map((g) => (g ? g.slice(0, 4) : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_winR', Wn.map((g) => (g ? g[4] : 0)));
+            c.uniform(ref, 'u_arrow', flat(pad(w.arrows || [], 2, [0, 0, 0, 0])), { type: 'vec4' });
+            c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // the glass's glare by day only
+            c.uniform(ref, 'u_strip', flat(pad(w.strips || [], 3, [0, 0, 0, 0])), { type: 'vec4' });
+            c.uniform(ref, 'u_stripR', [w.stripR || 0]);
+        } else if (w.type === 'e36econ') {
+            // the E36 economy (or the M3's oil temperature) gauge: its own small layer over the rev counter's lower cut
+            const E = w.econ, T = w.tach, tk = E.ticks.slice(0, 16);     // [x0, y0, x1, y1, width]
+            while (tk.length < 16) tk.push([0, 0, 0, 0, 0]);
+            const ch = E.cham || [-1e5, 0, 1e5, 0];
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_origin', [w.x, w.y]);
+            c.uniform(ref, 'u_mark', rgb(color(t, 'mark')));
+            c.uniform(ref, 'u_line', rgb(color(t, 'face')));
+            c.uniform(ref, 'u_econ', [0, 0, 0, E.top]);
+            c.uniform(ref, 'u_cham', ch);
+            c.uniform(ref, 'u_tach', [T[0], T[1], T[2], T[3] || 1e5]);
+            c.uniform(ref, 'u_econT', [].concat.apply([], tk.map((k) => k.slice(0, 4))), { type: 'vec4' });
+            c.uniform(ref, 'u_econW', tk.map((k) => k[4]), { type: 'vec4' });
+        } else if (w.type === 'e36needles') {
+            // the E36 needles, on top of the face, the economy gauge and the print: the four dials' and the economy's
+            // (or the M3's oil gauge's), in its window ("econ": pivot, len, width, top, cham, tach)
+            const flat = (rows) => [].concat.apply([], rows);
+            const D = [0, 1, 2, 3].map((i) => (w.dials || [])[i]), E = w.econ, T = E ? E.tach : null;
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_origin', [w.x, w.y]);
+            c.uniform(ref, 'u_col', flat([w.needleColor || 'needle', 'hub', 'bezel'].map((r) => rgb(color(t, r)))), { type: 'vec3' });
+            c.uniform(ref, 'u_piv', flat(D.map((d) => (d ? [d.pivot[0], d.pivot[1], d.hub, d.tail || 0] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_ndl', flat(D.map((d) => (d ? [d.needle[0], d.needle[1]] : [0, 0]))), { type: 'vec2' });
+            c.uniform(ref, 'u_econ', E ? [E.pivot[0], E.pivot[1], E.len, E.top] : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_cham', (E && E.cham) || [-1e5, 0, 1e5, 0]);
+            c.uniform(ref, 'u_tach', T ? [T[0], T[1], T[2], T[3] || 1e5] : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // softer needle shadows at night
+            x.econ = new e36.Smooth(1000);
         } else if (w.type === 'mview') {
             // the left scale's line: points (layer px) and the arc length at each (the shader mirrors it for the right)
             const pts = [], cum = [];
@@ -2165,6 +2242,49 @@ class HudApp {
             c.uniform(ref, 'u_line', [w.line[0] - w.x, w.line[1] - w.x, w.line[2] - w.y, w.line[3] - w.x]);
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeR', [this._holeRadius(w)]);
+        } else if (w.type === 'e36needles') {
+            // the needles: each dial's value read off its traced scale ([value, angle] pairs); no data parks it on its pin.
+            // Each follows its angle with inertia (e36.Needle), the rev needle from the unfiltered rpm: the follower is
+            // its only smoothing. Sent as paths in the renderer's clock (see NEEDLE_W): t0 from when the layer showed
+            const sp = this._raw('speed'), R = this._e36Revs(w);
+            const val = (sig) => (sig === 'speed' ? (isNum(sp) && w.mph ? sp * 0.621371 : sp) : sig === 'rpm' ? this._rpmIn(now) : this._raw(sig));
+            const tm = mono();
+            if (!isNum(x.t0)) x.t0 = tm;
+            const ts = (tm - x.t0) / 1000;
+            if (!x.ndl) { x.ndl = [0, 1, 2, 3].map(() => new e36.Needle(NEEDLE_W)); x.path = null; }
+            const paths = [0, 1, 2, 3].map((i) => {
+                const d = (w.dials || [])[i];
+                const a = d ? e36.frac(val(d.signal), i === R.dial && R.map ? R.map : d.map) : 0;
+                const to = d ? (a === null ? d.rest : a) : 0;
+                x.ndl[i].step(to, now);
+                return e36.nextPath(x.path && x.path[i], ts, PATH_KEEP, PATH_AHEAD, x.ndl[i].ahead(to, (PATH_KEEP + PATH_AHEAD) * 1000));
+            });
+            // the economy needle: the M3's oil temperature (its scale in F on the mph face), or the economy estimated
+            // from the engine's power (shared/e36.js): the car has no fuel-flow signal
+            const E = w.econ;
+            let ea = 0;
+            if (E) {
+                let raw;
+                if (E.signal === 'oil') {
+                    const oil = this._raw('oil');
+                    raw = isNum(oil) && w.mph ? oil * 9 / 5 + 32 : oil;
+                } else {
+                    const pw = this._raw('powerPct'), peak = (this.config.engine || {}).powerKw;
+                    const flow = isNum(pw) && isNum(peak) ? e36.flowLph(pw / 100 * peak) : null;
+                    raw = e36.economy(this._raw('speed'), flow, !!w.mph);
+                }
+                const a = e36.frac(x.econ.step(raw, now), E.map);
+                ea = Math.round((a === null ? E.rest : a) * 10) / 10;
+            }
+            // still needles send nothing: the same angles (a path's times move on, its angles don't)
+            const key = paths.map((P) => P.a.map((v) => v.toFixed(2)).join(',')).join('|') + '|' + ea;
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.path = paths;
+            // u_path: per needle its keys' times (the first wrapped as u_time is, 0 .. 3600) and their angles
+            x.c.uniform(x.ref, 'u_path', [].concat.apply([], paths.map((P) => [P.t[0] % 3600, P.t[1], P.t[2], P.t[3]].map((v) => Math.round(v * 1e4) / 1e4)
+                .concat(P.a.map((v) => Math.round(v * 100) / 100)))), { type: 'vec4' });
+            if (E) x.c.uniform(x.ref, 'u_econB', [ea, E.width]);
         } else if (w.type === 'mdash') {
             const ty = w.tyres || [0, 0, 0], L = w.gaugeL || {}, R = w.gaugeR || {}, b = w.blade || {};
             const bars = Array.isArray(w.segbars) ? w.segbars.slice(0, 4) : [];
