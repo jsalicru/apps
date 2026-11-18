@@ -9,14 +9,32 @@ on:
       - 'tools/test_e36.js'
       - '.github/workflows/e36-test.yml'
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feature/e36-test-app
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Regenerate E36 layout for all supported redlines
+        run: |
+          python3 tools/gen_e36.py apps/cluster_themes/hud/layouts/e36.json
+          cp apps/cluster_themes/hud/layouts/e36.json apps/e36_cluster_test/hud/layouts/e36.json
+      - name: Commit generated layouts when changed
+        if: github.event_name == 'push'
+        run: |
+          if ! git diff --quiet -- apps/cluster_themes/hud/layouts/e36.json apps/e36_cluster_test/hud/layouts/e36.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add apps/cluster_themes/hud/layouts/e36.json apps/e36_cluster_test/hud/layouts/e36.json
+            git commit -m "Regenerate E36 layout for custom redline settings"
+            git push origin HEAD:feature/e36-test-app
+          fi
       - name: E36 unit tests
         run: node tools/test_e36.js
       - name: Build standalone E36 app
