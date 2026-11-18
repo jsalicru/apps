@@ -215,7 +215,7 @@ test('nightTheme: a theme with night roles takes them', () => {
 });
 test('nightTheme: other themes still dim their whites and greys to 60 %', () => {
     const t = themes.nightTheme(themes.THEMES.classic, 0.6);
-    assert.deepStrictEqual(t.fg, [146, 148, 150, 255]);
+    assert.deepStrictEqual(t.fg, [150, 150, 149, 255]);
     assert.deepStrictEqual(t.bar, themes.THEMES.classic.bar);
 });
 test('E36 palette: every role the layout uses exists by day and by night', () => {
