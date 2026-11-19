@@ -290,7 +290,6 @@ const ShiftCue = require('./shift_cue');            // the count-in shift lights
 const smartTemps = require('./smart_temps');        // "showWhen": "abnormal", temperature colours, slot bumping
 const hudHoliday = require('./hud_holiday');
 const e36 = require('./e36');
-const e46 = require('./e46_m3');
 const DemoShow = require('./demo_script');
 const Garland = require('./garland');               // the holiday light string (widget type "garland")
 const DEMO_AMBER = [255, 176, 40];      // the DEMO tag's colour
@@ -2895,7 +2894,7 @@ class HudApp {
         } else if (w.type === 'e46lamps') {
             const d = this.car.data();
             const oilF = isNum(d.oil) ? d.oil * 9 / 5 + 32 : null;
-            const lamps = e46.tachLights(oilF, this._raw('rpm')).lights.map((v) => v ? 1 : 0);
+            const lamps = require('./e46_m3').tachLights(oilF, this._raw('rpm')).lights.map((v) => v ? 1 : 0);
             const key = lamps.join('|');
             if (!force && key === x.last) return;
             x.last = key;
@@ -2907,7 +2906,7 @@ class HudApp {
                 if (!n) return 0;
                 let v = this._raw(n.signal), max = n.max;
                 if (n.e46Coolant) {
-                    v = isNum(v) ? e46.coolantFraction(v * 9 / 5 + 32) : null;
+                    v = isNum(v) ? require('./e46_m3').coolantFraction(v * 9 / 5 + 32) : null;
                     max = 1;
                 }
                 if (n.signal === 'speed') { if (isNum(v) && us) v *= 0.621371; if (!us && n.metricMax) max = n.metricMax; }
