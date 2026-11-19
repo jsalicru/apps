@@ -1,23 +1,23 @@
-name: E46 M3 logic tests
+name: E46 M3 Beta Validation
 on:
   push:
     branches: [feature/e46-m3-cluster-test]
   pull_request:
-    paths:
-      - 'shared/e46_m3.js'
-      - 'tools/test_e46_m3.js'
-      - '.github/workflows/e46-m3-test.yml'
+    paths: ['apps/e46_m3_cluster_test/**', 'shared/**', 'tools/test_e46_m3.js', '.github/workflows/e46-m3-test.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
-  e46-logic:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Validate E46 coolant gauge and warm-up/shift LEDs
+      - name: E46 logic tests
         run: node tools/test_e46_m3.js
-      - name: Validate isolated Off-only app scaffold
+      - name: E46 manifest, layout, and assets
         run: |
           python3 - <<'PY'
           import json, pathlib
@@ -25,14 +25,29 @@ jobs:
           m=json.loads((p/'app.json').read_text())
           assert m['id']=='e46_m3_cluster_test'
           assert m['config']['target']=='panel'
-          assert m['settings']
           for key in ('hudLayout','inComfort','inSport','inEco'):
               s=next(x for x in m['settings'] if x['key']==key)
               assert s['default']=='off'
-              assert [x[0] for x in s['options']]==['off']
+              assert 'e46' in [x[0] for x in s['options']]
+          l=json.loads((p/'hud/layouts/e46.json').read_text())
+          assert l['schemaVersion']==2
+          assert any(x['type']=='e46lamps' for x in l['widgets'])
+          for w in l['widgets']:
+              assert 0 <= w['x'] and 0 <= w['y']
+              assert w['x']+w['w']<=1920 and w['y']+w['h']<=720, w['id']
+              if 'font' in w:
+                  assert (p/'hud/fonts'/ (w['font']+'.json')).is_file(), w['font']
           assert (p/'main.js').is_file()
-          assert (p/'README.md').is_file()
-          assert list((p/'hud/fonts').glob('*.json'))
-          assert not list((p/'hud/layouts').glob('e46*.json'))
-          print('E46 isolated scaffold valid; no E46 rendering enabled')
+          assert (p/'icon.png').is_file()
+          assert 'e46_m3.js' in m['shared']
+          print('E46 beta manifest, assets and layout valid')
           PY
+      - name: JavaScript syntax
+        run: |
+          node --check shared/hud.js
+          node --check shared/shaders.js
+          node --check shared/layouts.js
+          node --check apps/e46_m3_cluster_test/main.js
+      - name: Package E46 app (only when genuine SDK exists)
+        if: ${{ hashFiles('oap-sdk/index.js', 'oap-sdk/package.json') != '' }}
+        run: python3 kit/tools/build.py e46_m3_cluster_test
