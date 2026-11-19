@@ -1,7 +1,7 @@
 {
   "id": "e46_m3_cluster_test",
   "title": "E46 M3 Cluster Test",
-  "description": "Isolated E46 M3 test scaffold for 2022 G80 S58; Off-only until E46 renderer and real signals are validated.",
+  "description": "Standalone experimental E46-inspired cluster for 2022 G80 M3 S58. Parked testing only; original BMW instrumentation remains safety-critical.",
   "version": "0.18.20",
   "vendor": "custom",
   "loggingId": "OAE4",
@@ -115,7 +115,11 @@
       "options": [
         [
           "off",
-          "Off (BMW's own cluster)"
+          "Off (BMW original)"
+        ],
+        [
+          "e46",
+          "E46 M3 Beta"
         ]
       ]
     },
@@ -133,7 +137,11 @@
       "options": [
         [
           "off",
-          "Off (BMW's own cluster)"
+          "Off (BMW original)"
+        ],
+        [
+          "e46",
+          "E46 M3 Beta"
         ]
       ]
     },
@@ -145,7 +153,11 @@
       "options": [
         [
           "off",
-          "Off (BMW's own cluster)"
+          "Off (BMW original)"
+        ],
+        [
+          "e46",
+          "E46 M3 Beta"
         ]
       ]
     },
@@ -157,7 +169,11 @@
       "options": [
         [
           "off",
-          "Off (BMW's own cluster)"
+          "Off (BMW original)"
+        ],
+        [
+          "e46",
+          "E46 M3 Beta"
         ]
       ]
     },
