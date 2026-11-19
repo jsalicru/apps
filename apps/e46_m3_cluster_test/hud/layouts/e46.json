@@ -585,7 +585,8 @@
           "hub": 17,
           "signal": "coolant",
           "min": 0,
-          "max": 130
+          "max": 130,
+          "e46Coolant": true
         }
       ]
     },
@@ -614,6 +615,16 @@
           "max": 160
         }
       ]
+    },
+    {
+      "id": "e46_warmup_shift",
+      "type": "e46lamps",
+      "class": "overlay",
+      "z": 8,
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 660
     }
   ]
 }
