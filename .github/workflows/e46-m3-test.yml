@@ -1,0 +1,19 @@
+name: E46 M3 logic tests
+on:
+  push:
+    branches: [feature/e46-m3-cluster-test]
+  pull_request:
+    paths:
+      - 'shared/e46_m3.js'
+      - 'tools/test_e46_m3.js'
+      - '.github/workflows/e46-m3-test.yml'
+jobs:
+  e46-logic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate E46 coolant gauge and warm-up/shift LEDs
+        run: node tools/test_e46_m3.js
