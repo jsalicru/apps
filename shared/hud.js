@@ -290,6 +290,8 @@ const ShiftCue = require('./shift_cue');            // the count-in shift lights
 const smartTemps = require('./smart_temps');        // "showWhen": "abnormal", temperature colours, slot bumping
 const hudHoliday = require('./hud_holiday');
 const e36 = require('./e36');
+// Loaded only for E46 widgets: other installed themes do not ship this module.
+const E46_CALIBRATION_MODULE = './' + 'e46_m3';
 const DemoShow = require('./demo_script');
 const Garland = require('./garland');               // the holiday light string (widget type "garland")
 const DEMO_AMBER = [255, 176, 40];      // the DEMO tag's colour
@@ -2891,12 +2893,24 @@ class HudApp {
             x.c.uniform(x.ref, 'u_tab', left === null ? [0, 0, 0, 0] : [left, w.tab[1], w.tab[0] - left, w.tab[5]]);
             x.c.uniform(x.ref, 'u_rpm', [vals[0]]);
             x.c.uniform(x.ref, 'u_lvl', [vals[1], vals[2], vals[3], vals[4]]);
+        } else if (w.type === 'e46lamps') {
+            const d = this.car.data();
+            const oilF = isNum(d.oil) ? d.oil * 9 / 5 + 32 : null;
+            const lamps = require(E46_CALIBRATION_MODULE).tachLights(oilF, this._raw('rpm')).lights.map((v) => v ? 1 : 0);
+            const key = lamps.join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.c.uniform(x.ref, 'u_lamps', lamps);
         } else if (w.type === 'twinneedle') {
             const us = this.setting('units') === 'us';
             const vals = [0, 1, 2, 3].map((i) => {
                 const n = (w.needles || [])[i];
                 if (!n) return 0;
                 let v = this._raw(n.signal), max = n.max;
+                if (n.e46Coolant) {
+                    v = isNum(v) ? require(E46_CALIBRATION_MODULE).coolantFraction(v * 9 / 5 + 32) : null;
+                    max = 1;
+                }
                 if (n.signal === 'speed') { if (isNum(v) && us) v *= 0.621371; if (!us && n.metricMax) max = n.metricMax; }
                 if (!isNum(v)) return 0;
                 return Math.round(Math.min(1, Math.max(0, (v - n.min) / (max - n.min))) * 1500) / 1500;   // about 0.2 degrees
