@@ -7,25 +7,25 @@ Target: 1920×720 iDrive 7 panel, standalone app `e46_m3_cluster_test`, custom 7
 - Existing app manifest subscribes to CDS engine speed/engine temperature, Vehicle2 car speed, and KombiIF tank range. Verify exact oil vs coolant mapping in shared vehicle state before using either signal for warm-up LEDs.
 - Current shared renderer uses `d.oil` for shift calculations, but this alone does not prove its live source or units on this car. Require a parked signal diagnostic before enabling LED temperature behavior.
 
-## 1. Visual renderer — BLOCKED
-- [ ] Dedicated E46 shader/gauge-face renderer, not E36 imagery.
-- [ ] 180 MPH and 0–9000 RPM scales, redline at 7200.
-- [ ] Seven warm-up/shift segments physically INSIDE tachometer.
-- [ ] Oil-temperature sub-gauge at bottom of tach; coolant gauge at far right.
-- [ ] Coolant calibration: 170/210/230°F white marks; day/night color fidelity.
+## 1. Visual renderer — FIRST-PASS IMPLEMENTED; OEM fidelity pending
+- [x] Separate E46 layout using the existing twin-dial rendering engine (first-pass; not final OEM graphics).
+- [x] 180 MPH and 0–9000 RPM scales, display redline at 7200.
+- [x] Seven active warm-up/shift segments rendered inside tachometer.
+- [x] Oil-temperature sub-gauge at bottom of tach; coolant gauge at far right.
+- [x] Coolant 170/210/230°F needle calibration; physical printed marks and day/night color fidelity require visual QA.
 - [ ] OEM-style amber LCDs and needles.
 
-## 2. Real data integration — BLOCKED
+## 2. Real data integration — CODE WIRED; ON-CAR VERIFICATION PENDING
 - [ ] Live RPM, speed, fuel, oil temp, coolant temp verified on target car.
-- [ ] E46 coolantFraction() connected to coolant needle, with no-data park behavior.
-- [ ] tachLights(oilF,rpm) connected to LED renderer; oil-temp sensor not silently replaced by coolant.
+- [x] E46 coolantFraction() connected to coolant needle, with no-data park behavior.
+- [x] tachLights(oilF,rpm) connected to LED renderer; oil-temp sensor not silently replaced by coolant.
 - [ ] Confirm LED order, temperature thresholds and 7200 RPM shift progression on simulator.
 - [ ] Sensor disconnect/NaN and mode-change behavior verified.
 
-## 3. Independent app packaging — BLOCKED
-- [ ] Create `apps/e46_m3_cluster_test/` with unique ID, main.js, manifest, icon, HUD assets and README.
-- [ ] Default layout OFF in all modes; never run alongside P3 Clusters or E36 Cluster Test.
-- [ ] Add app to MGU Store branch source; check manifest shared-file dependencies.
+## 3. Independent app packaging — SCAFFOLD READY; SDK BUILD UNVERIFIED
+- [x] Create `apps/e46_m3_cluster_test/` with unique ID, main.js, manifest, icon, HUD assets and README.
+- [x] Default layout OFF in all modes; never run alongside P3 Clusters or E36 Cluster Test.
+- [x] App under apps/ with branch-source manifest; shared-file dependencies declared; MGU Store installation still unverified.
 - [ ] Build with real SDK provided by Store on head unit (never ship bench stub SDK).
 
 ## 4. Verification — PARTIAL
@@ -33,8 +33,8 @@ Target: 1920×720 iDrive 7 panel, standalone app `e46_m3_cluster_test`, custom 7
 - [x] E46 logic tests in `tools/test_e46_m3.js` and CI workflow.
 - [ ] Generated layout schema, font and preview validation.
 - [ ] Browser bench render with mock signals, including cold/warm/redline transitions.
-- [ ] CI install manifest check and package build where genuine SDK is available.
+- [x] CI manifest, assets, JS syntax checks and conditional SDK packaging (SDK absent in GitHub runner).
 - [ ] First parked, supervised on-car test; verify fail-safe return to OEM display.
 
 ## Installation
-Do NOT install as E46 until the above renderer, independent app, and packaging gates are complete. Existing E36 test app is not an E46 beta. No claim of hardware validation until owner reports results.
+First-pass visual E46 beta is opt-in and available from the development branch; install ONLY while parked, with a rollback plan, after CI passes. Hardware rendering, signal accuracy, and genuine SDK packaging remain unverified. Never rely on beta display for safety-critical instrumentation.
