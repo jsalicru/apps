@@ -2262,4 +2262,36 @@ void main() {
 `;
 
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, twinface: TWINFACE, twinneedle: TWINNEEDLE, sweepdash: SWEEPDASH , e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES };
+// Seven E46 tachometer warm-up/shift lamps, positioned INSIDE the tachometer arc.
+// u_lamps: one float per lamp, 0=off, 1=on. Overlay is transparent.
+const E46LAMPS = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform float u_lamps[7];
+void main() {
+    vec2 p = v_uv * u_size;
+    vec3 col = vec3(0.0);
+    float alpha = 0.0;
+    for (int i = 0; i < 7; i++) {
+        float a = (-98.0 + float(i) * 32.5) * 0.01745329252;
+        vec2 center = vec2(1320.0 + 245.0 * sin(a), 340.0 - 245.0 * cos(a));
+        float d = length(p - center);
+        float on = u_lamps[i];
+        vec3 lamp = i < 4 ? vec3(1.0, 0.54, 0.06) : vec3(1.0, 0.16, 0.04);
+        float rim = 1.0 - smoothstep(8.0, 11.0, d);
+        float core = (1.0 - smoothstep(4.0, 7.0, d)) * on;
+        float glow = (1.0 - smoothstep(7.0, 17.0, d)) * on * 0.3;
+        float a1 = max(rim * 0.3, max(core, glow));
+        col = mix(col, mix(vec3(0.10, 0.09, 0.08), lamp, max(core, glow)), a1);
+        alpha = max(alpha, a1);
+    }
+    gl_FragColor = vec4(col, alpha);
+}
+`;
+
+module.exports = { e46lamps: E46LAMPS, shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, twinface: TWINFACE, twinneedle: TWINNEEDLE, sweepdash: SWEEPDASH , e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES };
