@@ -1,7 +1,7 @@
 {
   "id": "e46_m3_cluster_test",
   "title": "E46 M3 Cluster Test",
-  "description": "E46 M3 cluster development scaffold for 2022 G80 M3. No E46 rendering enabled yet; OEM cluster remains visible.",
+  "description": "Isolated E46 M3 test scaffold for 2022 G80 S58; Off-only until E46 renderer and real signals are validated.",
   "version": "0.18.20",
   "vendor": "custom",
   "loggingId": "OAE4",
@@ -1022,7 +1022,7 @@
   ],
   "config": {
     "target": "panel",
-    "statusName": "E36 Test",
+    "statusName": "E46 M3 Test",
     "socketPath": "/dev/shm/cluster-render/render.sock",
     "utcOffsetMinutes": null,
     "waze": {
@@ -1030,103 +1030,18 @@
       "status": "/run/waze-on-cluster/status.json",
       "control": "/dev/shm/waze-on-cluster/ctl.sock"
     },
-    "_comment": "target panel: the whole 1920x720 instrument cluster, drawn over BMW's gauges. socketPath: cluster-render's documented default. utcOffsetMinutes: as in HUD Widgets (the clock box). tankLitres: the fuel gauge's full mark (the car sends litres, not the tank size; a G80 M3 holds 59, a G01 X3 65). engine: the peak crank torque (Nm) and power (kW) the {{torquePct}} and {{powerPct}} tokens count from (an M40i: 500 Nm, 285 kW / 382 hp).",
+    "_comment": "Standalone E46 M3 test for 2022 G80 S58. Defaults to Off; E46 layout disabled until renderer and signal validation are complete.",
     "dme": {
-      "comment": "Boost from the engine unit (DME, ecu 18) over read-only UDS 0x22, only while the sport display sends no boost and a boost readout is shown. Absolute kPa, the outside air pressure (baro) is subtracted. Candidates tried in order, the first plausible one wins. From cauliflowermossgrape's car_vitals (MIT). Intake air temperature the same way (config.dme.intake, every 2 s, only while an intake readout shows); candidates from cruzen991/Cluster's signal table (MIT), unverified on this car.",
-      "ecu": 18,
-      "boost": [
-        {
-          "did": "F470",
-          "bytes": 2,
-          "at": 3,
-          "factor": 0.03125,
-          "offset": 0,
-          "min": 20,
-          "max": 600,
-          "note": "OBD PID 0x70 boost pressure control: actual boost pressure sensor A (absolute), 1/32 kPa"
-        },
-        {
-          "did": "F487",
-          "bytes": 2,
-          "at": 1,
-          "factor": 0.03125,
-          "offset": 0,
-          "min": 20,
-          "max": 600,
-          "note": "OBD PID 0x87 intake manifold absolute pressure sensor A, 1/32 kPa"
-        },
-        {
-          "did": "F40B",
-          "bytes": 1,
-          "at": 0,
-          "factor": 1,
-          "offset": 0,
-          "min": 20,
-          "max": 255,
-          "note": "OBD PID 0x0B intake manifold absolute pressure, kPa (max 255 = 1.5 bar boost)"
-        },
-        {
-          "obd": "0B",
-          "bytes": 1,
-          "at": 0,
-          "factor": 1,
-          "offset": 0,
-          "min": 20,
-          "max": 255,
-          "note": "OBD service 01 PID 0x0B (same as F40B)"
-        }
-      ],
-      "baro": [
-        {
-          "did": "F433",
-          "bytes": 1,
-          "at": 0,
-          "factor": 1,
-          "offset": 0,
-          "min": 50,
-          "max": 115,
-          "note": "OBD PID 0x33 barometric pressure, kPa (101.3 when not available)"
-        },
-        {
-          "obd": "33",
-          "bytes": 1,
-          "at": 0,
-          "factor": 1,
-          "offset": 0,
-          "min": 50,
-          "max": 115,
-          "note": "OBD service 01 PID 0x33 (same as F433)"
-        }
-      ],
-      "intake": [
-        {
-          "obd": "0F",
-          "bytes": 1,
-          "at": 0,
-          "factor": 1,
-          "offset": -40,
-          "min": -35,
-          "max": 150,
-          "note": "OBD service 01 PID 0x0F intake air temperature: the only intake PID a 2022 M3 (S58) answers (Nov 15 2026 probe: UDS F40F/F468/F477 refused, service 01 0F read 82 F); the owner says it is the manifold sensor"
-        }
-      ],
-      "ethanol": [
-        {
-          "obd": "52",
-          "bytes": 1,
-          "at": 0,
-          "factor": 0.392157,
-          "offset": 0,
-          "min": 0,
-          "max": 100,
-          "note": "OBD service 01 PID 0x52 ethanol fuel %, A*100/255. For a flex fuel kit (MHD's CAN analyzer sends it to the DME); whether the tune reports it on this PID is untested"
-        }
-      ]
+      "comment": "Disable inherited E36-app DME polling candidates for the E46 beta until the G80's supported data sources have been verified on-car.",
+      "boost": [],
+      "baro": [],
+      "intake": [],
+      "ethanol": []
     },
     "tankLitres": 59,
     "engine": {
-      "torqueNm": 500,
-      "powerKw": 285
+      "torqueNm": 550,
+      "powerKw": 353
     }
   }
 }
