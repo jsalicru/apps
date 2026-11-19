@@ -2,6 +2,11 @@
 
 Target: 1920×720 iDrive 7 panel, standalone app `e46_m3_cluster_test`, custom 7200 RPM redline. Branch `feature/e46-m3-cluster-test`; do not merge to main before on-car validation.
 
+## Target vehicle
+- 2022 BMW M3 G80, S58, iDrive 7; 7200 RPM is a display-only warning, not ECU limiter.
+- Existing app manifest subscribes to CDS engine speed/engine temperature, Vehicle2 car speed, and KombiIF tank range. Verify exact oil vs coolant mapping in shared vehicle state before using either signal for warm-up LEDs.
+- Current shared renderer uses `d.oil` for shift calculations, but this alone does not prove its live source or units on this car. Require a parked signal diagnostic before enabling LED temperature behavior.
+
 ## 1. Visual renderer — BLOCKED
 - [ ] Dedicated E46 shader/gauge-face renderer, not E36 imagery.
 - [ ] 180 MPH and 0–9000 RPM scales, redline at 7200.
