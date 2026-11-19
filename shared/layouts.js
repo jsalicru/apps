@@ -47,6 +47,7 @@ const TYPES = {
     twinface: ['dials'],
     twinneedle: ['needles'],
     sweepdash: ['arc', 'span', 'barA', 'barB'],
+    e46lamps: [],
     e36dash: ['face', 'dials'],
     e36econ: ['econ', 'tach'],
     e36needles: ['dials'],
