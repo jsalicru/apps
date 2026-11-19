@@ -17,3 +17,22 @@ jobs:
           node-version: '20'
       - name: Validate E46 coolant gauge and warm-up/shift LEDs
         run: node tools/test_e46_m3.js
+      - name: Validate isolated Off-only app scaffold
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          p=pathlib.Path('apps/e46_m3_cluster_test')
+          m=json.loads((p/'app.json').read_text())
+          assert m['id']=='e46_m3_cluster_test'
+          assert m['config']['target']=='panel'
+          assert m['settings']
+          for key in ('hudLayout','inComfort','inSport','inEco'):
+              s=next(x for x in m['settings'] if x['key']==key)
+              assert s['default']=='off'
+              assert [x[0] for x in s['options']]==['off']
+          assert (p/'main.js').is_file()
+          assert (p/'README.md').is_file()
+          assert list((p/'hud/fonts').glob('*.json'))
+          assert not list((p/'hud/layouts').glob('e46*.json'))
+          print('E46 isolated scaffold valid; no E46 rendering enabled')
+          PY
