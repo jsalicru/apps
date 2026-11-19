@@ -1,0 +1,23 @@
+'use strict';
+const assert = require('assert');
+const e46 = require('../shared/e46_m3');
+function count(x) { return x.lights.filter(Boolean).length; }
+assert.strictEqual(e46.coolantFraction(170), 0.25);
+assert.strictEqual(e46.coolantFraction(210), 0.5);
+assert.strictEqual(e46.coolantFraction(230), 0.75);
+assert.strictEqual(e46.coolantFraction(null), null);
+assert.strictEqual(e46.coolantFraction(NaN), null);
+assert.ok(e46.coolantFraction(190) > e46.coolantFraction(170));
+assert.strictEqual(count(e46.tachLights(90, 7200)), 7);
+assert.strictEqual(count(e46.tachLights(110, 0)), 7);
+assert.strictEqual(count(e46.tachLights(135, 0)), 4);
+assert.strictEqual(count(e46.tachLights(160, 7200)), 1);
+assert.strictEqual(e46.tachLights(160, 7200).mode, 'warmup');
+assert.strictEqual(count(e46.tachLights(161, 0)), 0);
+assert.strictEqual(count(e46.tachLights(161, 6000)), 1);
+assert.strictEqual(count(e46.tachLights(161, 6600)), 4);
+assert.strictEqual(count(e46.tachLights(161, 7200)), 7);
+assert.strictEqual(count(e46.tachLights(161, 8000)), 7);
+assert.strictEqual(count(e46.tachLights(null, 7200)), 0);
+assert.strictEqual(e46.tachLights(null, 7200).mode, 'sensor-unavailable');
+console.log('E46 M3 calibration and LED tests passed (17 assertions)');
