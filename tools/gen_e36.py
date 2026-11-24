@@ -262,6 +262,13 @@ SMALL_X, SMALL_Y = (347, 1672), round(856 - LIFT / SCALE, 2)
 FUEL_TEXTS = [('0', 'e_lab', -92, -123), ('½', 'e_frac', 0, -158), ('⅟', 'e_frac', 92, -123)]   # (text, font, dx, dy)
 
 
+# the coolant needle's scale (car sends C), in F as the E46 theme's: the four ticks sit at -44, -14.67, 14.67 and 44
+# degrees, the blue and red blocks' middles at -35 and 35
+F2C = lambda f: round((f - 32) * 5 / 9, 2)
+COOL_MAP = [(F2C(32), -35), (F2C(100), -35), (F2C(160), -14.67), (F2C(215), 0), (F2C(235), 14.67), (F2C(240), 35),
+            (F2C(260), 44)]
+
+
 def small_dial(signal, cx, cy, mapping):
     return {'signal': signal, 'c': [cx, cy], 'r': SMALL['r'], 'pivot': [cx, cy + SMALL['drop']], 'hub': SMALL['hub'],
             'tail': SMALL['tail'], 'needle': SMALL['needle'], 'map': mapping, 'rest': SMALL['rest']}
@@ -302,9 +309,9 @@ EU = {
         # cut flat just under the economy gauge's ticks, as its window's bottom (the photos: EU ~978, US 945 -> 969)
         {'signal': 'rpm', 'c': [1270, 763], 'r': 238, 'cut': 974, 'pivot': [1270, 763], 'hub': 33, 'tail': 50,
          'needle': [228, 9], 'map': rev_face(_REDLINE['default'])['map'], 'rest': -117},
-        # 50 and 120 °C at the blue and red blocks' middles; like the car's own gauge it holds the middle across the
-        # normal running band (85 .. 105 °C), so a warm engine reads dead centre and only a real rise moves it
-        small_dial('coolant', SMALL_X[1], SMALL_Y, [(40, -44), (50, -35), (85, 0), (105, 0), (120, 35), (130, 44)]),
+        # the E46 theme's coolant scale (gen_e46.py COOL_MAP), in F: on the blue block until 100 F, then the first
+        # inner mark at 160, the middle at 215, the second mark at 235 and the red block at 240
+        small_dial('coolant', SMALL_X[1], SMALL_Y, COOL_MAP),
     ],
     # [dial, first angle, last angle, count, outer radius, length, width]
     'ticks': [
