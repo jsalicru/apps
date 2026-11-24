@@ -2,18 +2,51 @@
 
 <p align="center">Apps for BMW iDrive 7 head units (MGU), installed through the community MGU Store.</p>
 
-<p align="center"><img src="docs/images/cluster-gt3.gif" width="900" alt="GT3 race dash on the instrument cluster"></p>
+## P3 Clusters
 
-## Cluster Themes
+<img src="apps/cluster_themes/icon.png" width="72" align="left" alt="P3 Clusters icon">
 
-<img src="apps/cluster_themes/icon.png" width="72" align="left" alt="Cluster Themes icon">
+Redraws the whole instrument cluster in a theme of your choice. Pick the theme on the center screen, or let it follow the SPORT / COMFORT / ECO PRO buttons. Every theme leaves BMW's gear and drive programme display at the bottom right uncovered, so BMW draws no black boxes over it. [Read more](apps/cluster_themes/README.md)
 
-Redraws the whole instrument cluster in a theme of your choice: a GT3 race dash, an M-style cluster, an M view like the newer M cars, a Sport view, Minimal, Track, Drag with a 0 to 60 timer, Rally with a G-meter, Retro 80s, Cruise, Dyno, a tile dash in BMW M colours, or Ribbon, with holiday editions. Pick the theme on the center screen, or let it follow the SPORT / COMFORT / ECO PRO buttons. [Read more](apps/cluster_themes/README.md)
+### Themes
 
-<p align="center"><img src="docs/images/cluster-gt3-shift.png" width="900" alt="GT3 theme at the shift point"></p>
-<p align="center"><img src="docs/images/cluster-m.png" width="900" alt="M theme"></p>
-<p align="center"><img src="docs/images/cluster-sport.png" width="900" alt="Sport theme"></p>
-<p align="center"><img src="docs/images/cluster-dyno.png" width="900" alt="Dyno theme"></p>
+<table align="center">
+  <tr>
+    <th align="center">E46 M3</th>
+    <th align="center">E46 M3 at night</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/p3-e46m3.png" width="440" alt="E46 M3 theme"></td>
+    <td><img src="docs/images/p3-e46m3-night.png" width="440" alt="E46 M3 theme at night"></td>
+  </tr>
+  <tr>
+    <td colspan="2">The E46 M3's cluster: chrome-ringed dials, an mph speedometer with km/h inside, the oil temperature gauge in the rev counter, orange warm-up lights that go out as the oil warms, and shift lights that blink at the shift point. Orange lighting at night.</td>
+  </tr>
+  <tr>
+    <th align="center">E36</th>
+    <th align="center">Sweep</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/p3-e36.png" width="440" alt="E36 theme"></td>
+    <td><img src="docs/images/p3-sweep.png" width="440" alt="Sweep theme"></td>
+  </tr>
+  <tr>
+    <td>A pure 90s E36 cluster: the 328i face, or the M3 face with its oil gauge and red needles, in mph or km/h. Orange-red lighting at night.</td>
+    <td>A digital dash: a rev sweep across the top, the gear, boost, fuel, oil and water bars, and a window over BMW's map view.</td>
+  </tr>
+  <tr>
+    <th align="center">Dyno</th>
+    <th align="center">Ribbon</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/p3-dyno.png" width="440" alt="Dyno theme"></td>
+    <td><img src="docs/images/p3-ribbon.png" width="440" alt="Ribbon theme"></td>
+  </tr>
+  <tr>
+    <td>A safety dash for hard pulls in BMW M colours: twelve readout tiles plus power and torque, each flashing red over its warning limit.</td>
+    <td>Calm and premium: one ribbon of light fills with the revs over a big thin speed. Holiday editions for Christmas, Thanksgiving, New Year and the Fourth of July.</td>
+  </tr>
+</table>
 
 ## HUD Widgets
 
@@ -40,7 +73,6 @@ Puts your own readouts on the windshield HUD: gear, shift lights, boost, oil, co
 
 Each app has its own page on the center screen, opened from the apps menu. Pick a theme or layout there, give each drive mode its own, choose what every readout shows, and set your time zone and units.
 
-<p align="center"><img src="docs/images/page-cluster-themes.png" width="900" alt="Cluster Themes page on the center screen"></p>
 <p align="center"><img src="docs/images/page-hud-layouts.png" width="900" alt="HUD Widgets page on the center screen"></p>
 
 ## Install
