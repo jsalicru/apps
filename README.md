@@ -20,7 +20,7 @@ Redraws the whole instrument cluster in a theme of your choice. Pick the theme o
     <td><img src="docs/images/p3-e46m3-night.png" width="440" alt="E46 M3 theme at night"></td>
   </tr>
   <tr>
-    <td colspan="2">The E46 M3's cluster: chrome-ringed dials, an mph speedometer with km/h inside, the oil temperature gauge in the rev counter, orange warm-up lights that go out as the oil warms, and shift lights that blink at the shift point. Orange lighting at night.</td>
+    <td colspan="2">The E46 M3's cluster: chrome-ringed dials, an mph speedometer with km/h inside, the oil temperature gauge in the rev counter, orange warm-up lights that go out as the oil warms, and shift lights that blink at the shift point. Yellow lighting at night, like the real car.</td>
   </tr>
   <tr>
     <th align="center">E36</th>
