@@ -2,6 +2,12 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 23 2026
+
+- **README:** the cluster section is now P3 Clusters with a picture and a line for each of its five themes; the app guide covers E46 M3 and E36 and drops the themes this app doesn't have.
+- **P3 Clusters 0.19.1:** the Rally theme is removed; a saved Rally choice falls back to Sweep.
+- **P3 Clusters 0.19.0 / HUD Widgets 0.14.10:** new E46 M3 and E36 themes (from e46test2), on the merged engine. Every theme leaves BMW's gear and drive programme area (x 1214 to 1525 of the bottom row) uncovered, so the G80 draws no black boxes: Rally, Dyno and Ribbon's strip covers and Sweep's gear gap. Night colours gain "Always".
+
 ## Nov 16 2026
 
 - **Cluster Themes 0.18.20 (jsalicru's fork):** the Classic theme is held back for now (kept on the classic-theme branch); everything else from 0.18.17 to 0.18.19 ships.
