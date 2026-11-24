@@ -2,7 +2,7 @@
   "id": "cluster_themes",
   "title": "P3 Clusters",
   "description": "Redraws the instrument cluster: E46 M3, E36 (a pure 328i cluster of the 90s), Sweep, Dyno (BMW-coloured readout tiles) or Ribbon (with holiday editions), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
-  "version": "0.19.2",
+  "version": "0.19.3",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
