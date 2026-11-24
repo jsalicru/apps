@@ -300,14 +300,15 @@ THEMES.e46m3 = Object.assign({}, THEMES.e36, {
     needle: [250, 92, 10, 255], mneedle: [250, 92, 10, 255], hub: [20, 20, 20, 255],
     red: [236, 18, 14, 255], blue: [36, 108, 232, 255], orange: [255, 140, 0, 255],
     well: [42, 11, 2, 255], lcd: [255, 128, 12, 255], strip: [0, 0, 0, 255],
-    night: {     // after sunset, after a night photo of a real E46 M3 (design/photos/e46m3-night-car.webp, 0.26.5):
-                 // yellow print on backlit olive-gold dials, orange needles, the rings and pre-warning lamps glowing
-                 // yellow (the shader, u_light 0), the coolant's blue block yellowish under the lighting, a red LCD
-        fg: [242, 209, 72, 255], dim: [242, 209, 72, 255], arc: [242, 209, 72, 255], head: [242, 209, 72, 255],
-        bezel: [3, 3, 2, 255], face: [7, 6, 3, 255], dial: [68, 52, 10, 255], mark: [242, 209, 72, 255],
-        needle: [238, 144, 22, 255], mneedle: [238, 144, 22, 255], hub: [4, 4, 3, 255],
-        red: [240, 32, 26, 255], blue: [190, 170, 34, 255], orange: [236, 214, 62, 255],
-        well: [176, 40, 12, 255], lcd: [255, 196, 150, 255], strip: [0, 0, 0, 255],
+    night: {     // after sunset: halfway between two night photos of real E46 M3s (design/photos/e46m3-night-car.webp,
+                 // yellow, and e46m3-night-car2.webp, amber-orange; 0.26.6): warm yellow-amber print on dark
+                 // olive-brown dials, orange needles, the rings and pre-warning lamps glowing amber-yellow (the shader,
+                 // u_light 0), the coolant's blue block ochre under the lighting, an orange-red LCD
+        fg: [244, 192, 76, 255], dim: [244, 192, 76, 255], arc: [244, 192, 76, 255], head: [244, 192, 76, 255],
+        bezel: [3, 2, 1, 255], face: [7, 5, 2, 255], dial: [45, 30, 6, 255], mark: [244, 192, 76, 255],
+        needle: [242, 147, 46, 255], mneedle: [242, 147, 46, 255], hub: [4, 3, 2, 255],
+        red: [240, 32, 26, 255], blue: [162, 130, 30, 255], orange: [222, 182, 58, 255],
+        well: [127, 34, 10, 255], lcd: [255, 182, 136, 255], strip: [0, 0, 0, 255],
     },
 });
 // every theme: the shift-point red, used by "hot" (the gear and SHIFT at the shift point, the rev bar past it)

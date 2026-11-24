@@ -19,7 +19,7 @@ The E46 M3's cluster in orange, drawn to match a sketch of the real one.
 - **Fuel and coolant:** small dials either side. The coolant needle starts to rise at 100°F; its first dot is 160°F, the middle 215°F, the second dot 235°F and the red 240°F.
 - **Lights round the rev counter:** one every 500 rpm from 4000 to 9000; the ones past 7500 are red, the rest orange. The orange ones from 4000 to 7000 are warm-up lights: all on below 100°F oil, going out one by one from the lowest as the oil climbs to 160°F. From 6000 rpm they light from the top down as shift lights, and above 6900 rpm every light blinks.
 - **LCD:** the range, a trip counter and the outside temperature.
-- **At night** (after sunset with **Night colours** on Auto, or always with **Always**) the dials light up like a real E46 M3's at night: yellow print on backlit olive-gold faces, orange needles, yellow-glowing rings and a red LCD.
+- **At night** (after sunset with **Night colours** on Auto, or always with **Always**) the dials light up like a real E46 M3's at night: warm yellow-amber print on dark backlit faces, orange needles, amber-glowing rings and an orange-red LCD.
 
 <p align="center"><img src="../../docs/images/p3-e46m3-night.png" width="900" alt="E46 M3 theme at night"></p>
 
