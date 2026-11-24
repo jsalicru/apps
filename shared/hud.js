@@ -46,7 +46,9 @@
  * rebuild cluster-render's own status text is asked for and logged.
  *
  * Widget types (hud/layouts/*.json, or <data>/layouts/ overrides, see layouts.js):
- *   text      image layer; template tokens below, a font from hud/fonts, colour role
+ *   text      image layer; template tokens below, a font from hud/fonts, colour role; "lead": { icon, w, h, gap, cy } an
+ *             icon (icons.js) in the text's colour just before its first character, wherever the alignment puts it
+ *             (w x h px, gap px to the text, its centre cy px from the box's top; the E36 LCD's range)
  *   scale     image layer; the shift bar's rpm numbers (0 .. bar max / 1000), evenly spread
  *   stripe    image layer; the M tricolour stripe
  *   shiftbar  effect layer; shaders.js shiftbar, lit by rpm, zones from the redline
@@ -80,8 +82,16 @@
  *             left scale's line, target px, at most 32 points, its corners already rounded; the right scale is its
  *             mirror), "scale" [arc length at 0, at the top mark], "dial" [x, y, r] and "dialAng" [full, empty] (the fuel
  *             dial; the oil one is its mirror), "line" [x0, x1, y, bottom line end x]; speed 0..MVIEW_SPEED, revs
- *             0..MVIEW_RPM; the map window as fill ("hole", "holeWhen"). A layout with "mapLive": true and no widget
+ *             0..MVIEW_RPM; the map window as fill ("hole", "holeWhen"), an oval feathered over "holeOval" px if set;
+ *             "panel" [[top x, y], [middle x, y], [bottom x, y], inset]: the dark panel inside the left scale (from
+ *             inset px inside the line to that chevron edge; mirrored right) and BMW's red glow by the needle. A layout with "mapLive": true and no widget
  *             toggled on mapUp opens and closes the window by u_hole alone, without a rebuild
+ *   vdash     effect layer; the whole Vector theme (shaders.js vdash, layout made by design/gen_vector.py): "tach" [cx, cy,
+ *             inner r, outer r, start deg, sweep deg, segments] (revs 0..VDASH_RPM), "segs" (the bracket lines, at most
+ *             20: [x0, y0, x1, y1, width, brightness 0..1]), "rings" (at most 4: {cx, cy, r, signal, min, max, color
+ *             [r, g, b] 0..1}), "bars" (at most 3, gone while the map shows: {x, y, w, signal, min, max}), "panel" [x, y,
+ *             w, h] (the music panel's plate), "vinyl" [cx, cy, r] (red label while something plays), "prog" [x, y, w]
+ *             (the track's progress); the map window as fill ("hole", "holeWhen") with its corners cut "holeCut" px
  *   sdash     effect layer; the whole Sport theme (shaders.js sdash), optional "road" [horizonY, scale] (a road in the
  *             middle while no map shows, its dashes running with the speed): "geo" [yTop, yBend, yBottom, xBend] and
  *             "k" [above, below, round] for the left bracket's outer line (the right one is mirrored), "band"
@@ -196,7 +206,8 @@
  *             (0), headColor "accent" (else the "head" role), toggle }]. Roles "fill" (panel), "line", "head",
  *             "accent" for all of them; the labels are text widgets on top. Sent as array uniforms (vec4 x 12).
  * Any widget: "toggle": "<bool setting>" hides it when that setting is off, "!<setting>" when it is on,
- * "<choice setting>=<value>" shows it only while that choice is picked (also with "!");
+ * "<choice setting>=<value>" shows it only while that choice is picked, "<setting>=<a>|<b>" while either is (also
+ * with "!"); "<a>&<b>" while both parts hold (each part any of these forms);
  * "mapUp" (toggle or holeWhen) is not a saved setting: on while the Waze map shows inside the theme (waze.js; the
  * "mapInTheme" setting); the map is a content z 0 layer, so a frame meant to sit over it is content z 1 or more.
  * "themes": [...] shows it only in those themes. Text "color2": a second role, the colour at the bottom
@@ -211,6 +222,9 @@
  * Text "showWhen": "abnormal" (or "abnormal:oil" / "abnormal:coolant" on a plain label): empty while that temperature is
  *   normal and the setting "smartTemps" is on; temperature values take their band's colour, outside blue at 3 C and
  *   under (smart_temps.js).
+ * Text "showWhen": "media" / "!media" (something with a title is playing, HmiMediaState, or not) and "mapUp" / "!mapUp"
+ *   (the Waze map shows inside the theme): empty otherwise, without a rebuild. Text "ellipsis": true: a text wider than
+ *   the box is cut to fit, ending in "...".
  * Switch-off guard (vehicle_state.js): no new layer while BMW's vehicle state is off / switching on / off, the layers
  *   dropped at 12 or 5 and under, built again when the car is on.
  * HUD holiday colours (shared/hud_holiday.js, the "holiday" setting on the HUD target): the theme's accents in the holiday's
@@ -235,8 +249,9 @@
  *
  * Text tokens: {{speed}} {{u:speed}} {{oil}} {{coolant}} {{boost}} {{u:boost}} {{rpm}}
  * {{gear}} (P / R / N, D3 / S3 / M3 by the shifter programme, or just 3 when the selector position is unknown), {{gearnum}} (3, or P / R / N)
- * {{spd:<i>}} (speed scale label i of SPEED_SCALE: 0..200 mph, 0..320 km/h) {{range}} {{u:distLc}} (mi, km) {{u:dist}} (MI, KM) {{ambient}} (outside, signed: +75) {{u:speedLc}} (mph, km/h) {{ampmLc}} (am, pm) {{torque}} {{u:torque}} (lb-ft, Nm) {{torquePct}} {{powerPct}} (% of config.engine's peak) {{boostHi}} {{boostMid}}
+ * {{spd:<i>}} (speed scale label i of SPEED_SCALE: 0..200 mph, 0..320 km/h) {{range}} {{u:distLc}} (mi, km) {{u:dist}} (MI, KM) {{ambient}} (outside, signed: +75) {{u:speedLc}} (mph, km/h) {{speed2}} {{u:speed2Lc}} {{u:speed2}} (the speed in the other unit) {{mediaTitle}} {{mediaArtist}} {{mediaElapsed}} {{mediaLeft}} (now playing, HmiMediaState; empty without) {{ampmLc}} (am, pm) {{torque}} {{u:torque}} (lb-ft, Nm) {{torquePct}} {{powerPct}} (% of config.engine's peak) {{boostHi}} {{boostMid}}
  * (gauge labels for 1.4 / 0.7 bar in the display unit) {{stage}} (P R N, D / S / M by the shifter programme) {{gearInD}} (gear number while in D) {{mode}} (COMFORT, SPORT, SPORT PLUS, SPORT INDIVIDUAL, ECO PRO, ...)
+ * {{trip}} (the E36 LCD's trip: 000.0 km or miles driven since the app started, rolling over at 1000)
  * {{temp:<deg C>}} (that temperature in the display unit, °F rounded to 10, for gauge labels) {{setup:engine|chassis|steering|gearbox}} (what that part is set to in the drive mode now)
  * {{time}} {{ampm}} {{u:temp}} (°F / °C) {{gLat}} {{gLong}} (g, 2 decimals) {{gSide}} ("0.42 L", "0.42 R")
  * {{gFwd}} ("0.31 ACC", "0.31 BRK") {{gBest}} (the most g this drive) {{gMax}} (the G-meter's range, "1.2") {{signal:<car.data() key>}} (raw, 1 decimal).
@@ -254,7 +269,8 @@
  * Play demo (demo_script.js, the page's button): a scripted one-minute drive on the real HUD / cluster with a DEMO tag,
  * only while the car stands; it stops past 5 km/h of the car's own speed. this.car is its stand-in for the kit's Car.
  * Night colours (Cluster Themes "nightDim" on Auto): after sunset (sun.js, at _sunPlace(): the time zone's middle) a layout's own theme is
- * built with its whites and greys at 60 %; the minute timer rebuilds at sunset and sunrise.
+ * built with its whites and greys at 60 % (hud_themes.js nightTheme), or with its own "night" roles when it has them (E36's
+ * orange-red lighting); the minute timer rebuilds at sunset and sunrise.
  *
  * Boost is a PUSH signal, not a diagnostic poll: tracing cauliflowermossgrape's
  * car_vitals showed its boost reading is de.bmw.infotainment.drivingexcitement.FES /
@@ -270,7 +286,7 @@ const path = require('path');
 const sensors = require('./sensors');
 const { ClusterRender, DEFAULT_PATH } = require('./cluster_render_client.js');
 const Layouts = require('./layouts');
-const { THEMES, M_STRIPE, LIGHTS, VERDICT, color } = require('./hud_themes');
+const { THEMES, M_STRIPE, LIGHTS, VERDICT, color, nightTheme } = require('./hud_themes');
 const ShiftScore = require('./shift_score');
 const visible = require('./visible');
 const sun = require('./sun');
@@ -291,6 +307,7 @@ const smartTemps = require('./smart_temps');        // "showWhen": "abnormal", t
 const hudHoliday = require('./hud_holiday');
 const DemoShow = require('./demo_script');
 const Garland = require('./garland');               // the holiday light string (widget type "garland")
+const e36 = require('./e36');                       // the E36 theme's needle and economy maths (widget e36dash)
 const DEMO_AMBER = [255, 176, 40];      // the DEMO tag's colour
 const CAL_LAYOUTS = { grid: true, wincal: true, mapcal: true };
 // sharing the HUD with other kit apps (Redline, issue #4): kit/runtime/hud_claim.js, from cauliflowermossgrape's kit
@@ -312,6 +329,16 @@ const MAX_CONN = 4;              // connections a layout may ask for ("conn"): 3
 const PIXEL_BYTES = 16 * 1024 * 1024;   // cluster-render's pixel memory for every app's images together (CompositorLimits.pixel_bytes)
 const SHEET_AREA_FRAC = 4;       // the first sheet size limit: 1/4 of the target area (see the header)
 const TICK_MS = 50;              // 20 Hz: shift bar and gauges
+// The E36's needles (e36needles): each follows its value with a real needle's inertia (shared/e36.js Needle) and goes
+// to the renderer as a path in its own clock (e36.nextPath, layer "time" 1), which it plays on every display frame.
+// Sent as angles they stepped on the car (Nov 17 2026), even at 60 Hz: cluster-render applies uniforms at its own
+// 30 Hz tick, out of step with the display. A path keeps the one before for PATH_KEEP s (longer than the tick and the
+// tick after which we send again), so one landing late still joins on.
+const NEEDLE_W = 28;             // 1/s: a steady sweep trails the value by 2 / 28 s (71 ms)
+const PATH_KEEP = 0.06;          // s
+const PATH_AHEAD = 0.07;         // s: then on to where the needle will be by then
+const PATH_TAIL = 0.2;           // s: the E46's paths then on to the needle's target (a late tick doesn't freeze it)
+function mono() { const t = process.hrtime(); return t[0] * 1000 + t[1] / 1e6; }
 const TEXT_MS = 200;             // text re-draws at most 5 times a second (what BMW's own readouts do)
 const TARGET_SIZES = { hud: [800, 480], panel: [1920, 720] };
 const MODE_KEY = { comfort: 'inComfort', sport: 'inSport', eco: 'inEco' };
@@ -348,7 +375,24 @@ const TILE_BAR = {
 const TILE_MAX = 14;       // half a flash: red, then the normal colour
 // widgets that show the shift cue (the reaction time is learned only while one of them is drawn)
 const MVIEW_RPM = 8000;            // the M view theme's rev scale: 0..8
-const MVIEW_SPEED = { us: 200, metric: 330 };   // its speed scale: 0..200 mph by 20, 0..330 km/h by 30 (linear)
+const MVIEW_SPEED = { us: 200, metric: 330 };
+// the E36 shader's colour roles, in u_col order (hud_themes.js e36)
+const E36_ROLES = ['bezel', 'face', 'dial', 'mark', 'needle', 'hub', 'red', 'blue', 'orange', 'well', 'strip', 'bg'];
+const SHIFT_BLINK_MS = 200;       // the E46 lamps' blink past their shift point: 200 ms on, 200 ms off (the loop runs at 10 fps)
+const E36_ZONE_COLORS = ['red', 'blue', 'orange', 'yellow', 'unlit', 'mark'];      // u_zoneB's colour codes
+const VDASH_RPM = 8000;            // the Vector theme's rev counter: 0..8
+const MEDIA_IF = 'de.bmw.infotainment.hmi.hmimediastate.HmiMediaState';   // the head unit's now playing (front)
+const MEDIA_INST = 'HMI_CID';     // its front screen's instance
+const MEDIA_TYPES = { 1: 'ARTIST', 2: 'ALBUM', 3: 'TITLE' };
+/** A song's text for the baked fonts: accents dropped, curly quotes and dashes made plain, the rest left out. */
+function mediaText(v) {
+    let t = String(v === undefined || v === null ? '' : v);
+    try { t = t.normalize('NFD'); } catch (e) { /* no ICU: keep it */ }
+    return t.replace(/[\u0300-\u036f]/g, '').replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"')
+        .replace(/[\u2013\u2014]/g, '-').replace(/\u2026/g, '...').replace(/[^\x20-\x7e]/g, '').replace(/\s+/g, ' ').trim();
+}
+/** Seconds as m:ss. */
+function clockOf(sec) { const t = Math.max(0, Math.floor(sec)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }   // its speed scale: 0..200 mph by 20, 0..330 km/h by 30 (linear)
 const ROAD_DASH_M = 12;            // the Sport road: metres per dash and gap (shaders.js sdash u_road)
 const CUE_TYPES = { lights: true, shiftbar: true, revbar: true, revarc: true, ribbon: true, mtach: true };
 // the shift-light test (page.js Alerts): rpm climbs from TEST_FROM to just past the shift point, then holds
@@ -796,6 +840,16 @@ class HudApp {
                 },
             },
         };
+        // now playing (the Vector layouts' music panel): the head unit's own media state, front screen only. Optional
+        // (app.json): not every unit may have it, and whether CarPlay fills it is not known yet. Added last, so the
+        // one-at-a-time SOME/IP setup (signals.js) reaches every vehicle signal before it, whatever this one does
+        // The instance is HMI_CID (the front screen; HMI_FoMo_Left / _Right are the rear screens): asking for "1" in the
+        // manifest made the app manager refuse the whole app (issues #17 to #20); app.json allows any instance ("*")
+        extra[MEDIA_IF] = {
+            $instance: MEDIA_INST,
+            playerMetadata: (v) => this._mediaFeed('meta', v),
+            trackProgress: (v) => this._mediaFeed('progress', v),
+        };
         this.car = new Car(this.ctx, ['rpm', 'speed', 'temps', 'accel', 'gear', 'torque'], extra);
         // "Play demo": this.car becomes the show's stand-in (the car's own data unless the show plays)
         this.demo = new DemoShow(this.car, this._demoHooks(), this.log);
@@ -839,6 +893,8 @@ class HudApp {
             this.layerStates.set(key, st);
             const name = () => { const w = this._widgetOf(ci, ref); return 'layer ' + ref + tag + (w ? ' (' + w + ')' : ''); };
             if (state === 'error' || (state === 'waiting' && !same)) this.log.warn(name() + ' ' + state + (reason ? ': ' + reason : ''));
+            // a layer with u_time: its clock starts (again) as it is attached, about when it shows: paths start over
+            if (state === 'shown' && !same) this.widgets.forEach((x) => { if (x.ci === ci && x.ref === ref && x.w.type === 'e36needles') { x.t0 = mono(); x.path = null; } });
             if (state === 'stalled' && !same) {
                 // normal for a moment after a rebuild (pixels on their way); a problem only if it lasts
                 clearTimeout(this.stallTimers.get(key));
@@ -1078,6 +1134,23 @@ class HudApp {
         x.c.pixels(ref, null, Buffer.alloc(G_ENV_TEX, 0));
         this.gEnvTex.set(key, ref);
         return ref;
+    }
+
+    /** A text widget's "lead" icon, painted into its picture just before the text (see the header). */
+    _leadIcon(buf, w, s, font, col) {
+        const L = w.lead, iw = Math.round(L.w), ih = Math.round(L.h), tw = textRaster.measure(s, font, w.spacing);
+        const x0 = w.align === 'right' ? w.w - tw : w.align === 'center' ? Math.round((w.w - tw) / 2) : 0;
+        const ix = Math.round(x0 - (L.gap || 0) - iw), iy = Math.round((isNum(L.cy) ? L.cy : w.h / 2) - ih / 2);
+        const ic = paintIcon(L.icon, iw, ih, col);
+        for (let y = 0; y < ih; y++) {
+            const dy = iy + y;
+            if (dy < 0 || dy >= w.h) continue;
+            for (let xx = 0; xx < iw; xx++) {
+                const dx = ix + xx, o = (y * iw + xx) * 4, d = (dy * w.w + dx) * 4;
+                if (dx < 0 || dx >= w.w || ic[o + 3] <= buf[d + 3]) continue;
+                ic.copy(buf, d, o, o + 4);
+            }
+        }
     }
 
     /** The glyph codes of a text in an atlas widget's cells, aligned; -1 is an empty cell. */
@@ -1344,7 +1417,7 @@ class HudApp {
     _garlandHoliday(name, shown) {
         if (['grid', 'wincal', 'mapcal'].indexOf(name) >= 0 || shown.some((w) => ['grid', 'gridlabels', 'swatch', 'swatchimg'].indexOf(w.type) >= 0)) return null;
         const base = this.layoutTheme && THEMES[this.layoutTheme];
-        if (base && base.holidays) return null;
+        if (base && (base.holidays || base.noGarland)) return null;     // Ribbon: its own editions; E36: none
         return this.holidayAt || null;
     }
 
@@ -1361,7 +1434,9 @@ class HudApp {
 
     /** Night colours now: Cluster Themes' "nightDim" on Auto, a theme of the layout's own, and the sun down. */
     _nightDim() {
-        if (!this.ctx.settings.item('nightDim') || this.setting('nightDim') !== 'auto' || !this.layoutTheme) return false;
+        if (!this.ctx.settings.item('nightDim') || !this.layoutTheme) return false;
+        if (this.setting('nightDim') === 'on') return true;        // "Always"
+        if (this.setting('nightDim') !== 'auto') return false;
         return sun.isNight(Date.now(), ...this._sunPlace());
     }
 
@@ -1650,6 +1725,7 @@ class HudApp {
             if (name === 'torquePct') return Math.max(0, d.torque) / (e.torqueNm || 500) * 100;
             return isNum(d.rpm) ? Math.max(0, d.torque) * d.rpm / 9549 / (e.powerKw || 285) * 100 : null;
         }
+        if (name === 'mediaPct') { const e = this._mediaElapsed(); return e === null ? null : e / this.media.total * 100; }   // the song's progress
         if (name.indexOf('setupLevel:') === 0) { const s = this._setup(); return s ? SETUP_LEVEL[s[name.slice(11)]] || 0 : 0; }
         const d = this.car.data();
         return Object.prototype.hasOwnProperty.call(d, name) ? d[name] : null;
@@ -1661,6 +1737,12 @@ class HudApp {
     _redMarks(max) {
         const redFrom = Math.min(this.setting('redline'), max - 500) / max;
         return [redFrom, redFrom - 700 / max];
+    }
+
+    /** An e36dash's rev counter for the redline setting (tools/gen_e36.py "revs", one per step): { dial, map, ticks,
+     *  zones }, its ticks and zones added to the face's; none (the face's own) when the layout has no such face. */
+    _e36Revs(w) {
+        return (w.revs && w.revs[this.setting('redline')]) || { dial: -1, map: null, ticks: [], zones: [] };
     }
 
     /** The scale label nearest the value now: 'speed' (SPEED_SCALE index) or 'rpm' (thousands); null without data. */
@@ -1709,6 +1791,13 @@ class HudApp {
             case 'badge': return badges.text(this.setting('badge'), this.setting('badgeBMW') === true);
             case 'speed': { const v = this._raw('speed'); return fix(isNum(v) ? (us ? v * 0.621371 : v) : v, 0); }
             case 'u:speed': return us ? 'MPH' : 'KM/H';
+            case 'mediaTitle': return this._mediaOn() ? this.media.title : '';
+            case 'mediaArtist': return this._mediaOn() ? this.media.artist : '';
+            case 'mediaElapsed': { const e = this._mediaElapsed(); return e === null ? '' : clockOf(e); }
+            case 'mediaLeft': { const e = this._mediaElapsed(); return e === null ? '' : '-' + clockOf(this.media.total - e); }
+            case 'speed2': { const v = this._raw('speed'); return fix(isNum(v) ? (us ? v : v * 0.621371) : v, 0); }   // the other unit
+            case 'u:speed2Lc': return us ? 'km/h' : 'mph';
+            case 'u:speed2': return us ? 'KM/H' : 'MPH';
             case 'oil': case 'coolant': { const v = this._raw(tok); return fix(isNum(v) ? (us ? v * 9 / 5 + 32 : v) : v, 0); }
             case 'boost': { const v = this._raw('boost'); return us ? fix(isNum(v) ? v * 14.5038 : v, 1) : fix(v, 2); }
             case 'u:boost': return us ? 'PSI' : 'BAR';
@@ -1745,6 +1834,7 @@ class HudApp {
             case 'boostHi': return us ? '20' : '1.4';
             case 'boostMid': return us ? '10' : '0.7';
             case 'ampmLc': return this._token('ampm').toLowerCase();
+            case 'trip': return e36.tripText(this.tripKm, us);     // the E36 LCD's trip: 000.0 km or miles this drive
             case 'gLat': case 'gLong': { const v = this._raw(tok); return isNum(v) ? Math.abs(v).toFixed(2) : '--'; }
             case 'gSide': case 'gFwd': {
                 // the car's left / right (gFlipLat: its sign the other way round); brake on top doesn't change the words
@@ -1903,7 +1993,7 @@ class HudApp {
         this.hudHoliday = this._hudHoliday();      // the HUD's holiday colours (hud_holiday.js), null for none
         if (this.hudHoliday) this.theme = hudHoliday.theme(this.theme, this.hudHoliday);
         this.nightOn = this._nightDim();
-        if (this.nightOn) this.theme = dimTheme(this.theme, NIGHT_DIM);
+        if (this.nightOn) this.theme = nightTheme(this.theme, NIGHT_DIM);   // E36: its own night roles
         this.log.info('layout "' + layout.name + '", theme ' + this.theme.name + (this.layoutTheme ? '' : ' (' + this.setting('hudTheme') + ')'));
         // full screen (Nov 14 2026): the layout's strip widgets (design/genlib.py full_screen) cover BMW's strip except a
         // window over its gear letter, and the theme's own strip row ("stripRow" l / r) shows the clock, range and outside
@@ -2081,12 +2171,12 @@ class HudApp {
         if (c) this._blit(x, [c.rect], c.px);
     }
 
-    /** "key" is on while that bool setting is on; "!key" while it is off. */
+    /** "key" is on while that bool setting is on; "!key" while it is off; "a&b" while both are. */
     _toggleOn(t) {
-        if (t.indexOf('&') > 0) return t.split('&').every((p) => this._toggleOn(p));   // "a&b": both
+        if (t.indexOf('&') >= 0) return t.split('&').every((part) => this._toggleOn(part));
         const not = t.charAt(0) === '!';
         const k = not ? t.slice(1) : t, eq = k.indexOf('=');
-        const on = eq > 0 ? String(this.setting(k.slice(0, eq))) === k.slice(eq + 1) : this.setting(k) !== false;
+        const on = eq > 0 ? k.slice(eq + 1).split('|').indexOf(String(this.setting(k.slice(0, eq)))) >= 0 : this.setting(k) !== false;
         return not ? !on : on;
     }
 
@@ -2098,7 +2188,8 @@ class HudApp {
             c = this._clientAt(this._connOf(w));
             const base = { target: this.target, klass: w.class || 'content', z: w.z || 0, x: w.x, y: w.y, w: w.w, h: w.h };
             if (IMAGE_TYPES[w.type]) ref = c.image(Object.assign({ iw: w.w, ih: w.h }, w.type === 'nav' ? this._navImage(w) : null, base));
-            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] }, base));
+            // the E36's needles read the renderer's clock (u_time): they are sent as paths in it
+            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] }, w.type === 'e36needles' ? { time: true } : null, base));
             if (!ref) { this.log.warn('widget "' + w.id + '": layer refused'); return; }
             this.placed.push({ c, ref, x: w.x, y: w.y, w: w.w, h: w.h });
         }
@@ -2165,6 +2256,97 @@ class HudApp {
             c.uniform(ref, 'u_line', [w.line[0] - w.x, w.line[1] - w.x, w.line[2] - w.y, w.line[3] - w.x]);
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeR', [this._holeRadius(w)]);
+            const pn = w.panel;     // [[top x, y], [middle x, y], [bottom x, y], inset]
+            c.uniform(ref, 'u_panel', pn ? [pn[0][0] - w.x, pn[0][1] - w.y, pn[1][0] - w.x, pn[1][1] - w.y] : [0, 0, 0, 1]);
+            c.uniform(ref, 'u_panelB', pn ? [pn[2][0] - w.x, pn[2][1] - w.y, pn[3], 0] : [0, 2, 0, 0]);
+            c.uniform(ref, 'u_oval', [isNum(w.holeOval) ? w.holeOval : 0]);
+        } else if (w.type === 'e36dash') {
+            // the E36 cluster (tools/gen_e36.py): every position in target px, the layer's own top-left in u_origin
+            const pad = (arr, n, fill) => { const out = arr.slice(0, n); while (out.length < n) out.push(fill); return out; };
+            const flat = (rows) => [].concat.apply([], rows);
+            const F = w.face, D = pad(w.dials || [], 4, null);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_origin', [w.x, w.y]);
+            // "needleColor": another role for the needles (the M3 face's red ones)
+            c.uniform(ref, 'u_col', flat(E36_ROLES.map((r) => rgb(color(t, r === 'needle' && w.needleColor ? w.needleColor : r)))), { type: 'vec3' });
+            // the E46's extras (gen_e46.py): chrome rings, lamp zones (and black lamp windows); none on the E36
+            c.uniform(ref, 'u_e46', [w.chrome || 0, w.pill ? 1 : 0, 0]);
+            c.uniform(ref, 'u_face', F.box);
+            c.uniform(ref, 'u_faceB', [F.radius, F.arch[0], F.arch[1], F.arch[2]]);
+            c.uniform(ref, 'u_bezel', [F.bezel || 0]);
+            c.uniform(ref, 'u_dial', flat(D.map((d) => (d ? [d.c[0], d.c[1], d.r, d.cut || 0] : [0, 0, 0, 0]))), { type: 'vec4' });
+            // with each dial's foot under its cut (gen_e46.py "foot": the flat's half width, the shoulders' slope); the E36's have none
+            c.uniform(ref, 'u_piv', flat(D.map((d) => (d ? [d.pivot[0], d.pivot[1], d.foot ? d.foot[0] : 0, d.foot ? d.foot[1] : 0] : [0, 0, 0, 0]))), { type: 'vec4' });
+            const R = this._e36Revs(w);
+            const T = pad((w.ticks || []).concat(R.ticks), 10, null);    // [dial, first angle, last angle, count, outer r, length, width]
+            c.uniform(ref, 'u_tick', flat(T.map((g) => (g ? [g[1], g[2], g[3], g[4]] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_tickB', flat(T.map((g) => (g ? [g[5], g[6], g[0], g[7] || 0] : [0, 0, -1, 0]))), { type: 'vec4' });
+            const Z = pad((w.zones || []).concat(R.zones), 6, null);    // [dial, from angle, to angle, inner r, outer r, colour, stripes]
+            c.uniform(ref, 'u_zone', flat(Z.map((z) => (z ? [z[1], z[2], z[3], z[4]] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_zoneB', flat(Z.map((z) => (z ? [z[0], E36_ZONE_COLORS.indexOf(z[5]) + 8 * (z[6] || 0)] : [-1, -1]))), { type: 'vec2' });
+            const Wn = pad(w.windows || [], 3, null);   // [x, y, w, h, radius]
+            c.uniform(ref, 'u_win', flat(Wn.map((g) => (g ? g.slice(0, 4) : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_winR', Wn.map((g) => (g ? g[4] : 0)));
+            c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // the glass's glare by day only
+            c.uniform(ref, 'u_strip', flat(pad(w.strips || [], 3, [0, 0, 0, 0])), { type: 'vec4' });
+            c.uniform(ref, 'u_stripR', [w.stripR || 0]);
+        } else if (w.type === 'e36econ') {
+            // the E36 economy (or the M3's oil temperature) gauge: its own small layer over the rev counter's lower cut
+            const E = w.econ, T = w.tach, tk = E.ticks.slice(0, 16);     // [x0, y0, x1, y1, width]
+            while (tk.length < 16) tk.push([0, 0, 0, 0, 0]);
+            const ch = E.cham || [-1e5, 0, 1e5, 0];
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_origin', [w.x, w.y]);
+            c.uniform(ref, 'u_mark', rgb(color(t, 'mark')));
+            c.uniform(ref, 'u_line', rgb(color(t, w.lineColor || 'face')));
+            c.uniform(ref, 'u_econ', [0, 0, 0, E.top]);
+            c.uniform(ref, 'u_cham', ch);
+            c.uniform(ref, 'u_tach', [T[0], T[1], T[2], T[3] || 1e5]);
+            c.uniform(ref, 'u_econT', [].concat.apply([], tk.map((k) => k.slice(0, 4))), { type: 'vec4' });
+            c.uniform(ref, 'u_econW', tk.map((k) => k[4]), { type: 'vec4' });
+        } else if (w.type === 'e36needles') {
+            // the E36 needles, on top of the face, the economy gauge and the print: the four dials' and the economy's
+            // (or the M3's oil gauge's), in its window ("econ": pivot, len, width, top, cham, tach)
+            const flat = (rows) => [].concat.apply([], rows);
+            const D = [0, 1, 2, 3].map((i) => (w.dials || [])[i]), E = w.econ, T = E ? E.tach : null;
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_origin', [w.x, w.y]);
+            c.uniform(ref, 'u_col', flat([w.needleColor || 'needle', 'hub', 'bezel'].map((r) => rgb(color(t, r)))), { type: 'vec3' });
+            c.uniform(ref, 'u_piv', flat(D.map((d) => (d ? [d.pivot[0], d.pivot[1], d.hub, d.tail || 0] : [0, 0, 0, 0]))), { type: 'vec4' });
+            c.uniform(ref, 'u_ndl', flat(D.map((d) => (d ? [d.needle[0], d.needle[1]] : [0, 0]))), { type: 'vec2' });
+            c.uniform(ref, 'u_econ', E ? [E.pivot[0], E.pivot[1], E.len, E.top] : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_cham', (E && E.cham) || [-1e5, 0, 1e5, 0]);
+            c.uniform(ref, 'u_tach', T ? [T[0], T[1], T[2], T[3] || 1e5] : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // softer needle shadows at night
+            c.uniform(ref, 'u_econH', [(E && E.hub) || 0]);
+            c.uniform(ref, 'u_e46n', [w.look46 ? 1 : 0]);
+            x.econ = new e36.Smooth(1000);
+        } else if (w.type === 'vdash') {
+            // the bracket lines (target px): [x0, y0, x1, y1, width, brightness 0..1]
+            const seg = [], segW = [];
+            (w.segs || []).slice(0, 20).forEach((g) => {
+                seg.push(g[0] - w.x, g[1] - w.y, g[2] - w.x, g[3] - w.y);
+                segW.push(Math.max(1, Math.floor(g[4] || 2)) + Math.min(0.99, Math.max(0, isNum(g[5]) ? g[5] : 0.99)));
+            });
+            const nseg = segW.length;
+            while (seg.length < 80) seg.push(0);
+            while (segW.length < 20) segW.push(0);
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_seg', seg, { type: 'vec4' });
+            c.uniform(ref, 'u_segW', segW, { type: 'float' });
+            c.uniform(ref, 'u_nseg', [nseg]);
+            const T = w.tach;      // [cx, cy, inner r, outer r, start deg, sweep deg, segments]
+            c.uniform(ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], T[3]]);
+            c.uniform(ref, 'u_redFrom', [this._redMarks(VDASH_RPM)[0]]);
+            const rc = [];
+            [0, 1, 2, 3].forEach((i) => { const g = (w.rings || [])[i]; rc.push.apply(rc, g && g.color ? g.color : [1, 1, 1]); });
+            c.uniform(ref, 'u_ringC', rc, { type: 'vec3' });
+            const pn = w.panel, vn = w.vinyl, pr = w.prog;
+            c.uniform(ref, 'u_panel', pn ? [pn[0] - w.x, pn[1] - w.y, pn[2], pn[3]] : [0, 0, 0, 0]);
+            x.vinyl = vn ? [vn[0] - w.x, vn[1] - w.y, vn[2]] : [0, 0, 0];
+            x.prog = pr ? [pr[0] - w.x, pr[1] - w.y, pr[2]] : [0, 0, 0];
+            c.uniform(ref, 'u_hole', this._hole(w));
+            c.uniform(ref, 'u_holeC', [isNum(w.holeCut) ? w.holeCut : 40]);
         } else if (w.type === 'mdash') {
             const ty = w.tyres || [0, 0, 0], L = w.gaugeL || {}, R = w.gaugeR || {}, b = w.blade || {};
             const bars = Array.isArray(w.segbars) ? w.segbars.slice(0, 4) : [];
@@ -2497,6 +2679,61 @@ class HudApp {
     _holeRadius(w) { return isNum(w.holeRadius) ? w.holeRadius : 28; }
 
     /**
+     * Now playing from HmiMediaState: playerMetadata (two lines, each tagged TITLE / ARTIST / ALBUM, or three rows)
+     * and trackProgress (elapsed, total). Only the front screen's (sink FRONT). The first few values are logged, so a
+     * car's log shows what it really sends (the time unit, which source fills it).
+     */
+    _mediaFeed(kind, v) {
+        if (!v || typeof v !== 'object') return;
+        if (v.sink !== undefined && v.sink !== 0 && v.sink !== 'FRONT') return;
+        const m = this.media || (this.media = { title: '', artist: '', elapsed: 0, total: 0, at: 0, moved: 0 });
+        this.mediaLogged = (this.mediaLogged || 0) + 1;
+        if (this.mediaLogged <= 6) this.log.info('media ' + kind + ': ' + JSON.stringify(v).slice(0, 300));
+        if (kind === 'meta') {
+            const type = (t) => MEDIA_TYPES[t] || String(t || '').toUpperCase();
+            const lines = [[mediaText(v.firstLineText), type(v.firstLineType)], [mediaText(v.secondLineText), type(v.secondLineType)]];
+            let title = '', artist = '';
+            lines.forEach(([t, k]) => { if (!t) return; if (k === 'TITLE' && !title) title = t; else if (k === 'ARTIST' && !artist) artist = t; });
+            if (!title) title = (lines.find(([t, k]) => t && k !== 'ARTIST' && t !== artist) || [''])[0];
+            if (!artist) artist = (lines.find(([t]) => t && t !== title) || [''])[0];
+            if (!title && v.threeRowText) {
+                const rows = String(v.threeRowText).split(/[\r\n]+/).map(mediaText).filter(Boolean);
+                title = rows[0] || ''; artist = rows[1] || '';
+            }
+            if (title !== m.title || artist !== m.artist) { m.elapsed = 0; m.total = 0; m.moved = 0; }
+            m.title = title; m.artist = artist;
+        } else {
+            const e = Number(v.elapsed), t = Number(v.total);
+            if (!isFinite(e) || !isFinite(t) || v.hasProgress === false) { m.total = 0; return; }
+            // milliseconds or seconds: a track over ~3 hours in seconds is unlikely, so a big total is ms
+            const k = t > 10800 ? 1000 : 1;
+            if (e / k !== m.elapsed) m.moved = Date.now();
+            m.elapsed = e / k; m.total = t / k; m.at = Date.now();
+        }
+    }
+
+    /** Something is playing that has a title (the music panel shows it; "showWhen": "media"). */
+    _mediaOn() { return !!(this.media && this.media.title); }
+
+    /** The track's elapsed seconds now: carried on from the last value while it was still moving (playing). */
+    _mediaElapsed() {
+        const m = this.media;
+        if (!m || !m.total) return null;
+        const run = Date.now() - m.moved < 2500 ? (Date.now() - m.at) / 1000 : 0;
+        return Math.min(m.total, m.elapsed + run);
+    }
+
+    /** "showWhen": "media" / "!media" (the music panel or what shows instead), "mapUp" / "!mapUp": empty otherwise. */
+    _shownNow(w) {
+        const sw = w.showWhen;
+        if (sw === 'media') return this._mediaOn();
+        if (sw === '!media') return !this._mediaOn();
+        if (sw === 'mapUp') return this.setting('mapUp') === true;
+        if (sw === '!mapUp') return this.setting('mapUp') !== true;
+        return true;
+    }
+
+    /**
      * A "mapLive" layout's map window, opened or closed as the Waze map comes or goes: only its own layers' u_hole changes
      * (no widget of it toggles on mapUp), so the theme stays up instead of being built again (seconds on the car).
      */
@@ -2527,6 +2764,12 @@ class HudApp {
         this.widgets.forEach((x) => this._guard('widget ' + x.w.id, () => this._update(x, now, false)));
     }
 
+    /** The engine speed as it comes: the shift test's sweep while it runs, else the car's own (rpm, unfiltered). */
+    _rpmIn(now) {
+        const test = this._testRpm(now);
+        return isNum(test) ? test : this.car.data().rpm;
+    }
+
     /** This drive's distance and moving time (the car's own data only; standing still doesn't count). */
     _trip(now) {
         const d = this.car.data(), dt = this.tripT ? Math.min(1000, now - this.tripT) : 0;
@@ -2544,8 +2787,7 @@ class HudApp {
 
     /** BMW-like tach: a 120 ms filter, and a readout that moves in 50 rpm steps, only by 40 rpm or more. */
     _smoothRpm(now) {
-        const test = this._testRpm(now);
-        const raw = isNum(test) ? test : this.car.data().rpm;
+        const raw = this._rpmIn(now);
         const dt = this.lastTickT ? Math.min(500, now - this.lastTickT) : 0;
         this.lastTickT = now;
         if (!isNum(raw)) { this.rpmF = null; this.rpmShown = null; return; }
@@ -2565,7 +2807,7 @@ class HudApp {
         else if (w.type === 'garland') this._garlandTick(x, now);
         else if (w.type === 'text') {
             if (!force && now - x.lastPaint < (w.rate || TEXT_MS)) return;
-            const s = (w.navHide && this.navShown) || smartTemps.hidden(this, w) ? '' : this._resolve(w.text);   // nav turn showing / "showWhen": "abnormal"
+            let s = (w.navHide && this.navShown) || smartTemps.hidden(this, w) || !this._shownNow(w) ? '' : this._resolve(w.text);   // nav turn showing / "showWhen"
             let role = w.color || 'fg';
             if (w.colorBy === 'verdict' && this.score.last) role = VERDICT[this.score.last.verdict] || role;
             if (w.near && this._nearMark(w.near[0]) === w.near[1]) role = w.nearColor || 'fg';
@@ -2593,6 +2835,12 @@ class HudApp {
             // longer value than its default) or has a character the font lacks (Retro's seven-segment digits have no
             // letters, + or °), on the same baseline
             let font = w.font, offsetY = 0;
+            // "ellipsis": a longer text (a song title) is cut to fit, ending in ...
+            if (w.ellipsis && textRaster.measure(s, font, w.spacing) > w.w) {
+                let t = s;
+                while (t.length > 1 && textRaster.measure(t.replace(/\s+$/, '') + '...', font, w.spacing) > w.w) t = t.slice(0, -1);
+                s = t.replace(/\s+$/, '') + '...';
+            }
             if (lowFont) { offsetY = textRaster.loadFont(w.font).metrics.baseline - textRaster.loadFont(lowFont).metrics.baseline; font = lowFont; }
             const has = (n) => { const g = textRaster.loadFont(n).metrics.glyphs; return s.split('').every((ch) => ch === ' ' || g[ch]); };
             if (w.fit && (textRaster.measure(s, font, w.spacing) > w.w || !has(font))) {
@@ -2605,6 +2853,7 @@ class HudApp {
                 color2: w.color2 && role !== 'hot' ? color(this.theme, w.color2) : null,
                 glow: w.glow ? this.theme.glow : 0,
             });
+            if (w.lead && s) this._leadIcon(buf, w, s, font, color(this.theme, role));
             this._blitDiff(x, buf);
         } else if (w.type === 'badge') {
             if (!force && now - x.lastPaint < TEXT_MS) return;
@@ -2686,6 +2935,23 @@ class HudApp {
             x.last = key;
             x.c.uniform(x.ref, 'u_value', [q]);
             x.c.uniform(x.ref, 'u_flash', [this.flash ? 1 : 0]);
+        } else if (w.type === 'e36dash' && w.warm) {
+            // the E46 M3's lamps ("warm": [from F, to F, yellow lamps]; "shift": [rpm, rpm, rpm]). Warm-up: all the yellow
+            // ones lit while the oil is colder than "from", going out one by one from the lowest as it warms, all out at
+            // "to" (lit without oil data). Shift: from shift[0] rpm they light again from the top down, one more each
+            // (shift[1] - shift[0]) / lamps, the lowest last; past shift[2] every lamp blinks. A lamp is lit if either
+            // lights it. The shader takes how many yellow lamps are out from the lowest, or -1 for all out.
+            // the revs through the tach's own 120 ms filter (_smoothRpm), so a lamp doesn't flicker at its threshold
+            const oil = this._raw('oil'), rpm = isNum(this.rpmF) ? this.rpmF : this._rpmIn(now);
+            const [lo, hi, n] = w.warm, sh = w.shift;
+            const f = isNum(oil) ? oil * 9 / 5 + 32 : null;
+            const warmOut = f === null ? 0 : Math.max(0, Math.min(n, Math.floor((f - lo) / (hi - lo) * n)));
+            const fill = sh && isNum(rpm) && rpm >= sh[0] ? Math.min(n, Math.floor((rpm - sh[0]) / ((sh[1] - sh[0]) / n)) + 1) : 0;
+            let out = Math.min(warmOut, n - fill);
+            if (sh && isNum(rpm) && rpm >= sh[2] && Math.floor(now / SHIFT_BLINK_MS) % 2) out = -1;
+            if (!force && out === x.last) return;
+            x.last = out;
+            x.c.uniform(x.ref, 'u_e46', [w.chrome || 0, w.pill ? 1 : 0, out]);
         } else if (w.type === 'shiftbar' || w.type === 'revarc') {
             const rpm = this._raw('rpm');
             const segs = w.segments || (w.type === 'revarc' ? 30 : 40);
@@ -2809,6 +3075,88 @@ class HudApp {
             x.c.uniform(x.ref, 'u_rpm', [vals[1]]);
             x.c.uniform(x.ref, 'u_fuel', [vals[2]]);
             x.c.uniform(x.ref, 'u_oil', [vals[3]]);
+        } else if (w.type === 'e36needles') {
+            // the needles: each dial's value read off its traced scale ([value, angle] pairs); no data parks it on its pin.
+            // Each follows its angle with inertia (e36.Needle), the rev needle from the unfiltered rpm: the follower is
+            // its only smoothing. Sent as paths in the renderer's clock (see NEEDLE_W): t0 from when the layer showed
+            const sp = this._raw('speed'), R = this._e36Revs(w);
+            // the E46 ("look46"): the revs carried on between the car's samples (e36.Extrap), so the needle doesn't wait for each
+            if (w.look46 && !x.rpmX) x.rpmX = new e36.Extrap();
+            const rpmNow = () => (w.look46 ? x.rpmX.at(this._rpmIn(now), now) : this._rpmIn(now));
+            const val = (sig) => (sig === 'speed' ? (isNum(sp) && w.mph ? sp * 0.621371 : sp) : sig === 'rpm' ? rpmNow() : this._raw(sig));
+            const tm = mono();
+            if (!isNum(x.t0)) x.t0 = tm;
+            const ts = (tm - x.t0) / 1000;
+            // each dial's needle its own response ("resp", 1/s; gen_e46.py): softer than the E36's NEEDLE_W, so it glides
+            // between the car's samples instead of stepping to each one
+            if (!x.ndl) { x.ndl = [0, 1, 2, 3].map((i) => new e36.Needle(((w.dials || [])[i] || {}).resp || NEEDLE_W)); x.path = null; }
+            const paths = [0, 1, 2, 3].map((i) => {
+                const d = (w.dials || [])[i];
+                const a = d ? e36.frac(val(d.signal), i === R.dial && R.map ? R.map : d.map) : 0;
+                const to = d ? (a === null ? d.rest : a) : 0;
+                x.ndl[i].step(to, now);
+                // "pathAhead" (s, gen_e46.py): plan further ahead, so a late tick (the head unit busy) doesn't run the path out
+                // and the needle doesn't stop and jump; the next tick replans it anyway
+                const ah = isNum(w.pathAhead) ? w.pathAhead : PATH_AHEAD;
+                // the E46: a path that ends where the needle is heading, never short of it (e36.nextPathTo): for the revs the
+                // reckoned revs by the path's end, so a late tick doesn't park the needle mid-sweep
+                if (w.look46) {
+                    let fin = to;
+                    if (d && d.signal === 'rpm' && x.rpmX) {
+                        const fa = e36.frac(x.rpmX.peek(now + (PATH_KEEP + ah + PATH_TAIL) * 1000), i === R.dial && R.map ? R.map : d.map);
+                        if (fa !== null) fin = fa;
+                    }
+                    return e36.nextPathTo(x.path && x.path[i], ts, PATH_KEEP, ah, x.ndl[i].ahead(to, (PATH_KEEP + ah) * 1000), fin, PATH_TAIL);
+                }
+                return e36.nextPath(x.path && x.path[i], ts, PATH_KEEP, ah, x.ndl[i].ahead(to, (PATH_KEEP + ah) * 1000));
+            });
+            // the economy needle: the M3's oil temperature (its scale in F on the mph face), or the economy estimated
+            // from the engine's power (shared/e36.js): the car has no fuel-flow signal
+            const E = w.econ;
+            let ea = 0;
+            if (E) {
+                let raw;
+                if (E.signal === 'oil') {
+                    const oil = this._raw('oil');
+                    raw = isNum(oil) && w.mph ? oil * 9 / 5 + 32 : oil;
+                } else {
+                    const pw = this._raw('powerPct'), peak = (this.config.engine || {}).powerKw;
+                    const flow = isNum(pw) && isNum(peak) ? e36.flowLph(pw / 100 * peak) : null;
+                    raw = e36.economy(this._raw('speed'), flow, !!w.mph);
+                }
+                const a = e36.frac(x.econ.step(raw, now), E.map);
+                ea = Math.round((a === null ? E.rest : a) * 10) / 10;
+            }
+            // still needles send nothing: the same angles (a path's times move on, its angles don't)
+            const key = paths.map((P) => P.a.map((v) => v.toFixed(2)).join(',')).join('|') + '|' + ea;
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.path = paths;
+            // u_path: per needle its keys' times (the first wrapped as u_time is, 0 .. 3600) and their angles
+            x.c.uniform(x.ref, 'u_path', [].concat.apply([], paths.map((P) => [P.t[0] % 3600, P.t[1], P.t[2], P.t[3]].map((v) => Math.round(v * 1e4) / 1e4)
+                .concat(P.a.map((v) => Math.round(v * 100) / 100)))), { type: 'vec4' });
+            if (E) x.c.uniform(x.ref, 'u_econB', [ea, E.width]);
+        } else if (w.type === 'vdash') {
+            const T = w.tach, q = (v) => Math.round(Math.min(1, Math.max(0, v)) * 400) / 400;
+            const frac = (g) => { const v = g && g.signal ? this._raw(g.signal) : null; return isNum(v) ? q((v - g.min) / (g.max - g.min)) : 0; };
+            const rpm = this._raw('rpm');
+            const rings = [0, 1, 2, 3].map((i) => (w.rings || [])[i]), bars = [0, 1, 2].map((i) => (w.bars || [])[i]);
+            const rv = rings.map(frac), bv = bars.map(frac);
+            const on = this._mediaOn() ? 1 : 0, e = this._mediaElapsed();
+            const pv = on && e !== null && this.media.total > 0 ? q(e / this.media.total) : 0;
+            const key = [isNum(rpm) ? q(rpm / VDASH_RPM) : 0].concat(rv, bv, [on, pv, this.setting('mapUp') ? 1 : 0]).join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.c.uniform(x.ref, 'u_tachA', [T[4], T[5], T[6], isNum(rpm) ? q(rpm / VDASH_RPM) : 0]);
+            const ru = [], bu = [];
+            rings.forEach((g, i) => ru.push(g ? g.cx - w.x : 0, g ? g.cy - w.y : 0, g ? g.r : 0, rv[i]));
+            // the bars sit under the map window: gone while the map shows
+            const mapUp = this.setting('mapUp') === true;
+            bars.forEach((b, i) => bu.push(b ? b.x - w.x : 0, b ? b.y - w.y : 0, b && !mapUp ? b.w : 0, bv[i]));
+            x.c.uniform(x.ref, 'u_ring', ru, { type: 'vec4' });
+            x.c.uniform(x.ref, 'u_bar', bu, { type: 'vec4' });
+            x.c.uniform(x.ref, 'u_vinyl', x.vinyl.concat([on]));
+            x.c.uniform(x.ref, 'u_prog', x.prog.concat([pv]));
         } else if (w.type === 'mview') {
             const us = this.setting('units') === 'us';
             const sp = this._raw('speed'), rpm = this._raw('rpm'), fuel = this._raw('fuel'), oil = this._raw('oil');
@@ -3012,17 +3360,6 @@ class HudApp {
 }
 
 /** A theme with its whites and greys (any colour with little tint) at k brightness; colours keep theirs. */
-function dimTheme(theme, k) {
-    const out = {};
-    Object.keys(theme).forEach((key) => {
-        const c = theme[key];
-        const grey = Array.isArray(c) && c.length >= 3 && Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) < 40;
-        out[key] = grey ? [Math.round(c[0] * k), Math.round(c[1] * k), Math.round(c[2] * k)].concat(c.length > 3 ? [c[3]] : []) : c;
-    });
-    out.name = theme.name;
-    return out;
-}
-
 function pad2(n) { return n < 10 ? '0' + n : String(n); }
 function mib(bytes) { return (bytes / 1048576).toFixed(1) + ' MiB'; }
 
