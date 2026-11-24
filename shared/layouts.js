@@ -30,6 +30,13 @@ const TYPES = {
     mdash: [],
     sdash: ['geo', 'k', 'band', 'ticks', 'fuelSeg', 'oilSeg', 'strip', 'topEnd'],
     mview: ['path', 'scale', 'dial', 'dialAng', 'line'],
+    vdash: ['tach', 'segs'],
+    e36dash: ['face', 'dials'],
+    e36econ: ['econ', 'tach'],
+    e36needles: ['dials'],
+    twinface: ['dials'],
+    twinneedle: ['needles'],
+    sweepdash: ['arc', 'span', 'barA', 'barB'],
     mtach: ['side', 'y0', 'y8', 'ym', 'xm', 'kTop', 'kBot', 'wBot', 'wTop'],
     icon: ['icon'],
     swatch: [],
@@ -44,9 +51,6 @@ const TYPES = {
     ribbon: ['curve', 'span'],
     deco: [],
     nav: [],
-    twinface: ['dials'],
-    twinneedle: ['needles'],
-    sweepdash: ['arc', 'span', 'barA', 'barB'],
 };
 const CLASSES = ['ambient', 'content', 'overlay', 'alert'];
 
@@ -115,8 +119,9 @@ class Layouts {
             if (w.class && CLASSES.indexOf(w.class) < 0) bad(at + ' has unknown class "' + w.class + '"');
             if (w.exclusive) bad(at + ' sets exclusive, which would hide everything under it (the CarPlay / Android Auto map too)');
             if (w.conn !== undefined && !(Number.isInteger(w.conn) && w.conn >= 0 && w.conn <= 3)) bad(at + ' "conn" must be 0..3 (the connection to cluster-render)');
-            if (w.toggle !== undefined && !/^!?[a-zA-Z0-9_]+(=[a-zA-Z0-9_]+)?(&!?[a-zA-Z0-9_]+(=[a-zA-Z0-9_]+)?)*$/.test(String(w.toggle))) bad(at + ' has a bad toggle "' + w.toggle + '"');
-            if (w.toggle2 !== undefined && !/^!?[a-zA-Z0-9_]+(=[a-zA-Z0-9_]+)?(&!?[a-zA-Z0-9_]+(=[a-zA-Z0-9_]+)?)*$/.test(String(w.toggle2))) bad(at + ' has a bad toggle2 "' + w.toggle2 + '"');
+            const part = '!?[a-zA-Z0-9_]+(=[a-zA-Z0-9_]+(\\|[a-zA-Z0-9_]+)*)?';     // "a&b": both parts
+            if (w.toggle !== undefined && !new RegExp('^' + part + '(&' + part + ')*$').test(String(w.toggle))) bad(at + ' has a bad toggle "' + w.toggle + '"');
+            if (w.toggle2 !== undefined && !new RegExp('^' + part + '(&' + part + ')*$').test(String(w.toggle2))) bad(at + ' has a bad toggle2 "' + w.toggle2 + '"');
             if (w.hole !== undefined && !(Array.isArray(w.hole) && w.hole.length === 4 && w.hole.every((n) => typeof n === 'number'))) bad(at + ' "hole" must be [x, y, w, h]');
             TYPES[w.type].forEach((k) => { if (w[k] === undefined) bad(at + ' (' + w.type + ') needs "' + k + '"'); });
         });
