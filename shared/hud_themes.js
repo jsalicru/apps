@@ -300,14 +300,14 @@ THEMES.e46m3 = Object.assign({}, THEMES.e36, {
     needle: [250, 92, 10, 255], mneedle: [250, 92, 10, 255], hub: [20, 20, 20, 255],
     red: [236, 18, 14, 255], blue: [36, 108, 232, 255], orange: [255, 140, 0, 255],
     well: [42, 11, 2, 255], lcd: [255, 128, 12, 255], strip: [0, 0, 0, 255],
-    night: {     // after sunset, after the night sketch (design/e46m3-night-reference.png), toned down on the car (0.26.4):
-                 // a soft amber print and lamps on near-black dials, amber-orange needles, the rings lit a pale amber
-                 // (the shader, u_light 0)
-        fg: [248, 200, 112, 255], dim: [248, 200, 112, 255], arc: [248, 200, 112, 255], head: [248, 200, 112, 255],
-        bezel: [3, 3, 3, 255], face: [7, 6, 5, 255], dial: [18, 15, 13, 255], mark: [248, 200, 112, 255],
-        needle: [245, 122, 48, 255], mneedle: [245, 122, 48, 255], hub: [8, 7, 6, 255],
-        red: [238, 30, 20, 255], blue: [20, 118, 236, 255], orange: [228, 160, 86, 255],
-        well: [32, 16, 10, 255], lcd: [248, 198, 110, 255], strip: [0, 0, 0, 255],
+    night: {     // after sunset, after a night photo of a real E46 M3 (design/photos/e46m3-night-car.webp, 0.26.5):
+                 // yellow print on backlit olive-gold dials, orange needles, the rings and pre-warning lamps glowing
+                 // yellow (the shader, u_light 0), the coolant's blue block yellowish under the lighting, a red LCD
+        fg: [242, 209, 72, 255], dim: [242, 209, 72, 255], arc: [242, 209, 72, 255], head: [242, 209, 72, 255],
+        bezel: [3, 3, 2, 255], face: [7, 6, 3, 255], dial: [68, 52, 10, 255], mark: [242, 209, 72, 255],
+        needle: [238, 144, 22, 255], mneedle: [238, 144, 22, 255], hub: [4, 4, 3, 255],
+        red: [240, 32, 26, 255], blue: [190, 170, 34, 255], orange: [236, 214, 62, 255],
+        well: [176, 40, 12, 255], lcd: [255, 196, 150, 255], strip: [0, 0, 0, 255],
     },
 });
 // every theme: the shift-point red, used by "hot" (the gear and SHIFT at the shift point, the rev bar past it)
