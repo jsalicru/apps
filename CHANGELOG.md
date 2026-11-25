@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 24 2026
+
+- **P3 Clusters 0.20.0 / HUD Widgets 0.14.11:** new **Apex** theme, imported from jsbaughman/apps (Cluster Themes 0.25.8): a needle rev counter with the gear in the middle, boost and oil temperature gauges on the left (or intake, oil pressure, water), a G-meter, tire panel or power and torque on the right, coolant and fuel along the bottom. Its strip covers leave BMW's gear and drive programme area (x 1214 to 1525) uncovered like the other themes. Brings the engine pieces it needs (the cdash layer, layout picks, separate temperature and pressure units, oil pressure from the engine unit, the per-theme Settings list, the text cache); the other themes are unchanged. HUD Widgets bundles car_top.js (the shared engine needs it). Not yet tested on a car.
+
 ## Nov 23 2026
 
 - **README:** the cluster section is now P3 Clusters with a picture and a line for each of its five themes; the app guide covers E46 M3 and E36 and drops the themes this app doesn't have.

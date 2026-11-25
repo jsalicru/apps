@@ -46,6 +46,15 @@ Redraws the whole instrument cluster in a theme of your choice. Pick the theme o
     <td>A safety dash for hard pulls in BMW M colours: twelve readout tiles plus power and torque, each flashing red over its warning limit.</td>
     <td>Calm and premium: one ribbon of light fills with the revs over a big thin speed. Holiday editions for Christmas, Thanksgiving, New Year and the Fourth of July.</td>
   </tr>
+  <tr>
+    <th align="center" colspan="2">Apex</th>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/images/p3-apex.png" width="900" alt="Apex theme"></td>
+  </tr>
+  <tr>
+    <td colspan="2">A supercar-style needle dash: a round rev counter with the gear in the middle and the speed in its open quarter, boost and oil temperature gauges on the left, a G-meter (or tire pressures, or power and torque) on the right, and coolant and fuel along the bottom. From jsbaughman/apps.</td>
+  </tr>
 </table>
 
 ## HUD Widgets

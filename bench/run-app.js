@@ -108,6 +108,15 @@ setInterval(() => {
     // an M car's M Setup engine mode (issue #8), only when the POST carries `mEngine` (1 / 'KOMFORT', 2 / 'SPORT', 3 / 'SPORT_PLUS')
     if (manual.mEngine !== undefined && manual.mEngine !== null) hu.feed('de.bmw.infotainment.misc.MDrive', 'controlDisplayMSystems', { controlDisplayEngineMode: manual.mEngine });
     hu.feed('de.bmw.infotainment.misc.MDrive', 'dataDisplayGearbox', { displayProgramGearbox: manual.program === 'S' ? 'S_MINUS_PROGRAMM' : manual.program === 'M' ? 'M_MINUS_PROGRAMM' : 'D_PROGRAMM' });
+    // now playing (HmiMediaState, as the head unit sends it), only when the POST carries `mediaTitle`;
+    // mediaElapsed / mediaTotal in seconds, sent as ms
+    if (typeof manual.mediaTitle === 'string') {
+        const MS = 'de.bmw.infotainment.hmi.hmimediastate.HmiMediaState';
+        hu.feed(MS, 'playerMetadata', { sink: 'FRONT', menuEntry: 1, trackId: 7, uiType: 'TWO_LINES', firstLineText: manual.mediaTitle,
+            firstLineType: 'TITLE', secondLineText: String(manual.mediaArtist || ''), secondLineType: 'ARTIST', threeRowText: '' });
+        hu.feed(MS, 'trackProgress', { sink: 'FRONT', menuEntry: 1, trackId: 7, elapsed: Math.round(num('mediaElapsed', 0) * 1000),
+            total: Math.round(num('mediaTotal', 0) * 1000), hasProgress: true, isSeekable: true });
+    }
     // tyres (TPMS, the fields the car answers a read with): pressure in 0.1 bar, temperature raw - 40 C; the rear pair a notch higher
     const tp = Math.round(num('tyreP', 2.3) * 10), tt = Math.round(num('tyreT', 24) + 40);
     hu.feed('de.bmw.infotainment.vehicle.TPMS', 'statusTyrePressure', { actualValuePressureTyreFLH: tp, actualValuePressureTyreFRH: tp, actualValuePressureTyreRLH: tp + 2, actualValuePressureTyreRRH: tp + 2 });

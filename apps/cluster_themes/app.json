@@ -1,8 +1,8 @@
 {
   "id": "cluster_themes",
   "title": "P3 Clusters",
-  "description": "Redraws the instrument cluster: E46 M3, E36 (a pure 328i cluster of the 90s), Sweep, Dyno (BMW-coloured readout tiles) or Ribbon (with holiday editions), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
-  "version": "0.19.5",
+  "description": "Redraws the instrument cluster: E46 M3, E36 (a pure 328i cluster of the 90s), Sweep, Dyno (BMW-coloured readout tiles), Ribbon (with holiday editions) or Apex (a needle dash with a G-meter), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
+  "version": "0.20.0",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
@@ -34,7 +34,8 @@
     "smart_temps.js",
     "hud_holiday.js",
     "garland.js",
-    "e36.js"
+    "e36.js",
+    "car_top.js"
   ],
   "signals": {
     "de.bmw.infotainment.vehicle.CDS": {
@@ -137,6 +138,10 @@
           "Ribbon"
         ],
         [
+          "apex",
+          "Apex"
+        ],
+        [
           "grid",
           "Calibration grid"
         ]
@@ -177,6 +182,10 @@
         [
           "ribbon",
           "Ribbon"
+        ],
+        [
+          "apex",
+          "Apex"
         ]
       ]
     },
@@ -209,6 +218,10 @@
         [
           "ribbon",
           "Ribbon"
+        ],
+        [
+          "apex",
+          "Apex"
         ]
       ]
     },
@@ -241,6 +254,10 @@
         [
           "ribbon",
           "Ribbon"
+        ],
+        [
+          "apex",
+          "Apex"
         ]
       ]
     },
@@ -338,6 +355,12 @@
       "default": true
     },
     {
+      "key": "shiftLight",
+      "label": "Shift light, the tach flashes red (Apex)",
+      "type": "bool",
+      "default": true
+    },
+    {
       "key": "units",
       "label": "Units",
       "type": "choice",
@@ -350,6 +373,46 @@
         [
           "metric",
           "km/h, °C, bar"
+        ]
+      ]
+    },
+    {
+      "key": "tempUnits",
+      "label": "Temperature",
+      "type": "choice",
+      "default": "speed",
+      "options": [
+        [
+          "speed",
+          "Match speed"
+        ],
+        [
+          "c",
+          "°C"
+        ],
+        [
+          "f",
+          "°F"
+        ]
+      ]
+    },
+    {
+      "key": "pressureUnits",
+      "label": "Pressure",
+      "type": "choice",
+      "default": "speed",
+      "options": [
+        [
+          "speed",
+          "Match speed"
+        ],
+        [
+          "bar",
+          "bar"
+        ],
+        [
+          "psi",
+          "psi"
         ]
       ]
     },
@@ -757,6 +820,39 @@
       ]
     },
     {
+      "key": "warnIntake",
+      "label": "Intake temperature warning",
+      "type": "number",
+      "unit": "°C",
+      "default": 0,
+      "steps": [
+        0,
+        45,
+        50,
+        55,
+        60,
+        65,
+        70,
+        75
+      ]
+    },
+    {
+      "key": "warnOilP",
+      "label": "Low oil pressure warning",
+      "type": "number",
+      "unit": "bar",
+      "default": 0,
+      "steps": [
+        0,
+        0.5,
+        0.7,
+        1.0,
+        1.3,
+        1.5,
+        2.0
+      ]
+    },
+    {
       "key": "gFlipLat",
       "label": "G-meter: swap left / right",
       "type": "bool",
@@ -837,6 +933,220 @@
         [
           "off",
           "Off"
+        ]
+      ]
+    },
+    {
+      "key": "backdrops",
+      "label": "Backgrounds (Apex; off: black)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "apexBackdrop",
+      "label": "Background (Apex)",
+      "type": "choice",
+      "default": "red",
+      "options": [
+        [
+          "red",
+          "Red glow at the sides"
+        ],
+        [
+          "carbon",
+          "Carbon, lit from the tach"
+        ]
+      ]
+    },
+    {
+      "key": "tachResponse",
+      "label": "Tach response (Apex)",
+      "type": "choice",
+      "default": "quick",
+      "options": [
+        [
+          "quick",
+          "Quick"
+        ],
+        [
+          "instant",
+          "Instant (may flicker at idle)"
+        ],
+        [
+          "smooth",
+          "Smooth (as BMW's)"
+        ]
+      ]
+    },
+    {
+      "key": "gearStyle",
+      "label": "Gear (Apex)",
+      "type": "choice",
+      "default": "outline",
+      "options": [
+        [
+          "outline",
+          "Outlined"
+        ],
+        [
+          "solid",
+          "Solid"
+        ]
+      ]
+    },
+    {
+      "key": "gearSource",
+      "label": "Gear display (Apex)",
+      "type": "choice",
+      "default": "car",
+      "options": [
+        [
+          "car",
+          "From the gearbox (BMW's signal)"
+        ],
+        [
+          "quick",
+          "Quick (worked out from speed and revs)"
+        ]
+      ]
+    },
+    {
+      "key": "tachSpeed",
+      "label": "Speed in the tach (Apex)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "readingsCheck",
+      "label": "Readings check (Apex: readings a second on the status line)",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "dialGlow",
+      "label": "Glow round the gear (Apex)",
+      "type": "choice",
+      "default": "off",
+      "options": [
+        [
+          "off",
+          "Off"
+        ],
+        [
+          "red",
+          "Red"
+        ],
+        [
+          "white",
+          "White"
+        ]
+      ]
+    },
+    {
+      "key": "leftStyle",
+      "label": "Left side (Apex)",
+      "type": "choice",
+      "default": "gauges",
+      "options": [
+        [
+          "bars",
+          "Bars"
+        ],
+        [
+          "gauges",
+          "Gauges"
+        ]
+      ]
+    },
+    {
+      "key": "leftTop",
+      "label": "Left gauge, top (Apex)",
+      "type": "choice",
+      "default": "boost",
+      "options": [
+        [
+          "boost",
+          "Boost"
+        ],
+        [
+          "oil",
+          "Oil temp"
+        ],
+        [
+          "intake",
+          "Intake temp"
+        ],
+        [
+          "oilP",
+          "Oil pressure"
+        ],
+        [
+          "coolant",
+          "Water temp"
+        ]
+      ]
+    },
+    {
+      "key": "leftBottom",
+      "label": "Left gauge, bottom (Apex)",
+      "type": "choice",
+      "default": "oil",
+      "options": [
+        [
+          "boost",
+          "Boost"
+        ],
+        [
+          "oil",
+          "Oil temp"
+        ],
+        [
+          "intake",
+          "Intake temp"
+        ],
+        [
+          "oilP",
+          "Oil pressure"
+        ],
+        [
+          "coolant",
+          "Water temp"
+        ]
+      ]
+    },
+    {
+      "key": "gaugeFill",
+      "label": "Gauge fill (Apex, left side Gauges)",
+      "type": "choice",
+      "default": "striped",
+      "options": [
+        [
+          "striped",
+          "Striped"
+        ],
+        [
+          "solid",
+          "Solid"
+        ]
+      ]
+    },
+    {
+      "key": "rightPanel",
+      "label": "Right side (Apex)",
+      "type": "choice",
+      "default": "performance",
+      "options": [
+        [
+          "performance",
+          "Performance (G-meter)"
+        ],
+        [
+          "tyres",
+          "Tire pressure"
+        ],
+        [
+          "power",
+          "Horsepower & torque"
         ]
       ]
     },
@@ -1124,7 +1434,7 @@
     },
     "_comment": "target panel: the whole 1920x720 instrument cluster, drawn over BMW's gauges. socketPath: cluster-render's documented default. utcOffsetMinutes: as in HUD Widgets (the clock box). tankLitres: the fuel gauge's full mark (the car sends litres, not the tank size; a G80 M3 holds 59, a G01 X3 65). engine: the peak crank torque (Nm) and power (kW) the {{torquePct}} and {{powerPct}} tokens count from (an M40i: 500 Nm, 285 kW / 382 hp).",
     "dme": {
-      "comment": "Boost from the engine unit (DME, ecu 18) over read-only UDS 0x22, only while the sport display sends no boost and a boost readout is shown. Absolute kPa, the outside air pressure (baro) is subtracted. Candidates tried in order, the first plausible one wins. From cauliflowermossgrape's car_vitals (MIT). Intake air temperature the same way (config.dme.intake, every 2 s, only while an intake readout shows); candidates from cruzen991/Cluster's signal table (MIT), unverified on this car.",
+      "comment": "Boost from the engine unit (DME, ecu 18) over read-only UDS 0x22, only while the sport display sends no boost and a boost readout is shown. Absolute kPa, the outside air pressure (baro) is subtracted. Candidates tried in order, the first plausible one wins. From cauliflowermossgrape's car_vitals (MIT). Intake air temperature the same way (config.dme.intake, every 2 s, only while an intake readout shows); candidates from cruzen991/Cluster's signal table (MIT), unverified on this car. Oil pressure the same way (config.dme.oilP, absolute kPa, the outside air pressure subtracted; twice a second while an oil pressure gauge shows, the Apex left gauges); identifiers from cauliflowermossgrape's Live Data (DME8FF_R), unverified on an S58.",
       "ecu": 18,
       "boost": [
         {
@@ -1212,6 +1522,29 @@
           "min": 0,
           "max": 100,
           "note": "OBD service 01 PID 0x52 ethanol fuel %, A*100/255. For a flex fuel kit (MHD's CAN analyzer sends it to the DME); whether the tune reports it on this PID is untested"
+        }
+      ],
+      "oilP": [
+        {
+          "did": "4436",
+          "bytes": 2,
+          "at": 0,
+          "factor": 0.1,
+          "offset": 0,
+          "min": 50,
+          "max": 1500,
+          "note": "BMW I_DRUCK_OEL_IST_ABS, oil pressure actual (absolute), hPa (DME8FF_R: B58 / B48 / B38; unverified on the S58)"
+        },
+        {
+          "did": "586F",
+          "bytes": 2,
+          "at": 0,
+          "signed": true,
+          "factor": 0.1,
+          "offset": 0,
+          "min": 50,
+          "max": 1500,
+          "note": "BMW OELDRUCK, oil pressure, hPa (absolute, as Live Data reads it)"
         }
       ]
     },
