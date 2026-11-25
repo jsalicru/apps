@@ -86,6 +86,17 @@ const THEMES = {
         bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [128, 135, 148, 255], head: [226, 228, 232, 255],
         ink: [12, 12, 14, 255], accent: [242, 31, 36, 255], well: [0, 0, 0, 255], faint: [96, 104, 118, 255],
     },
+    // Apex (layout apex.json, tools/gen_apex.py): a needle dash, red-glow side panels on carbon, orange-red labels.
+    apex: {
+        name: 'Apex',
+        fg: [242, 243, 246, 255], dim: [150, 152, 160, 255], track: [44, 44, 50, 255], arc: [242, 243, 246, 255],
+        glow: 0, stripe: false,
+        bar: { low: [242, 243, 246], mid: [242, 243, 246], high: [238, 24, 26], midAt: 'shift' },
+        rev: { from: [238, 24, 26], to: [238, 24, 26] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [128, 130, 138, 255], head: [226, 228, 232, 255],
+        ink: [12, 12, 14, 255], accent: [255, 92, 58, 255], well: [0, 0, 0, 255], faint: [96, 100, 110, 255],
+        hot: [238, 24, 26, 255],
+    },
     // Minimal (layout minimal.json): white on black, nothing but the speed, the gear and a fuel line.
     minimal: {
         name: 'Minimal',

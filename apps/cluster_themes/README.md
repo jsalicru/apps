@@ -8,7 +8,7 @@ Redraws the whole instrument cluster in a theme of your choice. Open **P3 Cluste
 
 ## Themes
 
-Five themes: **E46 M3**, **E36**, **Sweep**, **Dyno** and **Ribbon**. Every theme fills the cluster but leaves BMW's gear and drive programme display at the bottom right uncovered (x 1214 to 1525 of the bottom row on a G80 M3): when a theme covers any of it, BMW draws black boxes over the theme.
+Six themes: **E46 M3**, **E36**, **Sweep**, **Dyno**, **Ribbon** and **Apex**. Every theme fills the cluster but leaves BMW's gear and drive programme display at the bottom right uncovered (x 1214 to 1525 of the bottom row on a G80 M3): when a theme covers any of it, BMW draws black boxes over the theme.
 
 ### E46 M3
 
@@ -61,6 +61,21 @@ Calm and premium. One ribbon of light runs along under the top edge of the clust
 <p align="center"><img src="../../docs/images/p3-ribbon.png" width="900" alt="Ribbon theme"></p>
 <p align="center"><img src="../../docs/images/cluster-ribbon-christmas.png" width="900" alt="Ribbon theme, Christmas edition"></p>
 
+### Apex
+
+A needle dash in a mid-engine supercar style, imported from jsbaughman/apps (Cluster Themes 0.25.8).
+
+- **Middle:** a round rev counter, 0 to 8, its band lit white up to the revs over amber (from 6500 rpm) and red (from 7000 rpm) zones, with a red needle. The gear sits in the middle (outlined or solid, **Gear (Apex)**), the speed in the open lower right quarter (**Speed in the tach (Apex)**). With **Shift light (Apex)** on, the tach flashes red at the shift point.
+- **Left:** two readouts, boost and oil temperature by default (**Left gauge, top / bottom (Apex)**: boost, oil temp, intake temp, oil pressure or water temp), as hatched gauges with a scale or as thin bars (**Left side (Apex)**, **Gauge fill (Apex)**). Oil pressure is read from the engine unit and is not yet checked on an S58.
+- **Right:** a G-meter, the tire pressures and temperatures round a car seen from above, or horsepower and torque (**Right side (Apex)**).
+- **Bottom:** coolant and fuel, then the theme's own clock, range and outside temperature in the strip. BMW's gear and drive programme area (x 1214 to 1525) is left uncovered, as in every theme here.
+- **Background:** red glow at the sides or carbon lit from the tach (**Background (Apex)**); **Backgrounds (Apex)** off draws plain black. **Glow round the gear (Apex)**: off, red or white.
+- **With the driver camera:** **Leave room for the driver camera** draws a smaller tach lower down.
+- With **Show Waze map inside the theme** on, the Waze map shows as a round window inside the tach.
+- Its settings show on the Settings tab only while Apex is on the cluster. Not yet tested on this car.
+
+<p align="center"><img src="../../docs/images/p3-apex.png" width="900" alt="Apex theme"></p>
+
 E46 M3, E36, Dyno and Ribbon have no map window; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
 
 ## Off and drive modes
@@ -74,7 +89,7 @@ E46 M3, E36, Dyno and Ribbon have no map window; with "Show Waze map inside the 
 
 - **Theme**, and one per drive mode.
 - **Readouts:** pick which car sensor each Dyno tile shows (speed, rpm, boost, temperatures, tyres, fuel, g, power and more). Plug-in hybrids can also show **Hybrid battery**, the high-voltage battery's charge in % (not yet checked on a hybrid).
-- **Show Waze map inside the theme:** for themes with a map window of their own (none of the current five yet; Sweep's window shows BMW's map and Waze in their usual place). While it is on, Waze's map on the HUD is off. Needs robertnisipeanu's Waze on Cluster.
+- **Show Waze map inside the theme:** for themes with a map window of their own (Apex, a round window in the tach; Sweep's window shows BMW's map and Waze in their usual place). While it is on, Waze's map on the HUD is off. Needs robertnisipeanu's Waze on Cluster.
 - **Badge:** the model name, like "BMW X3 M40i", as text in the theme's font . Off by default.
 - **Warnings:** oil, coolant and boost limits. A readout over its limit flashes red (oil 130°C and coolant 115°C by default, boost off).
 - **Test the shift lights:** runs the rpm up to the shift point for about 4 seconds while the car stands.
@@ -82,7 +97,7 @@ E46 M3, E36, Dyno and Ribbon have no map window; with "Show Waze map inside the 
 - **Shift lights:** Count in (the default) fills the lights over about the last second before the shift point and flashes early by your reaction time; Fixed rpm band works as before. Ported from Redline (MIT).
 - **Temperatures only when they matter** (off by default): oil and coolant turn blue while cold, yellow while warming, red over their limit; the outside temperature turns blue at 3°C (37°F) and under.
 - **Night colours:** after sunset (Auto, the default) or all the time (Always), the theme's whites and greys dim to 60%; E46 M3 and E36 switch to their own night lighting instead. Off keeps the day colours.
-- **Units:** mph, °F, psi or km/h, °C, bar.
+- **Units:** mph, °F, psi or km/h, °C, bar. **Temperature** and **Pressure** can differ from the speed's units (Apex; both start on Match speed).
 - **Clock:** 12-hour or 24-hour.
 - **Time zone (clock):** the head unit's clock runs on UTC, so pick your zone once. Named zones (US Eastern, Central, Mountain, Pacific, Alaska, Hawaii, Arizona, Canada Atlantic, Mexico, UK / Ireland / Portugal, Central Europe, Eastern Europe) change for daylight saving by themselves; for anywhere else, pick your offset from UTC. Night colours uses the same zone to work out sunset.
 - **Fuel tank size:** the fuel gauge asks the engine unit for the level in %. Where the engine unit doesn't answer, it works it out from the litres the car reports and this size (65 L on an X3, 59 L on a 3 Series).
