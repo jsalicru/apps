@@ -128,7 +128,8 @@ ZONES = [
     [2, rpm_ang(4.0), rpm_ang(7.0), LAMP_R[0], LAMP_R[1], 'yellow', 6],
     [2, rpm_ang(7.0), rpm_ang(7.5), LAMP_R[0], LAMP_R[1], 'orange', 1],
     [2, rpm_ang(7.5), rpm_ang(9.0), LAMP_R[0], LAMP_R[1], 'red', 3],
-    [0, -1.15, 1.15, 150, 172, 'mark'],                       # the fuel gauge's 1/2 dash (the shader takes 10 tick groups)
+    [0, -0.95, 0.95, 160, 196, 'mark'],                       # the fuel gauge's 1/2 line, as long as the end marks (the
+                                                              # shader takes 10 tick groups)
     [3, -42, -31, 168, 200, 'blue'],
     [3, 30, 41, 168, 200, 'red'],
 ]
@@ -148,7 +149,11 @@ FIGURES = ([('fs_%d' % v, str(v), 'e4_big') + MPH_AT[v] for v in range(0, 181, 2
 TEXTS = [
     ('km/h', 'e4_sm', 665.0, 450.5), ('MPH', 'e4_mph', 662.0, 555.5),
     ('1/min', 'e4_lab', 1315.0, 218.0), ('x1000', 'e4_lab', 1314.0, 250.5),
-    ('0', 'e4_gl', 72.0, 381.0), ('1/2', 'e4_gl', 192.5, 364.0), ('1/1', 'e4_gl', 303.5, 381.0),   # 0, 1/1 above their marks' outer ends
+    ('0', 'e4_gl', 72.0, 381.0),     # above its mark's outer end
+    # 1/2 and 1/1 printed as fractions, as the real car's (photo, Nov 24 2026): a small raised numerator, a slash, a small
+    # lowered denominator; 1/2 high over its line, 1/1 above its mark's outer end
+    ('1', 'e4_fr', 185.0, 335.0), ('/', 'e4_gl', 192.5, 340.0), ('2', 'e4_fr', 200.5, 346.0),
+    ('1', 'e4_fr', 297.0, 376.0), ('/', 'e4_gl', 304.5, 381.0), ('1', 'e4_fr', 312.0, 387.0),
     ('120', 'e4_oil', 1205.5, 509.5), ('210', 'e4_oil', 1320.5, 483.5), ('300', 'e4_oil', 1432.5, 514.0),
     ('°F', 'e4_degf', 1402.0, 579.0),           # level with the oil can (its ink centre)
 ]
