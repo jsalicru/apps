@@ -193,9 +193,10 @@ def layout():
     dials, needles = [], []
     spec = [  # (dial, signal, pivot, needle length, width, hub, tail, map, rest)
         (FUEL, 'fuel', FUEL['pivot'], 165, 11, 42, 0, [(0, -40), (1, 40)], -46),
-        # the big needles reach the ticks' inner ends, 16 wide at the hub (as the real car's, photo Nov 24 2026); the hubs' tab (tail < 0: its size)
-        (SPD, 'speed', SPD['pivot'], 250, 16, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
-        (TACH, 'rpm', TACH['pivot'], 250, 16, 46, -21, [(0, rpm_ang(0)), (9000, rpm_ang(9)), (9600, rpm_ang(9) + 4)], rpm_ang(0) - 3),
+        # the big needles reach well into the ticks (272 of their 250 .. 281), 16 wide at the hub (as the real car's, photos
+        # Nov 24 2026); the hubs' tab (tail < 0: its size)
+        (SPD, 'speed', SPD['pivot'], 272, 16, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
+        (TACH, 'rpm', TACH['pivot'], 272, 16, 46, -21, [(0, rpm_ang(0)), (9000, rpm_ang(9)), (9600, rpm_ang(9) + 4)], rpm_ang(0) - 3),
         (COOL, 'coolant', COOL['pivot'], 165, 11, 42, 0,
          COOL_MAP, -47),
     ]
