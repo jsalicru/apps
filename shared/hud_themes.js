@@ -308,7 +308,7 @@ THEMES.e46m3 = Object.assign({}, THEMES.e36, {
     name: 'E46 M3',
     fg: [243, 196, 157, 255], dim: [243, 196, 157, 255], arc: [243, 196, 157, 255], head: [243, 196, 157, 255],
     bezel: [6, 6, 6, 255], face: [24, 24, 24, 255], dial: [58, 56, 55, 255], mark: [243, 196, 157, 255],
-    needle: [250, 92, 10, 255], mneedle: [250, 92, 10, 255], hub: [20, 20, 20, 255],
+    needle: [228, 80, 48, 255], mneedle: [228, 80, 48, 255], hub: [20, 20, 20, 255],   // matte orange-red (photo)
     red: [236, 18, 14, 255], blue: [36, 108, 232, 255], orange: [255, 140, 0, 255],
     well: [42, 11, 2, 255], lcd: [255, 128, 12, 255], strip: [0, 0, 0, 255],
     night: {     // after sunset: halfway between two night photos of real E46 M3s (design/photos/e46m3-night-car.webp,

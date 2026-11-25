@@ -7,7 +7,7 @@ Each printed font is FITTED to the reference render (design/e46m3-reference.png)
 height and width as measured off the render (render px, tools/gen_e46.py's scale S carries them to the cluster); the
 size is chosen so the sample's ink is that tall, then the letters' spacing so it is that wide. Printed figures and
 labels get proportional spacing (each glyph's advance its own ink plus the fitted gap), as a printed dial has; the LCD
-keeps tabular digits (they change). Barlow Semi Condensed for the print, DSEG7 for the LCD. DSEG7 has no '+', which the
+keeps tabular digits (they change). Roboto Condensed Bold for the print (as Univers 67), DSEG7 for the LCD. DSEG7 has no '+', which the
 outside temperature needs ({{ambient}}: "+72"): it is made from the font's own '-' and the same bar stood upright.
 Uses tools/bake_fonts.py's bake() (the atlas format every font in apps/cluster_themes/hud/fonts/ has).
 """
@@ -21,8 +21,9 @@ sys.path.insert(0, HERE)
 import bake_fonts as bf  # noqa: E402
 
 OUT = os.path.join(HERE, '..', 'apps', 'cluster_themes', 'hud', 'fonts')
-SEMI = 'BarlowSemiCondensed-Medium.ttf'
-SEMIBOLD = 'BarlowSemiCondensed-SemiBold.ttf'
+# the print in Roboto Condensed Bold (SIL OFL), standing in for the real cluster's Univers 67 Bold Condensed (a licensed
+# font that can't ship here); tools/fonts-src/RobotoCondensed-Bold.ttf is the variable Roboto at wdth 75, wght 700
+SEMI = SEMIBOLD = 'RobotoCondensed-Bold.ttf'
 D, U, L = bf.DIGITS, bf.UPPER, bf.LOWER
 S = 0.943          # render px -> cluster px (tools/gen_e46.py S)
 
