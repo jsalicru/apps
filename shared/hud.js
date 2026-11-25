@@ -365,7 +365,20 @@ const PATH_KEEP = 0.06;          // s
 const PATH_AHEAD = 0.07;         // s: then on to where the needle will be by then
 const PATH_TAIL = 0.2;           // s: the E46's paths then on to the needle's target (a late tick doesn't freeze it)
 function mono() { const t = process.hrtime(); return t[0] * 1000 + t[1] / 1e6; }
+// "smoothRevs" (setting, P3 Clusters): these layers' revs go as a path in the renderer's clock (shaders.js REV_PATH), like
+// the E36's needles, so the Apex band and needle, Sweep's sweep and Ribbon's line move on every display frame. The layer
+// is then made with "time" 1, which the renderer redraws every frame: try it on the car, it costs the GPU more
+const REV_PATH_TYPES = { cdash: true, sweepdash: true, ribbon: true };
+const REV_W = 30;                // 1/s: the revs' follower (e36.Needle), a steady sweep trails by 2 / 30 s (67 ms)
 const TEXT_MS = 200;             // text re-draws at most 5 times a second (what BMW's own readouts do)
+const LABEL_MS = 2000;           // a text that only changes with the settings: looked at every 2 s (labelRate)
+/** LABEL_MS for a text widget that can't change with the car's data (no tokens but {{u:...}} units, nothing that colours or
+ *  hides it by a reading), else 0 (the default TEXT_MS). A settings change rebuilds the layout, so it shows at once. */
+function labelRate(w) {
+    if (w.near || w.hotWhen || w.coldWhen || w.colorBy || w.showWhen || w.navHide || w.slot || w.lowWhen || w.flashOf) return 0;
+    const t = String(w.text || ''), toks = t.split('{{').slice(1).map((k) => k.split('}}')[0]);
+    return toks.every((k) => k.indexOf('u:') === 0) ? LABEL_MS : 0;
+}
 const TARGET_SIZES = { hud: [800, 480], panel: [1920, 720] };
 const MODE_KEY = { comfort: 'inComfort', sport: 'inSport', eco: 'inEco' };
 const TYRE_CORNERS = ['FL', 'FR', 'RL', 'RR'];
@@ -394,7 +407,7 @@ function cachedText(w, h, s, o) {
 }
 // settings that always rebuild (they pick another layout, change the theme's colours or what is placed where); every
 // other setting first tries _softSwitch, which swaps text in the layers already on the cluster
-const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont'];
+const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont', 'smoothRevs'];
 // (0.17.4: "Leave BMW's bottom strip clear" is gone. Since 0.17.0 every cluster theme ends above BMW's strip anyway;
 // its squeeze to 662 / 720 only lifted the theme off the bottoms of BMW's own gauges, car photo Nov 14 2026.)
 // settings that only change what a text shows (the next tick paints it), no rebuild
@@ -826,6 +839,35 @@ class HudApp {
     /** Whether `kind` ('temp', 'pressure', else speed and the rest) shows in US units (sensors.imperial). */
     _us(kind) { return sensors.imperial((k) => this.setting(k), kind); }
 
+    /** Whether this widget's revs go on the renderer's clock ("smoothRevs", REV_PATH_TYPES). */
+    _revTimed(w) { return !!REV_PATH_TYPES[w.type] && this.setting('smoothRevs') === true; }
+
+    /**
+     * The revs (v, 0..1 of the widget's scale, what its tick would send) as a path in the renderer's clock (u_revT,
+     * u_revV, u_revOn; shaders.js REV_PATH), the way the E46's rev needle goes: carried on between the car's samples
+     * (e36.Extrap), followed with inertia (e36.Needle), planned on to where it is heading (e36.nextPathTo). Sends only
+     * when the path's values change. Does nothing for a layer without the renderer's clock.
+     */
+    _revPathSend(x, v, now, force) {
+        if (!this._revTimed(x.w)) return;
+        const P = x.revP || (x.revP = { X: new e36.Extrap(), N: new e36.Needle(REV_W), path: null });
+        const tm = mono();
+        if (!isNum(x.t0)) x.t0 = tm;
+        const ts = (tm - x.t0) / 1000;
+        const to = isNum(v) ? P.X.at(v, now) : 0;
+        P.N.step(to, now);
+        const fin = isNum(v) ? Math.min(1, Math.max(0, P.X.peek(now + (PATH_KEEP + PATH_AHEAD + PATH_TAIL) * 1000))) : 0;
+        const ahead = Math.min(1, Math.max(0, P.N.ahead(to, (PATH_KEEP + PATH_AHEAD) * 1000)));
+        const path = e36.nextPathTo(P.path, ts, PATH_KEEP, PATH_AHEAD, ahead, fin, PATH_TAIL);
+        const key = path.a.map((a) => a.toFixed(4)).join(',');
+        if (!force && key === P.key) return;
+        P.key = key;
+        P.path = path;
+        x.c.uniform(x.ref, 'u_revT', [path.t[0] % 3600, path.t[1], path.t[2], path.t[3]].map((t) => Math.round(t * 1e4) / 1e4));
+        x.c.uniform(x.ref, 'u_revV', path.a.map((a) => Math.round(Math.min(1, Math.max(0, a)) * 1e4) / 1e4));
+        if (!P.on) { P.on = true; x.c.uniform(x.ref, 'u_revOn', [1]); }
+    }
+
     /**
      * A layout's other font set (layout "fontSets": { setting, sets: { value: { font: [other font, baseline shift px] } } }):
      * while that setting has that value, a text widget in one of those fonts is drawn in the other, moved down by the shift
@@ -1008,7 +1050,7 @@ class HudApp {
             const name = () => { const w = this._widgetOf(ci, ref); return 'layer ' + ref + tag + (w ? ' (' + w + ')' : ''); };
             if (state === 'error' || (state === 'waiting' && !same)) this.log.warn(name() + ' ' + state + (reason ? ': ' + reason : ''));
             // a layer with u_time: its clock starts (again) as it is attached, about when it shows: paths start over
-            if (state === 'shown' && !same) this.widgets.forEach((x) => { if (x.ci === ci && x.ref === ref && x.w.type === 'e36needles') { x.t0 = mono(); x.path = null; } });
+            if (state === 'shown' && !same) this.widgets.forEach((x) => { if (x.ci === ci && x.ref === ref && (x.w.type === 'e36needles' || x.revP)) { x.t0 = mono(); x.path = null; if (x.revP) x.revP.path = null; } });
             if (state === 'stalled' && !same) {
                 // normal for a moment after a rebuild (pixels on their way); a problem only if it lasts
                 clearTimeout(this.stallTimers.get(key));
@@ -2249,10 +2291,10 @@ class HudApp {
         }
         pairs.forEach(([x, w]) => {
             this.widgets.delete(x.w.id);
-            x.w = w; x.last = null; x.lastCheck = 0; x.lastPaint = 0; x.blank = false;
+            x.w = w; x.last = null; x.lastCheck = 0; x.lastPaint = 0; x.blank = false; x.rate = undefined;
             this.widgets.set(w.id, x);
         });
-        free.forEach((x) => { if (!x.blank) { x.w = Object.assign({}, x.w, { text: '', toggle: undefined, rate: 2000 }); x.blank = true; x.last = null; x.lastCheck = 0; } });
+        free.forEach((x) => { if (!x.blank) { x.w = Object.assign({}, x.w, { text: '', toggle: undefined, rate: 2000 }); x.blank = true; x.last = null; x.lastCheck = 0; x.rate = undefined; } });
         // the effects again (their uniforms may follow the setting), every text repainted on the next tick
         this.widgets.forEach((x) => {
             if (!x.sheet && !IMAGE_TYPES[x.w.type]) {
@@ -2538,7 +2580,8 @@ class HudApp {
             const base = { target: this.target, klass: w.class || 'content', z: w.z || 0, x: w.x, y: w.y, w: w.w, h: w.h };
             if (IMAGE_TYPES[w.type]) ref = c.image(Object.assign({ iw: w.w, ih: w.h }, w.type === 'nav' ? this._navImage(w) : null, base));
             // the E36's needles read the renderer's clock (u_time): they are sent as paths in it
-            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] }, w.type === 'e36needles' ? { time: true } : null, base));
+            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] },
+                w.type === 'e36needles' || this._revTimed(w) ? { time: true } : null, base));
             if (!ref) { this.log.warn('widget "' + w.id + '": layer refused'); return; }
             this.placed.push({ c, ref, x: w.x, y: w.y, w: w.w, h: w.h });
         }
@@ -3311,8 +3354,12 @@ class HudApp {
             // with a "rate": looked at once per rate, on its own clock, painted only when it changed (a slow text that never
             // changes is no longer resolved on every 50 ms tick, 0.21.6). Without one: as before, painted at most every
             // TEXT_MS, a change shown as soon as that has passed
+            // a text with no "rate" that can only change with the settings (a fixed label, units: {{u:...}}), and nothing
+            // that colours or hides it as the car's data changes, is looked at every LABEL_MS (0.22.0): most texts of
+            // every theme, no longer resolved 20 times a second
+            if (x.rate === undefined) x.rate = w.rate || labelRate(w);
             if (!force) {
-                if (w.rate) { if (now - (x.lastCheck || 0) < w.rate) return; x.lastCheck = now; }
+                if (x.rate) { if (now - (x.lastCheck || 0) < x.rate) return; x.lastCheck = now; }
                 else if (now - x.lastPaint < TEXT_MS) return;
             }
             let s = (w.navHide && this.navShown) || smartTemps.hidden(this, w) || !this._shownNow(w) ? '' : this._resolve(w.text);   // nav turn showing / "showWhen"
@@ -3442,6 +3489,7 @@ class HudApp {
             const rpm = this._raw('rpm');
             const v = isNum(rpm) ? Math.min(1, Math.max(0, rpm / this._barMax())) : 0;
             const q = Math.round(v * 400) / 400;                    // 400 steps along the line: smooth, few messages
+            this._revPathSend(x, v, now, force);   // "smoothRevs": the line on the renderer's clock
             const key = q + (this.flash ? 'f' : '');
             if (!force && key === x.last) return;
             x.last = key;
@@ -3507,6 +3555,7 @@ class HudApp {
             const lvl = (sig, r) => { const v = this._raw(sig); return isNum(v) ? Math.round(Math.min(1, Math.max(0, frac(v, r))) * 200) / 200 : 0; };
             const vals = [isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (w.max || 8000))) * 800) / 800 : 0,
                 lvl(w.signalA, w.rangeA), lvl(sigB, rangeB), w.barC ? lvl(w.signalC, w.rangeC) : 0, w.barD ? lvl(w.signalD, w.rangeD) : 0];
+            this._revPathSend(x, isNum(rpm) ? Math.min(1, Math.max(0, rpm / (w.max || 8000))) : 0, now, force);   // "smoothRevs"
             // the tab opens only as far as BMW's speed needs: a little early, BMW's reading runs above the signal
             const sp = this._raw('speed');
             const shown = isNum(sp) ? (this.setting('units') === 'us' ? sp * 0.621371 : sp) : 0;
@@ -3730,6 +3779,7 @@ class HudApp {
                 sh = [0, this.setting('shiftLight') !== false && isNum(rpm) && rpm >= shiftAt && Math.floor(now / 100) % 2 === 0 ? 1 : 0];
                 dyn = 1;
             }
+            this._revPathSend(x, rv, now, force);   // "smoothRevs": the band and needle on the renderer's clock
             const key = [rv].concat(bv, ts, sh, zone, wave).join('|');
             if (!force && key === x.last) return;
             x.last = key;

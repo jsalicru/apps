@@ -2,7 +2,7 @@
   "id": "cluster_themes",
   "title": "P3 Clusters",
   "description": "Redraws the instrument cluster: E46 M3, E36 (a 90s E36 M3 cluster), Sweep, Dyno (BMW-coloured readout tiles), Ribbon (with holiday editions) or Apex (a needle dash with a G-meter), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
-  "version": "0.21.6",
+  "version": "0.22.0",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
@@ -935,6 +935,12 @@
           "Off"
         ]
       ]
+    },
+    {
+      "key": "smoothRevs",
+      "label": "Smoother revs (Apex, Sweep, Ribbon; test: the cluster's GPU works harder)",
+      "type": "bool",
+      "default": false
     },
     {
       "key": "backdrops",

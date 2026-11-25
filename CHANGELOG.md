@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 24 2026
 
+- **P3 Clusters 0.22.0 / HUD Widgets 0.14.12:** frame-rate work on every theme. **Smoother revs** (a new setting, off by default; Apex, Sweep, Ribbon): the revs go to the cluster as a path in its own clock, like the E36 and E46 needles, so the tach band and needle, Sweep's sweep and Ribbon's line move on every display frame instead of 20 times a second; the GPU then redraws that layer every frame, so try it on the car. The E36 and E46 needles' layer (drawn every frame) now skips all but the pixels near a needle or hub; Apex's dial skips every pixel outside it. Labels that only change with the settings are looked at every 2 s instead of 20 times a second, on every theme (HUD Widgets too). Apex's boost, hp and torque readouts redraw 10 times a second instead of 20. Nothing should look different.
 - **P3 Clusters 0.21.6 (E46 M3):** long marks at the fuel gauge's 0 and 1/1, and a mark past each end of the coolant gauge's blue and red blocks, as on the real car.
 - **P3 Clusters 0.21.5 (E46 M3):** the oil temperature gauge as the real car's: long marks at 120 and 300 (now 70 degrees either side), dots at 165 and 255, a short line at 210, the figures inside the marks, a thermometer beside the oil can, °F level with the hub, and a shorter, slimmer needle.
 - **P3 Clusters 0.21.4 (E46 M3):** the needles as slim as the E36's, tapering the same way (the speedometer and rev needles were 16 wide at the hub; the fuel and coolant ones slimmer too).

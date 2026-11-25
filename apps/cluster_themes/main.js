@@ -70,7 +70,7 @@ mgu.run({
                 gearStyle: ['apex'], gearSource: ['apex'], tachSpeed: ['apex'], readingsCheck: ['apex'], dialGlow: ['apex'], leftStyle: ['apex'],
                 leftTop: ['apex'], leftBottom: ['apex'], gaugeFill: ['apex'], rightPanel: ['apex'],
             },
-            settings: ['units', 'tempUnits', 'pressureUnits', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'gearGap', 'sweepColor', 'revScale', 'sweepCenter', 'intakeBar', 'showEthanol', 'shiftFlash', 'shiftLight', 'nightDim', 'backdrops', 'apexBackdrop', 'apexFont', 'tachStyle', 'apexZones', 'tachResponse', 'gearStyle', 'gearSource', 'tachSpeed', 'readingsCheck', 'dialGlow', 'leftStyle', 'leftTop', 'leftBottom', 'gaugeFill', 'rightPanel', 'cameraNotch', 'holiday', 'demo'],
+            settings: ['units', 'tempUnits', 'pressureUnits', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'gearGap', 'sweepColor', 'revScale', 'sweepCenter', 'intakeBar', 'showEthanol', 'shiftFlash', 'shiftLight', 'nightDim', 'smoothRevs', 'backdrops', 'apexBackdrop', 'apexFont', 'tachStyle', 'apexZones', 'tachResponse', 'gearStyle', 'gearSource', 'tachSpeed', 'readingsCheck', 'dialGlow', 'leftStyle', 'leftTop', 'leftBottom', 'gaugeFill', 'rightPanel', 'cameraNotch', 'holiday', 'demo'],
             // the drive mode check's candidates this app's app.json listens to (issue #8; shared/hud.js modeDiagLines)
             modeCheck: ['HMI', 'MDrive', 'Engine', 'Sport2'],
         }).start();
