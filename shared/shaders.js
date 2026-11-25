@@ -2094,7 +2094,9 @@ uniform vec4 u_tach;       // the rev counter's centre x, y, radius, flat cut y 
 uniform float u_light;     // daylight: 1 by day, 0 at night (softer shadows)
 uniform float u_econH;     // the economy (oil) needle's hub radius, cut off with the window (0 = none: the E36's)
 uniform float u_e46n;      // 1: the E46 M3's look (gen_e46.py): glowing needles with a bright core, hubs a black rim round a
-                           // domed cap, the big dials' hubs with their square tab (u_piv.w < 0: its size); 0: the E36's
+                           // domed cap, the big dials' hubs with their square tab (u_piv.w < 0: its size); 0: the E36's;
+                           // 2: the same hubs, the needles flat matte paint by day as the real car's (photo, Nov 24 2026),
+                           // a little less tapered, glowing only at night (u_light 0)
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 vec2 dir(float a) { float r = radians(a); return vec2(sin(r), -cos(r)); }
@@ -2117,7 +2119,7 @@ vec3 dome(vec3 h, vec2 d, float r) { return h * (1.0 + 1.1 * clamp(0.6 - length(
 // a dial's needle at d from its pivot, pointing u: the distances to its counterweight, its bar (tapered) and its hub
 vec3 parts(vec2 d, vec2 u, vec4 V, vec2 N) {
     float t = dot(d, u), side = abs(d.x * u.y - d.y * u.x);
-    float wt = mix(N.y, N.y * 0.55, clamp(t / N.x, 0.0, 1.0)) * 0.5;
+    float wt = mix(N.y, N.y * (u_e46n > 1.5 ? 0.68 : 0.55), clamp(t / N.x, 0.0, 1.0)) * 0.5;
     return vec3(max(side - N.y * 1.1, max(t, -t - max(V.w, 0.0))), max(side - wt, max(-t, t - N.x)), length(d) - V.z);
 }
 
@@ -2137,8 +2139,9 @@ void main() {
         float t = dot(ed, u), side = abs(ed.x * u.y - ed.y * u.x);
         float nd = max(side - u_econB.y * 0.5, max(-t, t - u_econ.z));
         float n = cov(nd) * inWin;
-        vec3 nc = u_e46n > 0.5 ? glowc(u_col[0], clamp(side / (u_econB.y * 0.5), 0.0, 1.0)) : u_col[0];
-        if (u_e46n > 0.5) { float g = 0.4 * exp(-max(nd, 0.0) / 4.0) * inWin; c = mix(c, u_col[0], g * (1.0 - al)); al = max(al, g); }
+        bool glowE = u_e46n > 0.5 && (u_e46n < 1.5 || u_light < 0.5);
+        vec3 nc = glowE ? glowc(u_col[0], clamp(side / (u_econB.y * 0.5), 0.0, 1.0)) : u_col[0];
+        if (glowE) { float g = 0.4 * exp(-max(nd, 0.0) / 4.0) * inWin; c = mix(c, u_col[0], g * (1.0 - al)); al = max(al, g); }
         c = mix(c, nc, n); al = max(al, n);
         if (u_econH > 0.0) {
             float under = p.y - u_tach.w + 1.0;
@@ -2184,11 +2187,16 @@ void main() {
                 q.x = max(abs(dot(tc, u)), abs(tc.x * u.y - tc.y * u.x)) + V.w * 0.5;
             }
             float t = dot(d, u), side = abs(d.x * u.y - d.y * u.x);
-            float wt = mix(N.y, N.y * 0.55, clamp(t / N.x, 0.0, 1.0)) * 0.5;
-            ndc = glowc(u_col[0], clamp(side / max(wt, 0.5), 0.0, 1.0));
-            float g = 0.45 * exp(-max(q.y, 0.0) / 5.0) * (1.0 - cov(q.y));
-            o = g + al * (1.0 - g);
-            c = (u_col[0] * g + c * al * (1.0 - g)) / max(o, 0.0001); al = o;
+            float wt = mix(N.y, N.y * (u_e46n > 1.5 ? 0.68 : 0.55), clamp(t / N.x, 0.0, 1.0)) * 0.5;
+            if (u_e46n > 1.5 && u_light > 0.5) {
+                // flat matte paint: one colour, a touch darker along the very edges
+                ndc = mix(u_col[0], u_col[0] * 0.82, smoothstep(0.6, 1.0, side / max(wt, 0.5)));
+            } else {
+                ndc = glowc(u_col[0], clamp(side / max(wt, 0.5), 0.0, 1.0));
+                float g = 0.45 * exp(-max(q.y, 0.0) / 5.0) * (1.0 - cov(q.y));
+                o = g + al * (1.0 - g);
+                c = (u_col[0] * g + c * al * (1.0 - g)) / max(o, 0.0001); al = o;
+            }
         }
         for (int j = 0; j < 4; j++) {
             m = cov(j == 0 ? q.x : j == 1 ? q.y : j == 2 ? (e46 ? q.z : q.z - 1.5) : (e46 ? q.z + V.z * 0.17 : q.z));

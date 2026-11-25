@@ -2684,7 +2684,7 @@ class HudApp {
             c.uniform(ref, 'u_tach', T ? [T[0], T[1], T[2], T[3] || 1e5] : [0, 0, 0, 0]);
             c.uniform(ref, 'u_light', [this.nightOn ? 0 : 1]);     // softer needle shadows at night
             c.uniform(ref, 'u_econH', [(E && E.hub) || 0]);
-            c.uniform(ref, 'u_e46n', [w.look46 ? 1 : 0]);
+            c.uniform(ref, 'u_e46n', [w.look46 === true ? 1 : (w.look46 || 0)]);
             x.econ = new e36.Smooth(1000);
         } else if (w.type === 'vdash') {
             // the bracket lines (target px): [x0, y0, x1, y1, width, brightness 0..1]

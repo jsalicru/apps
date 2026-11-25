@@ -193,9 +193,9 @@ def layout():
     dials, needles = [], []
     spec = [  # (dial, signal, pivot, needle length, width, hub, tail, map, rest)
         (FUEL, 'fuel', FUEL['pivot'], 165, 11, 42, 0, [(0, -40), (1, 40)], -46),
-        # the big needles reach the ticks' inner ends, 13 wide at the hub; the hubs' tab (tail < 0: its size)
-        (SPD, 'speed', SPD['pivot'], 250, 13, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
-        (TACH, 'rpm', TACH['pivot'], 250, 13, 46, -21, [(0, rpm_ang(0)), (9000, rpm_ang(9)), (9600, rpm_ang(9) + 4)], rpm_ang(0) - 3),
+        # the big needles reach the ticks' inner ends, 16 wide at the hub (as the real car's, photo Nov 24 2026); the hubs' tab (tail < 0: its size)
+        (SPD, 'speed', SPD['pivot'], 250, 16, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
+        (TACH, 'rpm', TACH['pivot'], 250, 16, 46, -21, [(0, rpm_ang(0)), (9000, rpm_ang(9)), (9600, rpm_ang(9) + 4)], rpm_ang(0) - 3),
         (COOL, 'coolant', COOL['pivot'], 165, 11, 42, 0,
          COOL_MAP, -47),
     ]
@@ -249,7 +249,7 @@ def layout():
     nx1 = min(W, math.ceil(max(p[0] + k for p, k in reach)))
     ny0 = max(0, math.floor(min(p[1] - k for p, k in reach)))
     ndl = {'id': 'needles', 'type': 'e36needles', 'class': 'content', 'z': 6, 'x': nx0, 'y': ny0, 'w': nx1 - nx0,
-           'h': TOP - ny0, 'mph': True, 'dials': needles, 'look46': True,
+           'h': TOP - ny0, 'mph': True, 'dials': needles, 'look46': 2,
            'econ': {'signal': 'oil', 'pivot': [px, py], 'top': top, 'len': L(OIL_LEN), 'width': L(10), 'cham': cham,
                     'tach': [cx, cy, r, cut], 'map': emap, 'rest': emap[0][1], 'hub': L(OIL_HUB)}}
 
