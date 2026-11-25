@@ -204,14 +204,16 @@ def rev_face(redline):
     at = lambda v: lerp_ang(a, v)
     halves = 1
     if top == 8:
-        # the M3 face as the real E36 M3 prints it (photo, Nov 24 2026): the red sits on the ticks' own ring (the
-        # thousands' outer radius and length), three thin stripes from the redline, a gap, then a solid block that stops
-        # short of the white 8 mark; no half-thousand mark under the red. Over the redline-to-8000 span: stripes on its
-        # first 26 %, the block from 34 % to 92 %, clear of the 8 mark
+        # the M3 face as the real E36 M3 prints it (photo, Nov 24 2026), placed as Jose asked: the red on the ticks' own
+        # ring (the thousands' outer radius and length); three thin dashes centred on the 7, the middle one the white 7
+        # mark itself, red either side of it; then solid red from the redline, stopping short of the white 8 mark. No
+        # half-thousand mark under the red
         span = 1000 * top - redline
         r0, r1 = REV_TICK[0] - REV_TICK[1], REV_TICK[0]
-        zones = [[2, at(redline + 0.34 * span), at(redline + 0.92 * span), r0, r1, 'red'],
-                 [2, at(redline), at(redline + 0.26 * span), r0, r1, 'red', 3]]
+        step = 70                      # rpm from one dash to the next
+        mid = 1000 * (top - 1)
+        zones = [[2, at(redline), at(redline + 0.92 * span), r0, r1, 'red'],
+                 [2, at(mid - 1.5 * step), at(mid + 1.5 * step), r0, r1, 'red', 3]]
         halves = 1 + sum(1 for k in range(top) if redline <= 1000 * k + 500 < 1000 * top)
     else:
         zones = ([[2, at(redline - REV_RED[top][0]), REV_END, 199, 226, 'red']]
