@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 25 2026
 
+- **P3 Clusters 0.22.2 (E46 M3):** the fuel gauge's angles as the real car's: the needle from 48 degrees left (0) to 48 right (1/1), the end marks there, the dots at 1/4 and 3/4; and its low-fuel light, a lighter grey lamp under the 0 that lights in the rev lamps' orange when the range is down to 50 miles.
 - **P3 Clusters 0.22.1 (Apex):** picking Apex (its defaults: lit segments in layered rings, warm-up red zone) made the cluster restart three times and shut off. Apex now draws its dial with the code it had at 0.20.1, the last that ran on the car, by default (**Dial: Classic**); **Dial: New (test)** brings back the tach finishes, the warm-up colours and Smoother revs on Apex, to try once the cause is found. Sweep's type, the warm-up red zone's position and the shift flash stay on Classic.
 
 ## Nov 24 2026

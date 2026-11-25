@@ -142,6 +142,20 @@ def add_plus(name):
     save(name, fnt)
 
 
+def bake_lamp(name='e4_lamp', d=24):
+    """A one-glyph font: "o", a round lamp d px across, drawn 4x and scaled down (the fonts' dots aren't round). The
+    fuel gauge's low-fuel light is a text "o" in it, coloured by the range (gen_e46.py, "lowWhen")."""
+    from PIL import Image, ImageDraw
+    k, pad = 4, 2
+    big = Image.new('L', ((d + 2 * pad) * k, (d + 2 * pad) * k), 0)
+    ImageDraw.Draw(big).ellipse((pad * k, pad * k, (pad + d) * k - 1, (pad + d) * k - 1), fill=255)
+    img = big.resize((d + 2 * pad, d + 2 * pad), Image.LANCZOS)
+    w = h = d + 2 * pad
+    save(name, {'source': '(a drawn circle)', 'size': d, 'cellHeight': h, 'baseline': h - pad,
+                'glyphs': {'o': {'x': 0, 'y': 0, 'w': w, 'h': h, 'ox': 0, 'advance': w}},
+                'width': w, 'height': h, 'alpha': base64.b64encode(img.tobytes()).decode('ascii')})
+
+
 if __name__ == '__main__':
     import contextlib, io
     for spec in FIT:
@@ -151,3 +165,4 @@ if __name__ == '__main__':
     for spec in FIXED:
         bf.bake(OUT, *spec)
     add_plus('e4_lcd')
+    bake_lamp()

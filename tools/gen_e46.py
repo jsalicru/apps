@@ -72,6 +72,7 @@ SHIFT = (6000, 6900, 6900)
 BIG_FOOT = (196, 0.72, 1)
 SMALL_FOOT = (0, 0, 0)
 FUEL = {'c': (189.6, 470.0), 'r': 155, 'cut': 609, 'pivot': (189.6, 560.0)}
+FUEL_LAMP = (64.0, 488.0)       # the low-fuel light's centre, render px
 COOL = {'c': (1793.5, 470.0), 'r': 155, 'cut': 609, 'pivot': (1793.5, 560.0)}
 
 
@@ -110,9 +111,9 @@ TICKS = [
     [1, mph_ang(130), mph_ang(180), 11, 283, 29, 10, 2.55],
     [1, kmh_ang(10), kmh_ang(300), 30, 172, 5, 5, 1],         # the inner km/h ring, a dot every 10
     [2, rpm_ang(0), rpm_ang(9), 19, 281, 31, 10, 2.99],      # 0 .. 9 thousand, a dot at each half between, inside the lamps
-    [0, -40, 40, 2, 196, 36, 5],                              # fuel: long marks at 0 and 1/1, under their figures (as
+    [0, -48, 48, 2, 186, 36, 5],                              # fuel: long marks at 0 and 1/1, under their figures (as
                                                               # the real car's, photo Nov 24 2026)
-    [0, -23, 23, 2, 166, 9, 9, 1],                            # fuel: 1/4 and 3/4 dots (round the low pivot, near the rim);
+    [0, -24, 24, 2, 166, 9, 9, 1],                            # fuel: 1/4 and 3/4 dots (round the low pivot, near the rim);
                                                               # its 1/2 dash is a zone in the print's colour (ZONES)
     [3, -14, 14, 2, 187, 9, 9, 1],                            # coolant: two dots, no middle mark
     [3, -44.5, 44.5, 2, 197, 26, 5],                              # coolant: a mark past each block's outer end, where the
@@ -149,11 +150,11 @@ FIGURES = ([('fs_%d' % v, str(v), 'e4_big') + MPH_AT[v] for v in range(0, 181, 2
 TEXTS = [
     ('km/h', 'e4_sm', 665.0, 450.5), ('MPH', 'e4_mph', 662.0, 555.5),
     ('1/min', 'e4_lab', 1315.0, 218.0), ('x1000', 'e4_lab', 1314.0, 250.5),
-    ('0', 'e4_gl', 72.0, 381.0),     # above its mark's outer end
+    ('0', 'e4_gl', 66.0, 400.0),     # above its mark's outer end
     # 1/2 and 1/1 printed as fractions, as the real car's (photo, Nov 24 2026): a small raised numerator, a slash, a small
     # lowered denominator; 1/2 high over its line, 1/1 above its mark's outer end
     ('1', 'e4_fr', 185.0, 335.0), ('/', 'e4_gl', 192.5, 340.0), ('2', 'e4_fr', 200.5, 346.0),
-    ('1', 'e4_fr', 297.0, 376.0), ('/', 'e4_gl', 304.5, 381.0), ('1', 'e4_fr', 312.0, 387.0),
+    ('1', 'e4_fr', 305.5, 395.0), ('/', 'e4_gl', 313.0, 400.0), ('1', 'e4_fr', 320.5, 406.0),
     # the oil gauge's print as the real car's (photo, Nov 24 2026): 120 and 300 inside their long end marks, 210 under its
     # short line, °F out to the right level with the hub
     ('120', 'e4_oil', 1225.3, 531.2), ('210', 'e4_oil', 1320.0, 497.1), ('300', 'e4_oil', 1408.9, 529.3),
@@ -206,7 +207,7 @@ def text_at(wid, text, fname, cx, cy, color='mark', align='center'):
 def layout():
     dials, needles = [], []
     spec = [  # (dial, signal, pivot, needle length, width, hub, tail, map, rest)
-        (FUEL, 'fuel', FUEL['pivot'], 165, 8.87, 42, 0, [(0, -40), (1, 40)], -46),
+        (FUEL, 'fuel', FUEL['pivot'], 165, 8.87, 42, 0, [(0, -48), (1, 48)], -54),
         # the big needles reach well into the ticks (272 of their 250 .. 281), as wide as the E36's (10.75 cluster px at the hub, the small ones 8.36; as the real car's, photos
         # Nov 24 2026); the hubs' tab (tail < 0: its size)
         (SPD, 'speed', SPD['pivot'], 272, 11.4, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
@@ -274,6 +275,11 @@ def layout():
         texts.append(text_at(wid, t, fn, *T(x, y)))
     for i, (t, fn, x, y) in enumerate(TEXTS):
         texts.append(text_at('tx_%d' % i, t, fn, *T(x, y)))
+    # the fuel gauge's low-fuel light (as the real car's, left under the 0): a lighter grey lamp, lit in the rev lamps'
+    # orange once the range is down to 50 miles (80.5 km: the range comes in km)
+    lamp = text_at('fuel_lamp', 'o', 'e4_lamp', *T(*FUEL_LAMP), color='lampOff')
+    lamp['lowWhen'] = {'signal': 'range', 'below': 80.47, 'color': 'orange'}
+    texts.append(lamp)
     icons = []
     for name, x, y, size, by in ICONS:
         x0, x1, y0, y1 = ICON_INK[name]
