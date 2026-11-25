@@ -2599,6 +2599,8 @@ uniform vec2 u_mapEdge;    // x: how wide its edge fades into the dial, px inwar
 uniform vec4 u_glow;       // a soft glow fading outward from the gear's ring (0.5 of the radius): r, g, b, strength (0 = none)
 uniform float u_plain;     // 1: no backdrop (carbon, weave, side glow), plain black (the "Backgrounds" setting off)
 uniform vec2 u_shift;      // the shift light: x the count towards the shift point 0..1, y 1 while it flashes on (hud.js _shiftNow)
+uniform vec2 u_wave;       // the warm-up zones (y 1, "Red zone" on Warm-up, as Sweep's): lit band from x (0..1) up to the yellow zone
+                           // is yellow; the zones are then yellow then red, and the shift flash turns only the lit band red
 uniform float u_tachStyle; // the rev counter's finish ("tachStyle"): 0 flat, 1 machined (chrome bezel, bowl face, bevelled band, fine
                            // marks, needle shadow), 2 lit segments (the band in segments that glow, a glass sheen), 3 layered rings
                            // (the band sunk in a channel between chrome rings, a notched inner ring, fine marks), 4 lit segments in
@@ -2712,10 +2714,17 @@ void main() {
         bool inZone = f >= u_zone.x;
         vec3 off = inZone ? z * 0.35 : TRACK;
         vec3 lit = inZone ? z : mix(vec3(0.46, 0.47, 0.5), vec3(0.62, 0.63, 0.66), f);
-        vec3 bc = f <= u_tachA.w ? lit : off;
-        // the shift light: the band reddens over the count-in, then the whole band flashes bright red
+        bool dyn = u_wave.y > 0.5, isLit = f <= u_tachA.w;
+        if (dyn) {   // Sweep's: yellow zone then red, the lit band yellow from the wave up
+            bool hot = f >= u_zone.y;
+            off = hot ? RED * 0.35 : inZone ? AMBER * 0.35 : TRACK;
+            lit = hot ? RED : (f >= min(u_zone.x, u_wave.x)) ? AMBER : lit;
+        }
+        vec3 bc = isLit ? lit : off;
+        // the shift light: the band reddens over the count-in, then the whole band flashes bright red (warm-up zones: only
+        // the lit band flashes)
         bc = mix(bc, vec3(0.75, 0.08, 0.07), u_shift.x * 0.45 * step(u_shift.y, 0.5));
-        bc = mix(bc, vec3(1.0, 0.13, 0.1), u_shift.y);
+        bc = mix(bc, vec3(1.0, 0.13, 0.1), u_shift.y * (dyn && !isLit ? 0.0 : 1.0));
         if (fLay) c = put(c, vec3(0.012), cov(-min(r - (R - B - 4.0), R + 3.0 - r)) * on);   // the groove
         if (fSeg) {
             // lit segments: the band cut into blocks (ten per thousand), the lit ones glowing outward and inward
@@ -2743,7 +2752,7 @@ void main() {
         float per = u_tachA.y / u_tachA.z;
         float m1 = abs(radians(mod(rel + per * 0.5, per) - per * 0.5)) * r;
         float m2 = abs(radians(mod(rel + per * 0.25, per * 0.5) - per * 0.25)) * r;
-        vec3 mc = inZone ? zoneCol(f) : WHITE;
+        vec3 mc = inZone ? (u_wave.y > 0.5 ? (f >= u_zone.y ? RED : AMBER) : zoneCol(f)) : WHITE;
         c = put(c, mc, cov(m1 - 1.6) * cov(abs(r - (R - B - 20.0)) - 13.0) * on);
         c = put(c, mc * 0.8, cov(m2 - 1.0) * cov(abs(r - (R - B - 13.0)) - 6.0) * on);
         if (fFine) {   // fine marks every 100 rpm

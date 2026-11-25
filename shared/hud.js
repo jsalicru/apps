@@ -405,7 +405,7 @@ const CIRCUIT_COLORS = {
     blue: { band: [0.05, 0.33, 0.78], ink: [255, 255, 255, 255] },
 };
 const LOOK_KEYS = ['backdrops', 'apexBackdrop', 'aeroBackdrop', 'tachStyle'];   // only a dash's uniforms change (_dashLook): no rebuild
-const LIVE_KEYS = ['tachResponse', 'warnOil', 'warnCoolant', 'warnBoost', 'warnIntake', 'warnOilP', 'badge', 'badgeBMW', 'gFlipLat', 'gFlipLong', 'gRange', 'gTrail'];
+const LIVE_KEYS = ['tachResponse', 'apexZones', 'warnOil', 'warnCoolant', 'warnBoost', 'warnIntake', 'warnOilP', 'badge', 'badgeBMW', 'gFlipLat', 'gFlipLong', 'gRange', 'gTrail'];
 // g (after cauliflowermossgrape's G-Force, MIT, idea only): a sample over G_BAD is a bad reading, not a corner;
 // the rest are averaged over G_AVG_MS so kerbs and potholes don't throw the dot about
 const G_BAD = 3;
@@ -3711,11 +3711,31 @@ class HudApp {
                 const v = this._tyre('p', k);
                 return isNum(v) ? (Math.round(v * 14.5038) < low ? 2 : 1) : 0;
             }) : [0, 0, 0, 0];
-            const sh = this._shiftNow(now);
-            const key = [rv].concat(bv, ts, sh).join('|');
+            let sh = this._shiftNow(now);
+            // "Red zone (Apex)" on Warm-up (as Sweep's, layout "coldLimit" [cold oil °C, warm oil °C, cold red from rpm],
+            // "yellowLines", "waveBelow"): the red zone starts low on a cold engine and rises to the Redline setting as the
+            // oil warms, a yellow zone just under it; over the last "waveBelow" rpm before it the lit band turns yellow from
+            // the red zone back towards 0, and from the shift point the lit band flashes red about 5 times a second
+            const top = T[6] * 1000;
+            let zone = [(w.zones || [6500, 7000])[0] / top, (w.zones || [6500, 7000])[1] / top], wave = 1, dyn = 0;
+            if (this.setting('apexZones') !== 'fixed' && w.coldLimit) {
+                const redline = this.setting('redline'), oil = this._raw('oil'), C = w.coldLimit;
+                let limit = redline;
+                if (isNum(oil)) limit = Math.round((C[2] + (redline - C[2]) * Math.min(1, Math.max(0, (oil - C[0]) / (C[1] - C[0])))) / 50) * 50;
+                const yellow = (w.yellowLines || 2) * 100, waveAt = limit - (w.waveBelow || 1200), revs = rv * top;
+                zone = [(limit - yellow) / top, limit / top];
+                wave = revs <= waveAt ? 1 : Math.max(0, limit * (1 - (revs - waveAt) / (limit - waveAt)) / top);
+                wave = Math.round(wave * 400) / 400;
+                const shiftAt = limit - (isNum(this.setting('shiftBefore')) ? this.setting('shiftBefore') : 0);
+                sh = [0, this.setting('shiftLight') !== false && isNum(rpm) && rpm >= shiftAt && Math.floor(now / 100) % 2 === 0 ? 1 : 0];
+                dyn = 1;
+            }
+            const key = [rv].concat(bv, ts, sh, zone, wave).join('|');
             if (!force && key === x.last) return;
             x.last = key;
             x.c.uniform(x.ref, 'u_shift', sh);
+            x.c.uniform(x.ref, 'u_zone', zone);
+            x.c.uniform(x.ref, 'u_wave', [wave, dyn]);
             x.c.uniform(x.ref, 'u_tyre', ts);
             x.c.uniform(x.ref, 'u_tachA', [T[4], T[5], T[6], rv]);
             const bu = [];

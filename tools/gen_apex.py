@@ -32,7 +32,9 @@ OWN_IDS = ('gear', 'gear_s', 'gear_m', 'gear_ms', 'speed', 'speed_m', 'gear_c', 
                                                         # small picture's changed rect, not a rect of a big shared sheet
 MAP_FEATHER = 80              # the window's edge fades into the dial over this many px (inward), under the numbers
 MAP_R = 262                   # the map window's radius, to the tick marks (Waze draws its map in this square: hud.js _mapHost)
-ZONES = [6500, 7000]          # amber from 6500 rpm, red from 7000
+ZONES = [6500, 7000]          # amber from 6500 rpm, red from 7000 ("Red zone (Apex)" on Fixed)
+# "Red zone (Apex)" on Warm-up, as Sweep's: red from 4000 rpm below 120°F oil, rising to the Redline setting by 160°F
+COLD_LIMIT = [48.89, 71.11, 4000]
 # "Leave room for the driver camera" (cameraNotch; visible.CAMERA 760..1160 x 0..110): the tach smaller and lower, clear
 # of the camera at the top and above the bottom strip; everything in it moves with it (a second set, toggled)
 CAM = 'cameraNotch'
@@ -256,6 +258,7 @@ def build():
         mr = int(round(MAP_R * sc))
         widgets.append({'id': 'dash_c' if cam else 'dash', 'type': 'cdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                         'tach': [cx, cy, r, int(round(BAND * sc)), START, SWEEP, THOUSANDS], 'zones': ZONES,
+                        'coldLimit': COLD_LIMIT, 'yellowLines': 2, 'waveBelow': 1200,
                         'panels': [640, 1280, 120, 660], 'bars': bars, 'lines': lines, 'glow': GLOW, 'car': CAR,
                         # the Waze map (Map tab): a round window in the dial, hosted there (hud.js _mapHost)
                         'hole': [cx - mr, cy - mr, 2 * mr, 2 * mr], 'holeWhen': 'mapUp', 'holeInset': 0,
