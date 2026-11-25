@@ -88,6 +88,99 @@ DEGF = ['uTemp=us']
 DEGC = ['uTemp=metric']
 
 
+# "Type (Apex)" on Wide: every font swapped for a Michroma twin like Sweep's (fonts sw_*, made from the a_* sizes so each
+# text still fits its box): font -> [Michroma twin, px to move it down so it sits where the original did]
+SWEEP_FONTS = {
+    "a_gear": [
+        "sw_a_gear",
+        1
+    ],
+    "a_gear_c": [
+        "sw_a_gear_c",
+        0
+    ],
+    "a_gear_m": [
+        "sw_a_gear_m",
+        1
+    ],
+    "a_gear_ms": [
+        "sw_a_gear_ms",
+        1
+    ],
+    "a_gear_s": [
+        "sw_a_gear_s",
+        1
+    ],
+    "a_gear_s_c": [
+        "sw_a_gear_s_c",
+        0
+    ],
+    "a_head": [
+        "sw_a_head",
+        9
+    ],
+    "a_lim": [
+        "sw_a_lim",
+        2
+    ],
+    "a_sm": [
+        "sw_a_sm",
+        1
+    ],
+    "a_speed": [
+        "sw_a_speed",
+        2
+    ],
+    "a_speed_c": [
+        "sw_a_speed_c",
+        3
+    ],
+    "a_speed_m": [
+        "sw_a_speed_m",
+        0
+    ],
+    "a_tach": [
+        "sw_a_tach",
+        -1
+    ],
+    "a_tach_c": [
+        "sw_a_tach_c",
+        0
+    ],
+    "a_tp": [
+        "sw_a_tp",
+        2
+    ],
+    "a_unit": [
+        "sw_a_unit",
+        11
+    ],
+    "a_unit_c": [
+        "sw_a_unit_c",
+        9
+    ],
+    "m_tiny": [
+        "sw_m_tiny",
+        5
+    ],
+    "m_unit": [
+        "sw_m_unit",
+        4
+    ],
+    "r_label": [
+        "sw_r_label",
+        4
+    ],
+    "v_label": [
+        "sw_v_label",
+        3
+    ],
+    "v_title": [
+        "sw_v_title",
+        1
+    ],
+}
+
 def text(id_, x, y, w, h, t, font, color='fg', align='center', **kw):
     d = {'id': id_, 'type': 'text', 'z': 5, 'x': int(round(x)), 'y': int(round(y)), 'w': int(w), 'h': int(h),
          'text': t, 'font': font, 'color': color, 'align': align}
@@ -290,6 +383,7 @@ def build():
                   'along the bottom. No map window. Full screen: the theme\'s own clock, range and outside temperature in '
                   'the strip, BMW\'s gear letter left uncovered.',
         'picks': PICKS,
+        'fontSets': {'setting': 'apexFont', 'sets': {'sweep': SWEEP_FONTS}},
         'widgets': widgets,
     }
 

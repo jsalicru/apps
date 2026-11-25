@@ -959,6 +959,46 @@
       ]
     },
     {
+      "key": "apexFont",
+      "label": "Type (Apex)",
+      "type": "choice",
+      "default": "apex",
+      "options": [
+        [
+          "apex",
+          "Italic (Apex's own)"
+        ],
+        [
+          "sweep",
+          "Wide (Sweep's)"
+        ]
+      ]
+    },
+    {
+      "key": "tachStyle",
+      "label": "Tach finish (Apex)",
+      "type": "choice",
+      "default": "flat",
+      "options": [
+        [
+          "flat",
+          "Flat"
+        ],
+        [
+          "machined",
+          "Machined: chrome bezel, fine marks"
+        ],
+        [
+          "segments",
+          "Lit segments"
+        ],
+        [
+          "layered",
+          "Layered rings"
+        ]
+      ]
+    },
+    {
       "key": "tachResponse",
       "label": "Tach response (Apex)",
       "type": "choice",

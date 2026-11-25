@@ -2599,6 +2599,9 @@ uniform vec2 u_mapEdge;    // x: how wide its edge fades into the dial, px inwar
 uniform vec4 u_glow;       // a soft glow fading outward from the gear's ring (0.5 of the radius): r, g, b, strength (0 = none)
 uniform float u_plain;     // 1: no backdrop (carbon, weave, side glow), plain black (the "Backgrounds" setting off)
 uniform vec2 u_shift;      // the shift light: x the count towards the shift point 0..1, y 1 while it flashes on (hud.js _shiftNow)
+uniform float u_tachStyle; // the rev counter's finish ("tachStyle"): 0 flat, 1 machined (chrome bezel, bowl face, bevelled band, fine
+                           // marks, needle shadow), 2 lit segments (the band in segments that glow, a glass sheen), 3 layered rings
+                           // (the band sunk in a channel between chrome rings, a notched inner ring, fine marks)
 
 const vec3 WHITE = vec3(0.95, 0.96, 0.97);
 const vec3 TRACK = vec3(0.16, 0.16, 0.18);
@@ -2661,11 +2664,33 @@ void main() {
     if (r > R) c += vec3(0.9, 0.06, 0.05) * 0.5 * u_shift.y * exp(-(r - R) / 22.0);
     if (u_mapHole.z <= 0.0)   // no drop shadow while the map shows
     c *= 1.0 - 0.85 * (1.0 - smoothstep(R + 6.0, R + (u_bgStyle > 0.5 ? 60.0 : 50.0), length(d - vec2(0.0, 14.0))));
-    c = put(c, mix(vec3(0.0), vec3(0.035, 0.036, 0.04), smoothstep(R * 0.3, R, r)), cov(r - R - 8.0));
+    {
+        vec3 face = mix(vec3(0.0), vec3(0.035, 0.036, 0.04), smoothstep(R * 0.3, R, r));
+        if (u_tachStyle > 0.5) {
+            // a shallow bowl: darker in the middle, a lit rim towards the top-left light, fine concentric brushing
+            float lightA = 0.5 + 0.5 * dot(normalize(d + vec2(0.001)), vec2(-0.6, -0.8));
+            face = mix(vec3(0.006), vec3(0.06, 0.062, 0.068), pow(smoothstep(R * 0.15, R + 6.0, r), 1.6));
+            face *= 0.8 + 0.4 * lightA * smoothstep(R * 0.6, R, r);
+            if (u_tachStyle < 1.5) face += vec3(0.006) * sin(r * 2.1) * smoothstep(R * 0.5, R * 0.6, r);
+        }
+        c = put(c, face, cov(r - R - 8.0));
+    }
     {   // the thin bezel: all round, or while the map shows only along the band (0 to the top of the scale)
-        float bz = cov(abs(r - R - 8.0) - 1.2);
-        if (u_mapHole.z > 0.0) bz *= step(mod(degrees(atan(d.y, d.x)) - u_tachA.x + 720.0, 360.0), u_tachA.y);
-        c = put(c, vec3(0.45, 0.46, 0.5), bz);
+        float mapCut = u_mapHole.z > 0.0 ? step(mod(degrees(atan(d.y, d.x)) - u_tachA.x + 720.0, 360.0), u_tachA.y) : 1.0;
+        if (u_tachStyle < 0.5 || u_tachStyle > 1.5 && u_tachStyle < 2.5) {
+            c = put(c, vec3(0.45, 0.46, 0.5), cov(abs(r - R - 8.0) - 1.2) * mapCut);
+        } else {
+            // a chrome ring: lit from the top-left, its profile rounded (bright crest, dark edges)
+            float bw = u_tachStyle > 2.5 ? 3.5 : 6.5, bc = R + 8.0 + bw * 0.5;
+            float prof = clamp(1.0 - abs(r - bc) / bw, 0.0, 1.0);
+            float la = dot(normalize(d + vec2(0.001)), vec2(-0.6, -0.8));
+            vec3 chrome = mix(vec3(0.12, 0.12, 0.14), vec3(0.86, 0.87, 0.9), clamp(0.5 + 0.45 * la, 0.0, 1.0) * (0.35 + 0.65 * prof * prof));
+            chrome += vec3(0.35) * pow(max(la, 0.0), 12.0) * prof;    // the hot spot
+            c = put(c, chrome, cov(abs(r - bc) - bw) * mapCut);
+            if (u_tachStyle > 2.5) {   // layered: a second, finer ring on the inside of the band and a dark channel between
+                c = put(c, chrome * 0.8, cov(abs(r - (R - B - 6.0)) - 1.6) * mapCut);
+            }
+        }
     }
     if (u_glow.w > 0.0 && r > R * 0.5 - 1.0) {
         float gl = 1.0 - smoothstep(R * 0.5, R * 0.86, r);
@@ -2686,7 +2711,30 @@ void main() {
         // the shift light: the band reddens over the count-in, then the whole band flashes bright red
         bc = mix(bc, vec3(0.75, 0.08, 0.07), u_shift.x * 0.45 * step(u_shift.y, 0.5));
         bc = mix(bc, vec3(1.0, 0.13, 0.1), u_shift.y);
-        c = put(c, bc, band);
+        if (u_tachStyle > 1.5 && u_tachStyle < 2.5) {
+            // lit segments: the band cut into blocks (ten per thousand), the lit ones glowing outward and inward
+            float nseg = u_tachA.z * 10.0, sf = f * nseg, within = fract(sf);
+            float gapPx = min(within, 1.0 - within) * radians(u_tachA.y) / nseg * r;
+            float blk = clamp(gapPx - 1.2, 0.0, 1.0);
+            float lit2 = step(f, u_tachA.w);
+            vec3 sc = bc * (0.78 + 0.22 * smoothstep(R - B, R, r));      // a touch brighter towards the outside
+            c = put(c, sc, band * blk);
+            float outD = r > R ? r - R : (R - B) - r;
+            c += bc * lit2 * on * 0.35 * exp(-max(outD, 0.0) / 9.0) * (1.0 - band);
+        } else if (u_tachStyle > 0.5) {
+            // bevelled: lighter along the outer edge, darker along the inner, a fine highlight line on the outer lip;
+            // layered: sunk in a dark channel, its inner edge in shadow
+            float t = clamp((r - (R - B)) / B, 0.0, 1.0);
+            vec3 bv = bc * (0.72 + 0.4 * t);
+            if (u_tachStyle > 2.5) {
+                c = put(c, vec3(0.012), cov(-min(r - (R - B - 4.0), R + 3.0 - r)) * on);
+                bv *= 0.65 + 0.35 * smoothstep(0.0, 0.35, t);
+            }
+            c = put(c, bv, band);
+            c = put(c, mix(bc, vec3(1.0), 0.45), band * cov(abs(r - (R - 1.5)) - 0.8));
+        } else {
+            c = put(c, bc, band);
+        }
         // marks: a long one every 1000, a short one every 500, red / amber in the zone
         float per = u_tachA.y / u_tachA.z;
         float m1 = abs(radians(mod(rel + per * 0.5, per) - per * 0.5)) * r;
@@ -2694,6 +2742,18 @@ void main() {
         vec3 mc = inZone ? zoneCol(f) : WHITE;
         c = put(c, mc, cov(m1 - 1.6) * cov(abs(r - (R - B - 20.0)) - 13.0) * on);
         c = put(c, mc * 0.8, cov(m2 - 1.0) * cov(abs(r - (R - B - 13.0)) - 6.0) * on);
+        if (u_tachStyle > 0.5 && (u_tachStyle < 1.5 || u_tachStyle > 2.5)) {   // fine marks every 100 rpm
+            float p10 = per * 0.1;
+            float m3 = abs(radians(mod(rel + p10 * 0.5, p10) - p10 * 0.5)) * r;
+            c = put(c, mc * 0.55, cov(m3 - 0.6) * cov(abs(r - (R - B - 9.0)) - 3.0) * on);
+        }
+        if (u_tachStyle > 2.5) {   // the notched inner ring: a dark ring with a notch every 250 rpm
+            float p4 = per * 0.25;
+            float m4 = abs(radians(mod(rel + p4 * 0.5, p4) - p4 * 0.5)) * r;
+            float ring = cov(abs(r - (R - B - 44.0)) - 3.0) * on;
+            c = put(c, vec3(0.1, 0.1, 0.11), ring);
+            c = put(c, inZone ? zoneCol(f) * 0.8 : vec3(0.55, 0.56, 0.6), ring * cov(m4 - 1.0));
+        }
     }
     // the needle: red, with a soft glow
     {
@@ -2702,8 +2762,22 @@ void main() {
         float nd = segd(p, u_tach.xy + dir2 * R * 0.56, u_tach.xy + dir2 * (R - 2.0));
         float along = clamp(dot(d, dir2) / R, 0.0, 1.0);
         float wdt = mix(2.0, 3.6, along);
+        if (u_tachStyle > 0.5 && u_tachStyle < 1.5 || u_tachStyle > 2.5) {   // a soft shadow cast down and right
+            float sd = segd(p - vec2(5.0, 7.0), u_tach.xy + dir2 * R * 0.56, u_tach.xy + dir2 * (R - 2.0));
+            c *= 1.0 - 0.6 * clamp(1.0 - (sd - wdt) / 8.0, 0.0, 1.0);
+            wdt += 0.8;
+        }
         c = put(c, RED * 0.6, clamp(1.0 - (nd - wdt) / 9.0, 0.0, 1.0) * 0.45);
         c = put(c, mix(RED, vec3(1.0, 0.55, 0.5), 0.25), cov(nd - wdt));
+        if (u_tachStyle > 0.5) {   // a bright ridge down the needle's middle
+            float side = dot(p - u_tach.xy, vec2(-dir2.y, dir2.x));
+            c = put(c, vec3(1.0, 0.72, 0.68), cov(nd - wdt) * cov(abs(side) - 0.6) * 0.8);
+        }
+    }
+    // the glass (lit segments): a faint sheen over the dial's upper left
+    if (u_tachStyle > 1.5 && u_tachStyle < 2.5 && r < R + 8.0) {
+        vec2 q = (d - vec2(-R * 0.35, -R * 0.55)) / vec2(R * 0.95, R * 0.5);
+        c += vec3(0.05, 0.052, 0.058) * (1.0 - smoothstep(0.2, 1.0, length(q))) * smoothstep(R * 0.5, R * 0.62, r);
     }
     // the line bars: track, red end zone, white fill to the value, a marker
     for (int i = 0; i < 8; i++) {
