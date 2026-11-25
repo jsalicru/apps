@@ -18,7 +18,7 @@ moves the pen. Digits get one shared advance (tabular), so a changing number
 doesn't shift sideways.
 """
 import base64, json, os
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, 'fonts-src')
@@ -39,61 +39,54 @@ HUD_FONTS = [
     # Retro: seven-segment digits (DSEG7 Classic, SIL OFL; the unlit 8s behind are the same font in "track")
     ('d7_hero', 'DSEG7Classic-Bold.ttf', 76, DIGITS + 'PRN-', 0, None, {'R': 'r', 'N': 'n'}),   # r and n: seven segments can't draw R or N
     ('d7_mid', 'DSEG7Classic-Bold.ttf', 26, DIGITS + '-.:'),
+    # Vector: now playing (any printable ASCII: a song's text is folded to it, hud.js mediaText)
+    ('np_title', 'BarlowSemiCondensed-SemiBold.ttf', 22, ''.join(chr(i) for i in range(32, 127))),
+    ('np_small', 'Barlow-Medium.ttf', 16, ''.join(chr(i) for i in range(32, 127))),
 ]
 # Cluster Themes, 1920x720 LCD. GT3: the race-dash look, Barlow Condensed.
 CLUSTER_FONTS = [
     ('gear', 'BarlowCondensed-Bold.ttf', 330, DIGITS + 'PRND-'),
     ('big', 'BarlowCondensed-Bold.ttf', 124, DIGITS + '.:-'),   # 124: "20.3 PSI" fits a 280 px box beside the hood; ':' for a clock in a readout slot
-    ('value', 'BarlowCondensed-Bold.ttf', 92, DIGITS + '.:- PRND°', 0, None, None, '°'),   # °: a readout slot showing a temperature (tucked: the cell keeps its height)
     ('small', 'BarlowCondensed-Bold.ttf', 50, DIGITS + '.:-° '),
     ('unit', 'BarlowCondensed-SemiBold.ttf', 34, UPPER + DIGITS + '/°%>·.: -'),
     ('head', 'BarlowCondensed-SemiBold.ttf', 24, UPPER + DIGITS + '/°%>·.: -'),
     ('scale', 'BarlowCondensed-SemiBold.ttf', 30, DIGITS),
     ('badge', 'BarlowCondensed-SemiBold.ttf', 30, UPPER + LOWER + DIGITS + ' -'),   # the model badge (shared/badges.js)
     # M: the wide squared numbers (Michroma, SIL OFL) and Barlow for the small print
-    ('m_num', 'Orbitron[wght].ttf', 36, DIGITS, 0, 'Black', {'0': 'O'}),
-    ('m_gear', 'Orbitron[wght].ttf', 125, 'PRNDSM-' + DIGITS, 3, 'Black', {'0': 'O'}),
-    ('m_speed', 'Orbitron[wght].ttf', 78, DIGITS + '-', 3, 'Black', {'0': 'O'}),
-    ('m_gl', 'Orbitron[wght].ttf', 25, DIGITS + '/.-', 0, 'Black', {'0': 'O'}),
-    ('m_val', 'Barlow-Medium.ttf', 54, DIGITS + ':+-.'),
-    ('m_mid', 'Orbitron[wght].ttf', 34, DIGITS + ':+-.', 0, 'Bold', {'0': 'O'}),
-    ('m_tyre', 'Orbitron[wght].ttf', 25, DIGITS + '.-:', 0, 'Bold', {'0': 'O'}),   # ':' for M's map-view clock (fit)
     ('m_unit', 'Barlow-Medium.ttf', 30, LOWER + UPPER + '°/-.'),
-    ('m_label', 'Orbitron[wght].ttf', 20, UPPER + DIGITS + ' -/%°', 0, 'Bold'),   # digits, / % °: the M readout slots' names and units
     ('m_tiny', 'Barlow-Medium.ttf', 26, LOWER + DIGITS + 'CF./ -°'),
-    ('m_badge', 'Barlow-Medium.ttf', 26, UPPER + LOWER + DIGITS + ' -'),
     # Sport: BMW Live Cockpit style, the wide numbers in Michroma like BMW's own
-    ('s_scale', 'Michroma-Regular.ttf', 27, DIGITS, 1),
-    ('s_speed', 'Michroma-Regular.ttf', 74, DIGITS + '-', 3),
-    ('s_hero', 'Michroma-Regular.ttf', 132, DIGITS + '-', 3),   # the big speed in the middle while no map shows (Nov 13 2026)
-    ('s_gear', 'Michroma-Regular.ttf', 70, DIGITS + 'PRNDSM-', 3),
-    ('s_val', 'Michroma-Regular.ttf', 26, DIGITS + ':+-.', 1),
-    ('s_unit', 'Barlow-Medium.ttf', 24, LOWER + UPPER + DIGITS + '°/-. '),
-    ('s_label', 'BarlowSemiCondensed-SemiBold.ttf', 30, UPPER + DIGITS + ' .'),
-    ('s_gl', 'Michroma-Regular.ttf', 21, DIGITS + '/', 1),
+    # Apex: a light, upright condensed face for the needle dash
+    ('a_gear', 'Outfit[wght].ttf', 200, DIGITS + 'PRNDSM-', 0, 'Bold', None, '', 0.2, 6),   # hollow italic (Nov 21 2026)
+    ('a_gear_s', 'Outfit[wght].ttf', 200, DIGITS + 'PRNDSM-', 0, 'Bold', None, '', 0.2),   # the same, solid (the Gear setting)
+    ('a_gear_m', 'Outfit[wght].ttf', 77, DIGITS + 'PRNDSM-', 0, 'Bold', None, '', 0.2, 4),   # the gear under the Waze map, hollow
+    ('a_gear_ms', 'Outfit[wght].ttf', 77, DIGITS + 'PRNDSM-', 0, 'Bold', None, '', 0.2),   # the same, solid
+    ('a_speed', 'Outfit[wght].ttf', 98, DIGITS + '-', 0, 'ExtraBold', None, '', 0.2),   # bold italic
+    ('a_unit', 'Outfit[wght].ttf', 34, LOWER + '/', 0, 'Bold', None, '', 0.2),   # the speed's unit (mph, km/h)
+    ('a_tach', 'Outfit[wght].ttf', 58, DIGITS, 0, 'ExtraBold', None, '', 0.2),   # the rev counter's numbers, as the speed
+    ('a_speed_m', 'Outfit[wght].ttf', 70, DIGITS, 0, 'ExtraBold', None, '', 0.2),   # the speed in map view, 20 % bigger
+    # the smaller tach for cars with the driver camera ("Leave room for the driver camera"), 0.81 of the above
+    ('a_gear_c', 'Outfit[wght].ttf', 162, DIGITS + 'PRNDSM-', 0, 'Bold', None, '', 0.2, 5),
+    ('a_gear_s_c', 'Outfit[wght].ttf', 162, DIGITS + 'PRNDSM-', 0, 'Bold', None, '', 0.2),
+    ('a_speed_c', 'Outfit[wght].ttf', 79, DIGITS + '-', 0, 'ExtraBold', None, '', 0.2),
+    ('a_unit_c', 'Outfit[wght].ttf', 28, LOWER + '/', 0, 'Bold', None, '', 0.2),
+    ('a_tach_c', 'Outfit[wght].ttf', 47, DIGITS, 0, 'ExtraBold', None, '', 0.2),
+    ('a_head', 'Outfit[wght].ttf', 40, UPPER + LOWER + ' ', 0, 'Bold', None, '', 0.2),   # the panel headings, as the speed
+    ('a_tp', 'BarlowSemiCondensed-Medium.ttf', 48, DIGITS + '.-', 0),   # the readouts' numbers (tyres, boost, oil, hp, torque); no extra stroke since 0.21.5
+    ('a_lim', 'BarlowSemiCondensed-SemiBold.ttf', 30, DIGITS + '.-', 0),   # the bars' end numbers, 25 % over r_label
+    ('a_sm', 'Outfit[wght].ttf', 26, DIGITS + '.-', 0, 'SemiBold', None, '', 0.2),   # the hatched gauges' scale numbers, italic
+    # Vector: the music panel's song title and artist (any printable ASCII: a song's text is folded to it, hud.js
+    # mediaText), the ring gauges' numbers and labels, the track time
+    ('v_title', 'BarlowSemiCondensed-SemiBold.ttf', 38, ''.join(chr(i) for i in range(32, 127))),
+    ('v_label', 'BarlowSemiCondensed-SemiBold.ttf', 19, UPPER + LOWER + DIGITS + ' °%/.-'),
     # Minimal: one huge speed, the gear, small print
-    ('n_speed', 'BarlowSemiCondensed-Medium.ttf', 260, DIGITS + '-'),
-    ('n_gear', 'BarlowSemiCondensed-SemiBold.ttf', 110, DIGITS + 'PRNDSM-'),
-    ('n_unit', 'Barlow-Medium.ttf', 34, LOWER + UPPER + '/'),
     # Cruise and Minimal labels (r_label: the Roadster theme's, kept when Roadster was removed in 0.17.8)
     ('r_label', 'BarlowSemiCondensed-SemiBold.ttf', 24, UPPER + LOWER + DIGITS + '/°%.: -'),
     # Drag: the 0-60 clock
-    ('timer', 'BarlowCondensed-Bold.ttf', 220, DIGITS + '.-'),
     # Rally: the huge gear and the readouts in the arc
-    ('y_gear', 'BarlowCondensed-Bold.ttf', 300, DIGITS + 'PRNDSM-'),
-    ('y_val', 'BarlowCondensed-Bold.ttf', 76, DIGITS + '.:-+°', 0, None, None, '°'),
     # Retro 80s: seven-segment digits (DSEG7 Classic, SIL OFL; the unlit 8s behind are the same font in "track")
-    ('d7_big', 'DSEG7Classic-Bold.ttf', 170, DIGITS + '-'),
-    ('d7_val', 'DSEG7Classic-Bold.ttf', 60, DIGITS + '-.:'),
-    ('d7_sm', 'DSEG7Classic-Bold.ttf', 42, DIGITS + '-.:'),
-    ('d7_gear', 'DSEG7Classic-Bold.ttf', 190, DIGITS + 'PRN-', 0, None, {'R': 'r', 'N': 'n'}),   # r and n: seven segments can't draw R or N
     # Cruise: calm, light numbers
-    ('c_speed', 'BarlowSemiCondensed-Medium.ttf', 150, DIGITS + '-'),
-    ('c_val', 'BarlowSemiCondensed-Medium.ttf', 62, DIGITS + '.:-+°'),
     # Ribbon: Outfit (SIL OFL), thin and calm: the huge speed, the side readouts, small spaced labels
-    ('b_speed', 'Outfit[wght].ttf', 250, DIGITS + '-', 0, 'ExtraLight'),
-    ('b_val', 'Outfit[wght].ttf', 44, DIGITS + '.:-+°% ' + LOWER + UPPER, 0, 'Light'),
-    ('b_label', 'Outfit[wght].ttf', 20, UPPER + DIGITS + "' .-", 0, 'SemiBold'),
     ('b_unit', 'Outfit[wght].ttf', 26, UPPER + LOWER + '/', 0, 'Medium'),
     ('b_gear', 'Outfit[wght].ttf', 32, DIGITS + 'PRNDSM-', 0, 'SemiBold'),
     ('b_scale', 'Outfit[wght].ttf', 20, DIGITS, 0, 'Medium'),
@@ -127,17 +120,20 @@ PAD = 2
 ATLAS_W = 1024
 
 
-def bake(out, name, file, size, chars, stroke=0, weight=None, subs=None, tuck=''):
+def bake(out, name, file, size, chars, stroke=0, weight=None, subs=None, tuck='', slant=0.0, outline=0):
     """stroke: px of extra weight round every glyph (Michroma has one weight). weight: a named instance of a
     variable font (Orbitron: Regular .. Black), for the M theme's squared BMW-style gear, speed and numbers.
     subs: {char: glyph drawn for it} (Orbitron's zero is slashed; the M8's is plain, so its O stands in).
     tuck: characters added to a font after layouts were built on its cell height (° on value / y_val, Nov 7 2026):
-    they don't count towards the cell, and one that rises above it is drawn lower so its top meets the cell's."""
+    they don't count towards the cell, and one that rises above it is drawn lower so its top meets the cell's.
+    slant: an italic made by shearing (x shift per px above the baseline, 0.2 = about 11 degrees; the fonts have no italics).
+    outline: px; the glyph drawn hollow, only a ring that wide round its outline (Apex's gear)."""
     font = ImageFont.truetype(os.path.join(SRC, file), size)
     if weight: font.set_variation_by_name(weight)
     subs = subs or {}
     glyph = lambda c: subs.get(c, c)
     ink = [c for c in chars if c != ' ']
+    stroke = stroke + outline
     boxes = {c: font.getbbox(glyph(c), anchor='ls', stroke_width=stroke) for c in ink}
     top = min(b[1] for c, b in boxes.items() if c not in tuck)
     bottom = max(b[3] for c, b in boxes.items() if c not in tuck)
@@ -152,9 +148,18 @@ def bake(out, name, file, size, chars, stroke=0, weight=None, subs=None, tuck=''
             cells.append((c, None, 0, round(adv if adv else size * 0.25)))
             continue
         l, _, r, _ = boxes[c]
-        w = r - l + 2 * PAD
+        lean = int(round(slant * (PAD - top))) if slant else 0      # the sheared top's extra width
+        w = r - l + 2 * PAD + lean
         img = Image.new('L', (w, height), 0)
-        ImageDraw.Draw(img).text((PAD - l, PAD - top + drop.get(c, 0)), glyph(c), font=font, fill=255, anchor='ls', stroke_width=stroke, stroke_fill=255)
+        at = (PAD - l, PAD - top + drop.get(c, 0))
+        ImageDraw.Draw(img).text(at, glyph(c), font=font, fill=255, anchor='ls', stroke_width=stroke, stroke_fill=255)
+        if outline:
+            inner = Image.new('L', (w, height), 0)
+            ImageDraw.Draw(inner).text(at, glyph(c), font=font, fill=255, anchor='ls', stroke_width=stroke - outline, stroke_fill=255)
+            img = ImageChops.subtract(img, inner)
+        if slant:
+            base = PAD - top
+            img = img.transform(img.size, Image.AFFINE, (1, slant, -slant * base, 0, 1, 0), resample=Image.BICUBIC)
         shift = (tab - adv) / 2 if c in DIGITS else 0
         cells.append((c, img, round(l - PAD + shift), round(tab if c in DIGITS else adv)))
 

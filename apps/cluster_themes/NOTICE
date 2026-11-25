@@ -31,7 +31,7 @@ Besides its own code, the app ships with:
    Copyright (c) 2017, keshikan (http://www.keshikan.net), with Reserved Font Name "DSEG",
    under the SIL Open Font License 1.1 (the same licence text as below).
 
-4c. The Outfit typeface (hud.pack, fonts/b_*): pre-rendered glyphs of Outfit, Copyright 2021 The Outfit Project Authors
+4c. The Outfit typeface (hud.pack, fonts/b_*, a_*): pre-rendered glyphs of Outfit, Copyright 2021 The Outfit Project Authors
    (https://github.com/Outfitio/Outfit-Fonts), under the SIL Open Font License 1.1 (the same licence text as below).
 
 5. The pixel-diff text update in hud.js (changes(): only the rectangle that changed goes up the link) is

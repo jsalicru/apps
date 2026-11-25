@@ -106,6 +106,12 @@ function headUnit(stage, o) {
         const realLoad = Module._load;
         const run = live ? async (impl) => {
             // as mgu.js: the settings screen / sheet, the app, then its entry state opened
+            // impl.background first, as mgu.js runs it (app.json "autostart"); with the env BENCH_NO_SCREENS=1 the app stops
+            // there, as on a power-up start where the head unit gives it no screens
+            if (impl.background) {
+                try { ctx.background = await impl.background({ app: null, log: ctx.log, settings: ctx.settings, signals: ctx.signals, spec, dataDir: ctx.dataDir }); } catch (e) { log.error('background start', e); }
+                if (process.env.BENCH_NO_SCREENS === '1') { log.info('no screens for this start: running in the background'); return ctx; }
+            }
             try { await wireSettings(src, kitDir, spec)(ctx); } catch (e) { log.error('settings screen', e); }
             try { await impl.start(ctx); } catch (e) { log.error('app start', e); }
             log.info('initialized');

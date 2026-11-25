@@ -89,7 +89,7 @@ class Page {
         const s = this.item(k), v = this.get(k);
         if (!s) return '';
         if (s.type === 'bool') return v ? 'On' : 'Off';
-        if (s.type === 'number' && WARN_KEYS.indexOf(k) >= 0) return warnText(k, v, this.get('units') === 'us');
+        if (s.type === 'number' && WARN_KEYS.indexOf(k) >= 0) return warnText(k, v, sensors.imperial((x) => this.get(x), k === 'warnBoost' || k === 'warnOilP' ? 'pressure' : 'temp'));
         if (k === 'timeZone') return tzText(v);
         if (k === 'tankLitres') return fmtInt(v) + ' L';
         if (s.type === 'number') return k === 'shiftBefore' ? (v ? fmtInt(v) + ' rpm before' : 'At the redline') : fmtInt(v) + ' rpm';
@@ -423,16 +423,16 @@ class Page {
         // live state from waze.js: the map showing, waiting, the Waze app busy, Waze on Cluster missing
         const info = this.hud.waze ? this.hud.waze.info() : { text: 'Not available in this app', up: false, ok: false };
         let text = info.text;
-        if (this.get('mapInTheme') && !this.hud.mapLayout && this.hud.activeName !== 'off') text = 'This theme has no map version (GT3, Sport and M do)';
+        if (this.get('mapInTheme') && !this.hud.mapLayout && this.hud.activeName !== 'off') text = 'This theme has no map version (Apex and Aero do)';
         glass(cv, CX, y, w, 46, false);
         cv.circle(CX + 26, y + 23, 7, info.up ? C.live : info.ok ? C.dim : '#e0a340');
         cv.text(text, CX + 46, y + 30, 18, info.up ? C.live : C.text, { literal: true });
         y += 54;
         note(cv, CX, y + 26, [
-            'On: GT3, Sport and M open a window in the middle and Waze on Cluster draws its map in it, above',
+            'On: Apex opens a window in its tach, Aero one in the middle, and Waze on Cluster draws its map there, above',
             'BMW\'s own map view, so nothing shows twice. When the map goes away the theme fills back in.',
             'While on, Waze\'s map on the HUD is off (the cluster and the HUD share one picture).',
-            'Needs robertnisipeanu\'s Waze on Cluster. Turning this off gives Waze its usual place back.',
+            'Needs robertnisipeanu\'s Waze on Cluster 0.14.5 or newer and cluster-render 0.8.2 or newer. Turning this off gives Waze its usual place back.',
         ]);
         // Sweep keeps its own window over BMW's map view (its "mapWindow" setting), whatever the switch above says
         if (this.item('mapWindow')) {
@@ -476,10 +476,19 @@ class Page {
     /* ---------- Alerts (both) ---------- */
     /** Warning limits (the readout flashes red over one) and the shift-light test. */
     alertsTab(cv) {
-        label(cv, CX, 70, 'Warnings · the readout flashes red over its limit');
+        label(cv, CX, 70, 'Warnings · the readout flashes red past its limit');
         let y = 84;
-        const w = CW * 0.62;
+        // an app without shift lights (cfg.shiftLights false: Cluster Themes' own themes have none) shows the warnings alone
+        const shift = this.cfg.shiftLights !== false;
+        const w = shift ? CW * 0.62 : CW * 0.7;
         WARN_KEYS.forEach((k) => { if (this.item(k)) y = this.stepRow(cv, CX, y, w, this.item(k).label.replace(/ warning$/, ''), k); });
+        if (!shift) {
+            note(cv, CX, y + 22, [
+                'The reading flashes red while it is over its limit; oil pressure while it is under, with the engine running.',
+                'A warning shows wherever that reading is on the cluster. Set a limit to Off to turn that warning off.',
+            ]);
+            return;
+        }
         y += 24;
         label(cv, CX, y, 'Shift lights');
         y += 14;
@@ -510,10 +519,10 @@ class Page {
             note(cv, x, y + 22, this.get('shiftCue') === 'rpm' ? ['From a fixed rpm up to the shift point.'] : ['Fill over the last second, flash early', 'by your reaction time.']);
             y += 84;
         }
-        if (this.item('smartTemps')) {
+        if (this.item('smartTemps') && this.cfg.smartTemps !== false) {
             label(cv, x, y, 'Temperatures');
             y = this.toggleRow(cv, x, y + 14, w, 'Only when they matter', 'smartTemps');
-            note(cv, x, y + 22, ['Oil and coolant show only while cold,', 'warming up or hot. Outside: blue at ' + (this.get('units') === 'us' ? '37 °F.' : '3 °C.')]);
+            note(cv, x, y + 22, ['Oil and coolant show only while cold,', 'warming up or hot. Outside: blue at ' + (sensors.imperial((x) => this.get(x), 'temp') ? '37 °F.' : '3 °C.')]);
             y += 84;
         }
         if (this.item('navDirections')) {
@@ -607,24 +616,49 @@ class Page {
 
     /* ---------- Settings ---------- */
     settingsTab(cv, bottom) {
-        label(cv, CX, 70, 'Settings');
-        const keys = this.cfg.settings.filter((k) => this.item(k));
+        // only the settings of the theme on the cluster now (cfg.settingThemes: key -> the layouts it does something in;
+        // a key not listed applies to all); with nothing on the cluster, or a theme none are listed for, all of them
+        const on = this.hud.activeName, st = this.cfg.settingThemes || {};
+        const own = !!(on && on !== 'off' && Object.keys(st).length && this.item('hudLayout')
+            && (this.item('hudLayout').options || []).some((o) => o[0] === on));
+        let keys = this.cfg.settings.filter((k) => this.item(k) && (!own || !st[k] || st[k].indexOf(on) >= 0));
+        const themeName = own ? ((this.item('hudLayout') && (this.item('hudLayout').options || []).find((o) => o[0] === on)) || [on, on])[1] : null;
+        label(cv, CX, 70, themeName ? 'Settings · ' + themeName : 'Settings');
+        // more settings than fit (Cluster Themes' 27, Nov 23 2026: the last rows of each column fell off the screen):
+        // pages of compact rows, "Page 1 of 2" and arrows beside the heading
+        const rowsFit = Math.floor((bottom - 24 - 84 - 46) / 52) + 1;
+        const pages = keys.length > 2 * rowsFit ? Math.ceil(keys.length / (2 * rowsFit)) : 1;
+        if (pages > 1) {
+            this.setPage = Math.max(0, Math.min(pages - 1, this.setPage || 0));
+            keys = keys.slice(this.setPage * 2 * rowsFit, (this.setPage + 1) * 2 * rowsFit);
+            const pg = this.setPage, px = CX + 150, py = 46;
+            const arrow = (x, live, dir) => {
+                cv.roundRect(x, py, 48, 38, 10, live ? '#ffffff14' : '#ffffff07');
+                cv.text(dir < 0 ? '<' : '>', x + 24, py + 27, 22, live ? C.text : '#ffffff30', { align: 'center', font: 'bold', literal: true });
+                if (live) cv.target(x, py, 48, 38, () => { this.setPage = pg + dir; this.kick(); }, 'setpage:' + dir, 10);
+            };
+            arrow(px, pg > 0, -1);
+            cv.text('Page ' + (pg + 1) + ' of ' + pages, px + 120, py + 26, 17, C.dim, { align: 'center', literal: true });
+            arrow(px + 192, pg < pages - 1, 1);
+        }
         const colW = (CW - 24) / 2, per = Math.ceil(keys.length / 2);
         // issue #8: the drive mode check (raw signal values, only the signals this app listens to: cfg.modeCheck)
         // under the right column while "Change with the drive mode" is on
         const diag = this.hud.modeDiagLines ? this.hud.modeDiagLines(this.cfg.modeCheck || []) : [];
         // the page's room depends on the screen (bottom 512 without extra room below it): compact rows (46 high,
-        // 52 apart) when the full ones, the drive mode check and the status line don't all fit
+        // 52 apart) when the full ones, the drive mode check and the status line don't all fit, tight ones (40, 46)
+        // when even those don't (Cluster Themes' 14 rows with the check on)
         const fits = (h, pitch) => 84 + (per - 1) * pitch + h <= bottom - 24 &&
             84 + (keys.length - per) * pitch + 10 + 20 * diag.length <= bottom - 24;
-        const h = fits(56, 64) ? 56 : 46, pitch = h === 56 ? 64 : 52;
+        const [h, pitch] = fits(56, 64) ? [56, 64] : fits(46, 52) ? [46, 52] : [40, 46];
         keys.forEach((k, i) => {
             const x = CX + (i < per ? 0 : colW + 24), y = 84 + (i % per) * pitch;
             if (y + h > bottom) return;
             const s = this.item(k);
-            if (s.type === 'bool') this.toggleRow(cv, x, y, colW, s.label, k, h);
-            else if (s.type === 'number') this.stepRow(cv, x, y, colW, s.label, k, null, h);
-            else this.pickRow(cv, x, y, colW, s.label, k, null, h);
+            const name = own ? s.label.replace(/ \((Apex|Circuit|Veloce)\b[^)]*\)$/, '') : s.label;   // the theme is in the heading
+            if (s.type === 'bool') this.toggleRow(cv, x, y, colW, name, k, h);
+            else if (s.type === 'number') this.stepRow(cv, x, y, colW, name, k, null, h);
+            else this.pickRow(cv, x, y, colW, name, k, null, h);
         });
         // what the engine says it is doing (layers, pixel memory, why nothing shows): for checking on the car
         cv.text(this.hud.lastStatus || '', CX, bottom - 6, 15, C.label, { literal: true });
@@ -638,7 +672,7 @@ class Page {
     }
 
     /* ---------- rows ---------- */
-    /** A row's card (h: 56, or 46 for the compact ones); returns its text baseline. */
+    /** A row's card (h: 56, or 46 / 40 for the compact and tight ones); returns its text baseline. */
     rowBox(cv, x, y, w, name, h) {
         glass(cv, x, y, w, h, false);
         const base = y + h / 2 + 7;
@@ -729,11 +763,11 @@ class Page {
 
 /* ---------- small pieces ---------- */
 const LOOK_KEYS = ['hudLayout', 'inComfort', 'inSport', 'inEco'];
-const WARN_KEYS = ['warnOil', 'warnCoolant', 'warnBoost'];
+const WARN_KEYS = ['warnOil', 'warnCoolant', 'warnBoost', 'warnIntake', 'warnOilP'];
 /** A warning limit as the page shows it, in the display units: "266 °F", "1.2 bar", "Off". */
 function warnText(k, v, us) {
     if (!(v > 0)) return 'Off';
-    if (k === 'warnBoost') return us ? Math.round(v * 14.5038) + ' psi' : v.toFixed(1) + ' bar';
+    if (k === 'warnBoost' || k === 'warnOilP') return (k === 'warnOilP' ? 'under ' : '') + (us ? Math.round(v * 14.5038) + ' psi' : v.toFixed(1) + ' bar');
     return us ? Math.round(v * 9 / 5 + 32) + ' °F' : v + ' °C';
 }
 /** a "timeZone" setting value as the row shows it (shared/tz.js) */

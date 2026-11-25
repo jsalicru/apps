@@ -108,6 +108,7 @@ class Car {
         this.S = Object.assign({}, SCALE, over);
         this.live = {}; this.lastCar = 0; this.listeners = [];
         this.sim = new Sim(); this.simData = this.sim.sample();
+        this.counts = {};
         this.demoActive = false; this.guess = new GearGuess();
         const sc = (k, raw) => {
             const c = this.S[k];
@@ -117,6 +118,7 @@ class Car {
         const put = (k, v, tick) => {
             if (v === null || v === undefined || (typeof v === 'number' && !isFinite(v))) return;
             this.live[k] = v; this.lastCar = Date.now();
+            this.counts[k] = (this.counts[k] || 0) + 1;      // readings per field, for an app's readings check
             // learned gear while driving; nothing at a standstill - the guess can't tell P, N or D
             // there, and "N" shown in park or in D was wrong
             if (k === 'rpm' || k === 'speed') { const g = this.guess.feed(this.live.rpm, this.live.speed); if (g !== null || this.live.speed < 3) this.guessed = this.live.speed < 3 ? undefined : g; }
@@ -151,13 +153,18 @@ class Car {
         // negative torque (engine braking while the rpm falls) counts as 0
         if (groups.includes('torque')) add('de.bmw.infotainment.drivingexcitement.FES', 'statusActualValueTorque2', (v) => { const tq = sc('torque', v.actualValueTorqueCrankshaft); put('torque', tq === null ? null : Math.max(0, tq)); });
         // extra[iface].$pollMs: re-read that interface's fields that often (signals.js), for fields the car never notifies
-        const pollMs = {};
-        Object.keys(extra || {}).forEach((iface) => Object.keys(extra[iface]).forEach((f) => { if (f === '$pollMs') pollMs[iface] = extra[iface][f]; else add(iface, f, extra[iface][f]); }));
+        // extra[iface].$instance: the instance to subscribe (the one its app.json "_instances" names), "1" by default
+        const pollMs = {}, inst = {};
+        Object.keys(extra || {}).forEach((iface) => Object.keys(extra[iface]).forEach((f) => {
+            if (f === '$pollMs') pollMs[iface] = extra[iface][f];
+            else if (f === '$instance') inst[iface] = extra[iface][f];
+            else add(iface, f, extra[iface][f]);
+        }));
         // a parked car sends nothing new for minutes (fields are notified on change), so "no data for
         // a while" doesn't mean "no car": once a signal's provider is there, stay on live data
         this.subs = [];
         this.t0 = Date.now();
-        Object.keys(watches).forEach((iface) => ctx.signals.watch(iface, '1', watches[iface], this.log, pollMs[iface] ? { pollMs: pollMs[iface] } : undefined)
+        Object.keys(watches).forEach((iface) => ctx.signals.watch(iface, inst[iface] || '1', watches[iface], this.log, pollMs[iface] ? { pollMs: pollMs[iface] } : undefined)
             .then((s) => { this.subs.push(s); this.log.info('signal ' + iface.split('.').pop() + (s.error ? ' error: ' + s.error : ' subscribed')); }));
 
         // demo feed (20 Hz) - also keeps the sim warm so switching is seamless. On a busy or

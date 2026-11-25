@@ -123,6 +123,8 @@ class ClusterRender extends EventEmitter {
         this.inbuf = Buffer.alloc(0);
         this.backend = '';
         this.targets = '';
+        this.hostLayers = false;   /* the service takes a host from layers (hello host_layers 1) */
+        this.hosts = new Map();      /* 'into target' -> host message, sent again after each hello */
     }
 
     connect() {
@@ -208,6 +210,8 @@ class ClusterRender extends EventEmitter {
         if (ev.ev === 'hello') {
             this.backend = ev.backend;
             this.targets = ev.targets;
+            this.hostLayers = ev.host_layers === 1;
+            if (this.hostLayers) this.hosts.forEach((m) => this._send(m));
             this.ready = true;
             this.backoff = 0;
             this._pump();
@@ -222,6 +226,10 @@ class ClusterRender extends EventEmitter {
             this.emit('refused', ev.op, ev.ref, ev.reason);
         } else if (ev.ev === 'status') {
             this.emit('status', ev.text);
+        } else if (ev.ev === 'hosting') {
+            this.emit('hosting', ev.target, ev.into, ev.state, ev.reason || '', ev.by || '');
+        } else if (ev.ev === 'host') {
+            this.emit('host', ev.target, ev.into || '', ev.shown);
         }
     }
 
@@ -532,6 +540,27 @@ class ClusterRender extends EventEmitter {
     }
 
     status() { this._send({ op: 'status' }); }
+
+    /*
+     * Host another target (the Waze map, "map") in this client's layers on
+     * `into` (PROTOCOL.md "Hosting from layers"): opts { x, y, w, h } the
+     * rect on `into`, src_x/src_y/src_w/src_h the part of the target shown
+     * (all four or none), shown (default 1). Kept and sent again after each
+     * hello; only to a service with host_layers (an older one waits).
+     */
+    host(into, target, opts) {
+        const m = { op: 'host', into: into, target: target, x: Math.round(opts.x), y: Math.round(opts.y),
+            w: Math.round(opts.w), h: Math.round(opts.h), shown: opts.shown === 0 ? 0 : 1 };
+        if (isFinite(opts.src_w)) ['src_x', 'src_y', 'src_w', 'src_h'].forEach((k) => { m[k] = Math.round(opts[k]); });
+        this.hosts.set(into + ' ' + target, m);
+        if (this.ready && this.hostLayers) this._send(m);
+    }
+
+    /* End this client's host of `target` on `into` (sent even when none is kept). */
+    unhost(into, target) {
+        this.hosts.delete(into + ' ' + target);
+        if (this.ready && this.hostLayers) this._send({ op: 'unhost', into: into, target: target });
+    }
 }
 
 module.exports = { ClusterRender, DEFAULT_PATH };

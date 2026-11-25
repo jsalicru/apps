@@ -204,7 +204,7 @@ const renderServer = net.createServer((sock) => {
             st.app = m.app || '?';
             if (m.proto !== 1) bad('hello proto ' + m.proto + ', service speaks 1');
             log('info', 'renderer: hello from ' + st.app + ' (proto ' + m.proto + ')');
-            writeEv(sock, { ev: 'hello', backend: 'bench', targets: Object.keys(TARGETS).join(',') });
+            writeEv(sock, { ev: 'hello', backend: 'bench', targets: Object.keys(TARGETS).join(','), host_layers: 1 });
             return;
         }
         if (!st.hello) return bad(m.op + ' before hello');
@@ -329,6 +329,21 @@ const renderServer = net.createServer((sock) => {
                 sceneChanged();
                 return;
             }
+            case 'host': {
+                // hosting from layers (PROTOCOL.md): checked and logged; the bench draws no map, its backdrop stands in
+                if (!m.into || m.ref !== undefined) return bad('host: needs "into" and no "ref" (hosting from layers)');
+                if (!(m.w >= 64 && m.h >= 32) || (m.src_w !== undefined && !(m.src_w >= 64 && m.src_h >= 32))) {
+                    writeEv(sock, { ev: 'error', op: 'host', target: m.target, into: m.into, reason: 'the rect or part is smaller than 64x32' });
+                    return;
+                }
+                log('info', 'renderer: ' + st.app + ' hosts ' + m.target + ' on ' + m.into + ' at ' + [m.x, m.y, m.w, m.h].join(',') +
+                    (m.src_w !== undefined ? ', part ' + [m.src_x, m.src_y, m.src_w, m.src_h].join(',') : '') + (m.shown === 0 ? ' (not shown)' : ''));
+                writeEv(sock, { ev: 'hosting', target: m.target, into: m.into, state: m.shown === 0 ? 'waiting' : 'live', reason: m.shown === 0 ? 'it shows the target nowhere (shown 0)' : '', by: '' });
+                return;
+            }
+            case 'unhost':
+                log('info', 'renderer: ' + st.app + ' ends its host of ' + m.target + ' on ' + m.into);
+                return;
             case 'status':
                 const conns = new Set(Array.from(layers.values()).map((l) => l.conn)).size;
                 const assets = layers.size - layerCount();
