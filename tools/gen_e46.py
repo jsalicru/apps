@@ -197,12 +197,12 @@ def text_at(wid, text, fname, cx, cy, color='mark', align='center'):
 def layout():
     dials, needles = [], []
     spec = [  # (dial, signal, pivot, needle length, width, hub, tail, map, rest)
-        (FUEL, 'fuel', FUEL['pivot'], 165, 11, 42, 0, [(0, -40), (1, 40)], -46),
-        # the big needles reach well into the ticks (272 of their 250 .. 281), 16 wide at the hub (as the real car's, photos
+        (FUEL, 'fuel', FUEL['pivot'], 165, 8.87, 42, 0, [(0, -40), (1, 40)], -46),
+        # the big needles reach well into the ticks (272 of their 250 .. 281), as wide as the E36's (10.75 cluster px at the hub, the small ones 8.36; as the real car's, photos
         # Nov 24 2026); the hubs' tab (tail < 0: its size)
-        (SPD, 'speed', SPD['pivot'], 272, 16, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
-        (TACH, 'rpm', TACH['pivot'], 272, 16, 46, -21, [(0, rpm_ang(0)), (9000, rpm_ang(9)), (9600, rpm_ang(9) + 4)], rpm_ang(0) - 3),
-        (COOL, 'coolant', COOL['pivot'], 165, 11, 42, 0,
+        (SPD, 'speed', SPD['pivot'], 272, 11.4, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
+        (TACH, 'rpm', TACH['pivot'], 272, 11.4, 46, -21, [(0, rpm_ang(0)), (9000, rpm_ang(9)), (9600, rpm_ang(9) + 4)], rpm_ang(0) - 3),
+        (COOL, 'coolant', COOL['pivot'], 165, 8.87, 42, 0,
          COOL_MAP, -47),
     ]
     for d, sig, piv, nl, nw, hub, tail, mp, rest in spec:
