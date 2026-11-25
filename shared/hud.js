@@ -828,6 +828,8 @@ class HudApp {
 
     /** A setting's value, or its default when the saved value isn't one the schema allows. */
     setting(key) {
+        // "redline": the active layout's own (layout "redline", e.g. the E36's 7200) wins over the Redline setting
+        if (key === 'redline' && isNum(this.layoutRedline)) return this.layoutRedline;
         // "mapUp": not saved, the Waze map is showing inside the theme now (the setting on, waze.js says so)
         if (key === 'mapUp') return !!(this.waze && this.waze.up && this.ctx.settings.get('mapInTheme') === true);
         // "uTemp" / "uPress": not saved, 'us' or 'metric' for temperatures / pressures as the readings show them (the
@@ -2285,6 +2287,7 @@ class HudApp {
         this.stallTimers.forEach((t) => clearTimeout(t)); this.stallTimers.clear();
         this.refused = null;
         clearTimeout(this.statusAskT); this.statusAskT = null;
+        this.layoutRedline = null;       // a layout's own "redline" (rpm) stands in for the setting while it shows (below)
         this.car.setRedline(this.setting('redline'));
         const name = this._layoutName();
         this.activeName = name;
@@ -2306,6 +2309,7 @@ class HudApp {
             return;
         }
         this.problem = null;
+        if (isNum(layout.redline)) { this.layoutRedline = layout.redline; this.car.setRedline(layout.redline); }
         this.mapWin = layout.widgets.find((w) => w.holeWhen === 'mapUp' && Array.isArray(w.hole) && w.hole[2] >= 64 && w.hole[3] >= 32
             && !(w.toggle && !this._toggleOn(w.toggle))) || null;   // the one shown (Apex has a second dash for camera cars)
         this.mapLayout = !!this.mapWin;
