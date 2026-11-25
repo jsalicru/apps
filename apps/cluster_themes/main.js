@@ -66,11 +66,11 @@ mgu.run({
             tabs: ['look', 'readouts', 'badge', 'map', 'alerts', 'gmeter', 'settings'],
             // the Settings tab lists these only while Apex is on the cluster (shared/page.js); not listed: every theme
             settingThemes: {
-                tempUnits: ['apex'], pressureUnits: ['apex'], shiftLight: ['apex'], backdrops: ['apex'], apexBackdrop: ['apex'], apexFont: ['apex'], tachStyle: ['apex'], apexZones: ['apex'], tachResponse: ['apex'],
+                tempUnits: ['apex'], pressureUnits: ['apex'], shiftLight: ['apex'], backdrops: ['apex'], apexBackdrop: ['apex'], apexDial: ['apex'], apexFont: ['apex'], tachStyle: ['apex'], apexZones: ['apex'], tachResponse: ['apex'],
                 gearStyle: ['apex'], gearSource: ['apex'], tachSpeed: ['apex'], readingsCheck: ['apex'], dialGlow: ['apex'], leftStyle: ['apex'],
                 leftTop: ['apex'], leftBottom: ['apex'], gaugeFill: ['apex'], rightPanel: ['apex'],
             },
-            settings: ['units', 'tempUnits', 'pressureUnits', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'gearGap', 'sweepColor', 'revScale', 'sweepCenter', 'intakeBar', 'showEthanol', 'shiftFlash', 'shiftLight', 'nightDim', 'smoothRevs', 'backdrops', 'apexBackdrop', 'apexFont', 'tachStyle', 'apexZones', 'tachResponse', 'gearStyle', 'gearSource', 'tachSpeed', 'readingsCheck', 'dialGlow', 'leftStyle', 'leftTop', 'leftBottom', 'gaugeFill', 'rightPanel', 'cameraNotch', 'holiday', 'demo'],
+            settings: ['units', 'tempUnits', 'pressureUnits', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'gearGap', 'sweepColor', 'revScale', 'sweepCenter', 'intakeBar', 'showEthanol', 'shiftFlash', 'shiftLight', 'nightDim', 'smoothRevs', 'backdrops', 'apexBackdrop', 'apexDial', 'apexFont', 'tachStyle', 'apexZones', 'tachResponse', 'gearStyle', 'gearSource', 'tachSpeed', 'readingsCheck', 'dialGlow', 'leftStyle', 'leftTop', 'leftBottom', 'gaugeFill', 'rightPanel', 'cameraNotch', 'holiday', 'demo'],
             // the drive mode check's candidates this app's app.json listens to (issue #8; shared/hud.js modeDiagLines)
             modeCheck: ['HMI', 'MDrive', 'Engine', 'Sport2'],
         }).start();

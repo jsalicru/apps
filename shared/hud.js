@@ -407,7 +407,7 @@ function cachedText(w, h, s, o) {
 }
 // settings that always rebuild (they pick another layout, change the theme's colours or what is placed where); every
 // other setting first tries _softSwitch, which swaps text in the layers already on the cluster
-const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont', 'smoothRevs'];
+const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont', 'smoothRevs', 'apexDial'];
 // (0.17.4: "Leave BMW's bottom strip clear" is gone. Since 0.17.0 every cluster theme ends above BMW's strip anyway;
 // its squeeze to 662 / 720 only lifted the theme off the bottoms of BMW's own gauges, car photo Nov 14 2026.)
 // settings that only change what a text shows (the next tick paints it), no rebuild
@@ -840,7 +840,10 @@ class HudApp {
     _us(kind) { return sensors.imperial((k) => this.setting(k), kind); }
 
     /** Whether this widget's revs go on the renderer's clock ("smoothRevs", REV_PATH_TYPES). */
-    _revTimed(w) { return !!REV_PATH_TYPES[w.type] && this.setting('smoothRevs') === true; }
+    _revTimed(w) { return !!REV_PATH_TYPES[w.type] && this.setting('smoothRevs') === true && (w.type !== 'cdash' || this._apexNew()); }
+
+    /** "apexDial": New (0.21.0's finishes, warm-up zones' colours, smooth revs) or Classic (the dial as imported, the default). */
+    _apexNew() { return this.setting('apexDial') === 'new'; }
 
     /**
      * The revs (v, 0..1 of the widget's scale, what its tick would send) as a path in the renderer's clock (u_revT,
@@ -2580,7 +2583,7 @@ class HudApp {
             const base = { target: this.target, klass: w.class || 'content', z: w.z || 0, x: w.x, y: w.y, w: w.w, h: w.h };
             if (IMAGE_TYPES[w.type]) ref = c.image(Object.assign({ iw: w.w, ih: w.h }, w.type === 'nav' ? this._navImage(w) : null, base));
             // the E36's needles read the renderer's clock (u_time): they are sent as paths in it
-            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : shaders[w.type] },
+            else ref = c.effect(Object.assign({ fs: w.type === 'swatch' ? calibration.SWATCH : w.type === 'cdash' && !this._apexNew() ? shaders.cdashClassic : shaders[w.type] },
                 w.type === 'e36needles' || this._revTimed(w) ? { time: true } : null, base));
             if (!ref) { this.log.warn('widget "' + w.id + '": layer refused'); return; }
             this.placed.push({ c, ref, x: w.x, y: w.y, w: w.w, h: w.h });
@@ -3179,7 +3182,7 @@ class HudApp {
         x.c.uniform(x.ref, 'u_plain', [this.setting('backdrops') === false ? 1 : 0]);
         if (x.w.type === 'cdash') {
             x.c.uniform(x.ref, 'u_bgStyle', [this.setting('apexBackdrop') === 'carbon' ? 1 : 0]);
-            x.c.uniform(x.ref, 'u_tachStyle', [{ machined: 1, segments: 2, layered: 3, segLayered: 4 }[this.setting('tachStyle')] || 0]);
+            if (this._apexNew()) x.c.uniform(x.ref, 'u_tachStyle', [{ machined: 1, segments: 2, layered: 3, segLayered: 4 }[this.setting('tachStyle')] || 0]);
         }
         if (x.w.type === 'adash') x.c.uniform(x.ref, 'u_bgStyle', [{ carbon: 1, metal: 2 }[this.setting('aeroBackdrop')] || 0]);
     }
@@ -3785,7 +3788,7 @@ class HudApp {
             x.last = key;
             x.c.uniform(x.ref, 'u_shift', sh);
             x.c.uniform(x.ref, 'u_zone', zone);
-            x.c.uniform(x.ref, 'u_wave', [wave, dyn]);
+            if (this._apexNew()) x.c.uniform(x.ref, 'u_wave', [wave, dyn]);   // the Classic dial has no u_wave
             x.c.uniform(x.ref, 'u_tyre', ts);
             x.c.uniform(x.ref, 'u_tachA', [T[4], T[5], T[6], rv]);
             const bu = [];

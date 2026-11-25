@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 25 2026
+
+- **P3 Clusters 0.22.1 (Apex):** picking Apex (its defaults: lit segments in layered rings, warm-up red zone) made the cluster restart three times and shut off. Apex now draws its dial with the code it had at 0.20.1, the last that ran on the car, by default (**Dial: Classic**); **Dial: New (test)** brings back the tach finishes, the warm-up colours and Smoother revs on Apex, to try once the cause is found. Sweep's type, the warm-up red zone's position and the shift flash stay on Classic.
+
 ## Nov 24 2026
 
 - **P3 Clusters 0.22.0 / HUD Widgets 0.14.12:** frame-rate work on every theme. **Smoother revs** (a new setting, off by default; Apex, Sweep, Ribbon): the revs go to the cluster as a path in its own clock, like the E36 and E46 needles, so the tach band and needle, Sweep's sweep and Ribbon's line move on every display frame instead of 20 times a second; the GPU then redraws that layer every frame, so try it on the car. The E36 and E46 needles' layer (drawn every frame) now skips all but the pixels near a needle or hub; Apex's dial skips every pixel outside it. Labels that only change with the settings are looked at every 2 s instead of 20 times a second, on every theme (HUD Widgets too). Apex's boost, hp and torque readouts redraw 10 times a second instead of 20. Nothing should look different.
