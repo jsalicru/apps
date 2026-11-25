@@ -206,14 +206,13 @@ def rev_face(redline):
     if top == 8:
         # the M3 face as the real E36 M3 prints it (photo, Nov 24 2026), placed as Jose asked: the red on the ticks' own
         # ring (the thousands' outer radius and length); three thin dashes centred on the 7, the middle one the white 7
-        # mark itself, red either side of it; then solid red from the redline, stopping short of the white 8 mark. No
+        # mark itself, a red one spaced out either side of it; then solid red from the redline, stopping short of the white 8 mark. No
         # half-thousand mark under the red
         span = 1000 * top - redline
         r0, r1 = REV_TICK[0] - REV_TICK[1], REV_TICK[0]
-        step = 70                      # rpm from one dash to the next
-        mid = 1000 * (top - 1)
-        zones = [[2, at(redline), at(redline + 0.92 * span), r0, r1, 'red'],
-                 [2, at(mid - 1.5 * step), at(mid + 1.5 * step), r0, r1, 'red', 3]]
+        mid, gap, dash = 1000 * (top - 1), 115, 70     # the red dashes 115 rpm either side of the 7; each one stripe
+        zones = [[2, at(redline), at(redline + 0.92 * span), r0, r1, 'red']]    # in the middle 60 % of its 70 rpm
+        zones += [[2, at(c - dash / 2), at(c + dash / 2), r0, r1, 'red', 1] for c in (mid - gap, mid + gap)]
         halves = 1 + sum(1 for k in range(top) if redline <= 1000 * k + 500 < 1000 * top)
     else:
         zones = ([[2, at(redline - REV_RED[top][0]), REV_END, 199, 226, 'red']]
