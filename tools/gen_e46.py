@@ -109,18 +109,21 @@ TICKS = [
     [1, mph_ang(80), mph_ang(125), 10, 283, 29, 10, 2.55],
     [1, mph_ang(130), mph_ang(180), 11, 283, 29, 10, 2.55],
     [1, kmh_ang(10), kmh_ang(300), 30, 172, 5, 5, 1],         # the inner km/h ring, a dot every 10
-    [2, rpm_ang(0), rpm_ang(9), 19, 281, 31, 10, 2.29],      # 0 .. 9 thousand, a dot at each half between
+    [2, rpm_ang(0), rpm_ang(9), 19, 281, 31, 10, 2.99],      # 0 .. 9 thousand, a dot at each half between, inside the lamps
     [0, -23, 23, 2, 166, 9, 9, 1],                            # fuel: 1/4 and 3/4 dots (round the low pivot, near the rim);
                                                               # its 1/2 dash is a zone in the print's colour (ZONES)
     [3, -17, 17, 2, 187, 9, 9, 1],                            # coolant: two dots, no middle mark
 ]
+# the lamps' ring: inner and outer radius (render px)
+LAMP_R = (256, 281)
 # [dial, from angle, to angle, inner radius, outer radius, colour(, stripes)]
 ZONES = [
     # the E46 M3's lamps round the rev counter's rim, one in each 500 rpm step from 4000: yellow to 7000 (the warm-up
     # lamps: hud.js puts them out one by one from the lowest as the oil warms, WARM), orange to 7500, red to 9000 (always lit)
-    [2, rpm_ang(4.0), rpm_ang(7.0), 260, 276, 'yellow', 6],
-    [2, rpm_ang(7.0), rpm_ang(7.5), 260, 276, 'orange', 1],
-    [2, rpm_ang(7.5), rpm_ang(9.0), 260, 276, 'red', 3],
+    # (blocks between the marks, as the real car's: pill 2, from just outside the half-thousand dots to the rim)
+    [2, rpm_ang(4.0), rpm_ang(7.0), LAMP_R[0], LAMP_R[1], 'yellow', 6],
+    [2, rpm_ang(7.0), rpm_ang(7.5), LAMP_R[0], LAMP_R[1], 'orange', 1],
+    [2, rpm_ang(7.5), rpm_ang(9.0), LAMP_R[0], LAMP_R[1], 'red', 3],
     [0, -1.15, 1.15, 150, 172, 'mark'],                       # the fuel gauge's 1/2 dash (the shader takes 10 tick groups)
     [3, -42, -31, 168, 200, 'blue'],
     [3, 30, 41, 168, 200, 'red'],
@@ -213,7 +216,7 @@ def layout():
         'zones': [zone(z) for z in ZONES],
         'windows': [list(T(x, y)) + [L(w), L(h), L(r)] if w else [0, 0, 0, 0, 0] for x, y, w, h, r in WINDOWS],
         'strips': STRIPS, 'stripR': STRIP_R,
-        'chrome': CHROME, 'pill': True, 'warm': list(WARM), 'shift': list(SHIFT),
+        'chrome': CHROME, 'pill': 2, 'warm': list(WARM), 'shift': list(SHIFT),
     }
 
     # the oil gauge: its ticks (target px) and the needle's scale

@@ -2635,7 +2635,7 @@ class HudApp {
             // "needleColor": another role for the needles (the M3 face's red ones)
             c.uniform(ref, 'u_col', flat(E36_ROLES.map((r) => rgb(color(t, r === 'needle' && w.needleColor ? w.needleColor : r)))), { type: 'vec3' });
             // the E46's extras (gen_e46.py): chrome rings, lamp zones (and black lamp windows); none on the E36
-            c.uniform(ref, 'u_e46', [w.chrome || 0, w.pill ? 1 : 0, 0]);
+            c.uniform(ref, 'u_e46', [w.chrome || 0, w.pill === true ? 1 : (w.pill || 0), 0]);
             c.uniform(ref, 'u_face', F.box);
             c.uniform(ref, 'u_faceB', [F.radius, F.arch[0], F.arch[1], F.arch[2]]);
             c.uniform(ref, 'u_bezel', [F.bezel || 0]);
@@ -3463,7 +3463,7 @@ class HudApp {
             if (sh && isNum(rpm) && rpm >= sh[2] && Math.floor(now / SHIFT_BLINK_MS) % 2) out = -1;
             if (!force && out === x.last) return;
             x.last = out;
-            x.c.uniform(x.ref, 'u_e46', [w.chrome || 0, w.pill ? 1 : 0, out]);
+            x.c.uniform(x.ref, 'u_e46', [w.chrome || 0, w.pill === true ? 1 : (w.pill || 0), out]);
         } else if (w.type === 'shiftbar' || w.type === 'revarc') {
             const rpm = this._raw('rpm');
             const segs = w.segments || (w.type === 'revarc' ? 30 : 40);
