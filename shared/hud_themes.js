@@ -311,6 +311,7 @@ THEMES.e46m3 = Object.assign({}, THEMES.e36, {
     needle: [228, 80, 48, 255], mneedle: [228, 80, 48, 255], hub: [20, 20, 20, 255],   // matte orange-red (photo)
     red: [236, 18, 14, 255], blue: [36, 108, 232, 255], orange: [255, 140, 0, 255],
     well: [42, 11, 2, 255], lcd: [255, 128, 12, 255], strip: [0, 0, 0, 255],
+    lampOff: [92, 90, 88, 255],    // the low-fuel light, off: a lighter grey than the dial (lit: orange, as the rev lamps)
     night: {     // after sunset: halfway between two night photos of real E46 M3s (design/photos/e46m3-night-car.webp,
                  // yellow, and e46m3-night-car2.webp, amber-orange; 0.26.6): warm yellow-amber print on dark
                  // olive-brown dials, orange needles, the rings and pre-warning lamps glowing amber-yellow (the shader,
@@ -319,6 +320,7 @@ THEMES.e46m3 = Object.assign({}, THEMES.e36, {
         bezel: [3, 2, 1, 255], face: [7, 5, 2, 255], dial: [45, 30, 6, 255], mark: [244, 192, 76, 255],
         needle: [242, 147, 46, 255], mneedle: [242, 147, 46, 255], hub: [4, 3, 2, 255],
         red: [240, 32, 26, 255], blue: [162, 130, 30, 255], orange: [222, 182, 58, 255],
+        lampOff: [72, 54, 20, 255],
         well: [127, 34, 10, 255], lcd: [255, 182, 136, 255], strip: [0, 0, 0, 255],
     },
 });

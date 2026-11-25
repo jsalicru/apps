@@ -2137,10 +2137,22 @@ void main() {
         vec2 ed = p - u_econ.xy;
         vec2 u = dir(u_econB.x);
         float t = dot(ed, u), side = abs(ed.x * u.y - ed.y * u.x);
-        float nd = max(side - u_econB.y * 0.5, max(-t, t - u_econ.z));
+        // the E46's flat needles (u_e46n 2): tapered, shadowed and edged as the dials' own (parts(), below)
+        bool flat46 = u_e46n > 1.5 && u_light > 0.5;
+        float ew = u_e46n > 1.5 ? mix(u_econB.y, u_econB.y * 0.55, clamp(t / u_econ.z, 0.0, 1.0)) * 0.5 : u_econB.y * 0.5;
+        float nd = max(side - ew, max(-t, t - u_econ.z));
+        if (u_e46n > 1.5) {   // its shadow, 3, 8 px off, as the dials' needles cast
+            vec2 sd = ed - vec2(3.0, 8.0);
+            float st = dot(sd, u), ss = abs(sd.x * u.y - sd.y * u.x);
+            float sw = mix(u_econB.y, u_econB.y * 0.55, clamp(st / u_econ.z, 0.0, 1.0)) * 0.5;
+            float m = clamp(0.5 - max(ss - sw, max(-st, st - u_econ.z)) / 7.0, 0.0, 1.0) * (0.3 + 0.2 * u_light) * inWin;
+            float o = m + al * (1.0 - m);
+            c = c * al * (1.0 - m) / max(o, 0.0001); al = o;
+        }
         float n = cov(nd) * inWin;
         bool glowE = u_e46n > 0.5 && (u_e46n < 1.5 || u_light < 0.5);
-        vec3 nc = glowE ? glowc(u_col[0], clamp(side / (u_econB.y * 0.5), 0.0, 1.0)) : u_col[0];
+        vec3 nc = glowE ? glowc(u_col[0], clamp(side / ew, 0.0, 1.0))
+            : flat46 ? mix(u_col[0], u_col[0] * 0.82, smoothstep(0.6, 1.0, side / max(ew, 0.5))) : u_col[0];
         if (glowE) { float g = 0.4 * exp(-max(nd, 0.0) / 4.0) * inWin; c = mix(c, u_col[0], g * (1.0 - al)); al = max(al, g); }
         c = mix(c, nc, n); al = max(al, n);
         if (u_econH > 0.0) {
