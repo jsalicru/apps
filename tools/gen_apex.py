@@ -32,7 +32,9 @@ OWN_IDS = ('gear', 'gear_s', 'gear_m', 'gear_ms', 'speed', 'speed_m', 'gear_c', 
                                                         # small picture's changed rect, not a rect of a big shared sheet
 MAP_FEATHER = 80              # the window's edge fades into the dial over this many px (inward), under the numbers
 MAP_R = 262                   # the map window's radius, to the tick marks (Waze draws its map in this square: hud.js _mapHost)
-ZONES = [6500, 7000]          # amber from 6500 rpm, red from 7000
+ZONES = [6500, 7000]          # amber from 6500 rpm, red from 7000 ("Red zone (Apex)" on Fixed)
+# "Red zone (Apex)" on Warm-up, as Sweep's: red from 4000 rpm below 120°F oil, rising to the Redline setting by 160°F
+COLD_LIMIT = [48.89, 71.11, 4000]
 # "Leave room for the driver camera" (cameraNotch; visible.CAMERA 760..1160 x 0..110): the tach smaller and lower, clear
 # of the camera at the top and above the bottom strip; everything in it moves with it (a second set, toggled)
 CAM = 'cameraNotch'
@@ -87,6 +89,99 @@ BAR = ['uPress=metric']
 DEGF = ['uTemp=us']
 DEGC = ['uTemp=metric']
 
+
+# "Type (Apex)" on Wide: every font swapped for a Michroma twin like Sweep's (fonts sw_*, made from the a_* sizes so each
+# text still fits its box): font -> [Michroma twin, px to move it down so it sits where the original did]
+SWEEP_FONTS = {
+    "a_gear": [
+        "sw_a_gear",
+        1
+    ],
+    "a_gear_c": [
+        "sw_a_gear_c",
+        0
+    ],
+    "a_gear_m": [
+        "sw_a_gear_m",
+        1
+    ],
+    "a_gear_ms": [
+        "sw_a_gear_ms",
+        1
+    ],
+    "a_gear_s": [
+        "sw_a_gear_s",
+        1
+    ],
+    "a_gear_s_c": [
+        "sw_a_gear_s_c",
+        0
+    ],
+    "a_head": [
+        "sw_a_head",
+        9
+    ],
+    "a_lim": [
+        "sw_a_lim",
+        2
+    ],
+    "a_sm": [
+        "sw_a_sm",
+        1
+    ],
+    "a_speed": [
+        "sw_a_speed",
+        2
+    ],
+    "a_speed_c": [
+        "sw_a_speed_c",
+        3
+    ],
+    "a_speed_m": [
+        "sw_a_speed_m",
+        0
+    ],
+    "a_tach": [
+        "sw_a_tach",
+        -1
+    ],
+    "a_tach_c": [
+        "sw_a_tach_c",
+        0
+    ],
+    "a_tp": [
+        "sw_a_tp",
+        2
+    ],
+    "a_unit": [
+        "sw_a_unit",
+        11
+    ],
+    "a_unit_c": [
+        "sw_a_unit_c",
+        9
+    ],
+    "m_tiny": [
+        "sw_m_tiny",
+        5
+    ],
+    "m_unit": [
+        "sw_m_unit",
+        4
+    ],
+    "r_label": [
+        "sw_r_label",
+        4
+    ],
+    "v_label": [
+        "sw_v_label",
+        3
+    ],
+    "v_title": [
+        "sw_v_title",
+        1
+    ],
+}
 
 def text(id_, x, y, w, h, t, font, color='fg', align='center', **kw):
     d = {'id': id_, 'type': 'text', 'z': 5, 'x': int(round(x)), 'y': int(round(y)), 'w': int(w), 'h': int(h),
@@ -163,6 +258,7 @@ def build():
         mr = int(round(MAP_R * sc))
         widgets.append({'id': 'dash_c' if cam else 'dash', 'type': 'cdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                         'tach': [cx, cy, r, int(round(BAND * sc)), START, SWEEP, THOUSANDS], 'zones': ZONES,
+                        'coldLimit': COLD_LIMIT, 'yellowLines': 2, 'waveBelow': 1200,
                         'panels': [640, 1280, 120, 660], 'bars': bars, 'lines': lines, 'glow': GLOW, 'car': CAR,
                         # the Waze map (Map tab): a round window in the dial, hosted there (hud.js _mapHost)
                         'hole': [cx - mr, cy - mr, 2 * mr, 2 * mr], 'holeWhen': 'mapUp', 'holeInset': 0,
@@ -290,6 +386,7 @@ def build():
                   'along the bottom. No map window. Full screen: the theme\'s own clock, range and outside temperature in '
                   'the strip, BMW\'s gear letter left uncovered.',
         'picks': PICKS,
+        'fontSets': {'setting': 'apexFont', 'sets': {'sweep': SWEEP_FONTS}},
         'widgets': widgets,
     }
 

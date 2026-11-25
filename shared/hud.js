@@ -394,7 +394,7 @@ function cachedText(w, h, s, o) {
 }
 // settings that always rebuild (they pick another layout, change the theme's colours or what is placed where); every
 // other setting first tries _softSwitch, which swaps text in the layers already on the cluster
-const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo'];
+const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont'];
 // (0.17.4: "Leave BMW's bottom strip clear" is gone. Since 0.17.0 every cluster theme ends above BMW's strip anyway;
 // its squeeze to 662 / 720 only lifted the theme off the bottoms of BMW's own gauges, car photo Nov 14 2026.)
 // settings that only change what a text shows (the next tick paints it), no rebuild
@@ -404,8 +404,8 @@ const CIRCUIT_COLORS = {
     yellow: { band: [0.95, 0.74, 0.04], ink: [255, 255, 255, 255] },
     blue: { band: [0.05, 0.33, 0.78], ink: [255, 255, 255, 255] },
 };
-const LOOK_KEYS = ['backdrops', 'apexBackdrop', 'aeroBackdrop'];   // only a dash's uniforms change (_dashLook): no rebuild
-const LIVE_KEYS = ['tachResponse', 'warnOil', 'warnCoolant', 'warnBoost', 'warnIntake', 'warnOilP', 'badge', 'badgeBMW', 'gFlipLat', 'gFlipLong', 'gRange', 'gTrail'];
+const LOOK_KEYS = ['backdrops', 'apexBackdrop', 'aeroBackdrop', 'tachStyle'];   // only a dash's uniforms change (_dashLook): no rebuild
+const LIVE_KEYS = ['tachResponse', 'apexZones', 'warnOil', 'warnCoolant', 'warnBoost', 'warnIntake', 'warnOilP', 'badge', 'badgeBMW', 'gFlipLat', 'gFlipLong', 'gRange', 'gTrail'];
 // g (after cauliflowermossgrape's G-Force, MIT, idea only): a sample over G_BAD is a bad reading, not a corner;
 // the rest are averaged over G_AVG_MS so kerbs and potholes don't throw the dot about
 const G_BAD = 3;
@@ -825,6 +825,17 @@ class HudApp {
 
     /** Whether `kind` ('temp', 'pressure', else speed and the rest) shows in US units (sensors.imperial). */
     _us(kind) { return sensors.imperial((k) => this.setting(k), kind); }
+
+    /**
+     * A layout's other font set (layout "fontSets": { setting, sets: { value: { font: [other font, baseline shift px] } } }):
+     * while that setting has that value, a text widget in one of those fonts is drawn in the other, moved down by the shift
+     * (Apex in Sweep's Michroma: the "apexFont" setting). Returns the widget itself, or a copy with the font swapped.
+     */
+    _fontSet(layout, w) {
+        const fs = layout.fontSets, set = fs && fs.sets && fs.sets[this.setting(fs.setting)];
+        const to = set && w.font && set[w.font];
+        return to ? Object.assign({}, w, { font: to[0], fontDy: to[1] || 0 }) : w;
+    }
 
     /** A setting's value, or its default when the saved value isn't one the schema allows. */
     setting(key) {
@@ -2338,7 +2349,8 @@ class HudApp {
         const keepStrip = this.setting('keepStrip') === true;
         const shown = layout.widgets.filter((w) => !(w.toggle && !this._toggleOn(w.toggle)) && !(w.toggle2 && !this._toggleOn(w.toggle2)) && !(w.themes && w.themes.indexOf(this.themeName) < 0)
             && !(keepStrip && w.stripRow))
-            .map((w) => (w.stripRow ? Object.assign({}, w) : w));
+            .map((w) => (w.stripRow ? Object.assign({}, w) : w))
+            .map((w) => this._fontSet(layout, w));
         this.shown = shown;              // for a scale to find its rev bar (driver camera wings)
         this._setNeeds(shown);
         // plan the layers first (a sheet's size is only known once every member is placed), then make them
@@ -3122,7 +3134,10 @@ class HudApp {
      */
     _dashLook(x) {
         x.c.uniform(x.ref, 'u_plain', [this.setting('backdrops') === false ? 1 : 0]);
-        if (x.w.type === 'cdash') x.c.uniform(x.ref, 'u_bgStyle', [this.setting('apexBackdrop') === 'carbon' ? 1 : 0]);
+        if (x.w.type === 'cdash') {
+            x.c.uniform(x.ref, 'u_bgStyle', [this.setting('apexBackdrop') === 'carbon' ? 1 : 0]);
+            x.c.uniform(x.ref, 'u_tachStyle', [{ machined: 1, segments: 2, layered: 3, segLayered: 4 }[this.setting('tachStyle')] || 0]);
+        }
         if (x.w.type === 'adash') x.c.uniform(x.ref, 'u_bgStyle', [{ carbon: 1, metal: 2 }[this.setting('aeroBackdrop')] || 0]);
     }
 
@@ -3329,18 +3344,18 @@ class HudApp {
             // "fit": smaller fonts to fall back on when the text is wider than the box (a readout slot showing a
             // longer value than its default) or has a character the font lacks (Retro's seven-segment digits have no
             // letters, + or °), on the same baseline
-            let font = w.font, offsetY = 0;
+            let font = w.font, offsetY = w.fontDy || 0;   // fontDy: a font set's baseline shift (_fontSet)
             // "ellipsis": a longer text (a song title) is cut to fit, ending in ...
             if (w.ellipsis && textRaster.measure(s, font, w.spacing) > w.w) {
                 let t = s;
                 while (t.length > 1 && textRaster.measure(t.replace(/\s+$/, '') + '...', font, w.spacing) > w.w) t = t.slice(0, -1);
                 s = t.replace(/\s+$/, '') + '...';
             }
-            if (lowFont) { offsetY = textRaster.loadFont(w.font).metrics.baseline - textRaster.loadFont(lowFont).metrics.baseline; font = lowFont; }
+            if (lowFont) { offsetY += textRaster.loadFont(w.font).metrics.baseline - textRaster.loadFont(lowFont).metrics.baseline; font = lowFont; }
             const has = (n) => { const g = textRaster.loadFont(n).metrics.glyphs; return s.split('').every((ch) => ch === ' ' || g[ch]); };
             if (w.fit && (textRaster.measure(s, font, w.spacing) > w.w || !has(font))) {
                 const f = w.fit.find((n) => has(n) && textRaster.measure(s, n, w.spacing) <= w.w) || w.fit[w.fit.length - 1];
-                offsetY = textRaster.loadFont(w.font).metrics.baseline - textRaster.loadFont(f).metrics.baseline;
+                offsetY = (w.fontDy || 0) + textRaster.loadFont(w.font).metrics.baseline - textRaster.loadFont(f).metrics.baseline;
                 font = f;
             }
             const opts = {
@@ -3696,11 +3711,31 @@ class HudApp {
                 const v = this._tyre('p', k);
                 return isNum(v) ? (Math.round(v * 14.5038) < low ? 2 : 1) : 0;
             }) : [0, 0, 0, 0];
-            const sh = this._shiftNow(now);
-            const key = [rv].concat(bv, ts, sh).join('|');
+            let sh = this._shiftNow(now);
+            // "Red zone (Apex)" on Warm-up (as Sweep's, layout "coldLimit" [cold oil °C, warm oil °C, cold red from rpm],
+            // "yellowLines", "waveBelow"): the red zone starts low on a cold engine and rises to the Redline setting as the
+            // oil warms, a yellow zone just under it; over the last "waveBelow" rpm before it the lit band turns yellow from
+            // the red zone back towards 0, and from the shift point the lit band flashes red about 5 times a second
+            const top = T[6] * 1000;
+            let zone = [(w.zones || [6500, 7000])[0] / top, (w.zones || [6500, 7000])[1] / top], wave = 1, dyn = 0;
+            if (this.setting('apexZones') !== 'fixed' && w.coldLimit) {
+                const redline = this.setting('redline'), oil = this._raw('oil'), C = w.coldLimit;
+                let limit = redline;
+                if (isNum(oil)) limit = Math.round((C[2] + (redline - C[2]) * Math.min(1, Math.max(0, (oil - C[0]) / (C[1] - C[0])))) / 50) * 50;
+                const yellow = (w.yellowLines || 2) * 100, waveAt = limit - (w.waveBelow || 1200), revs = rv * top;
+                zone = [(limit - yellow) / top, limit / top];
+                wave = revs <= waveAt ? 1 : Math.max(0, limit * (1 - (revs - waveAt) / (limit - waveAt)) / top);
+                wave = Math.round(wave * 400) / 400;
+                const shiftAt = limit - (isNum(this.setting('shiftBefore')) ? this.setting('shiftBefore') : 0);
+                sh = [0, this.setting('shiftLight') !== false && isNum(rpm) && rpm >= shiftAt && Math.floor(now / 100) % 2 === 0 ? 1 : 0];
+                dyn = 1;
+            }
+            const key = [rv].concat(bv, ts, sh, zone, wave).join('|');
             if (!force && key === x.last) return;
             x.last = key;
             x.c.uniform(x.ref, 'u_shift', sh);
+            x.c.uniform(x.ref, 'u_zone', zone);
+            x.c.uniform(x.ref, 'u_wave', [wave, dyn]);
             x.c.uniform(x.ref, 'u_tyre', ts);
             x.c.uniform(x.ref, 'u_tachA', [T[4], T[5], T[6], rv]);
             const bu = [];

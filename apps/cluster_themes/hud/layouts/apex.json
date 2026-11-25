@@ -69,6 +69,101 @@
       }
     }
   },
+  "fontSets": {
+    "setting": "apexFont",
+    "sets": {
+      "sweep": {
+        "a_gear": [
+          "sw_a_gear",
+          1
+        ],
+        "a_gear_c": [
+          "sw_a_gear_c",
+          0
+        ],
+        "a_gear_m": [
+          "sw_a_gear_m",
+          1
+        ],
+        "a_gear_ms": [
+          "sw_a_gear_ms",
+          1
+        ],
+        "a_gear_s": [
+          "sw_a_gear_s",
+          1
+        ],
+        "a_gear_s_c": [
+          "sw_a_gear_s_c",
+          0
+        ],
+        "a_head": [
+          "sw_a_head",
+          9
+        ],
+        "a_lim": [
+          "sw_a_lim",
+          2
+        ],
+        "a_sm": [
+          "sw_a_sm",
+          1
+        ],
+        "a_speed": [
+          "sw_a_speed",
+          2
+        ],
+        "a_speed_c": [
+          "sw_a_speed_c",
+          3
+        ],
+        "a_speed_m": [
+          "sw_a_speed_m",
+          0
+        ],
+        "a_tach": [
+          "sw_a_tach",
+          -1
+        ],
+        "a_tach_c": [
+          "sw_a_tach_c",
+          0
+        ],
+        "a_tp": [
+          "sw_a_tp",
+          2
+        ],
+        "a_unit": [
+          "sw_a_unit",
+          11
+        ],
+        "a_unit_c": [
+          "sw_a_unit_c",
+          9
+        ],
+        "m_tiny": [
+          "sw_m_tiny",
+          5
+        ],
+        "m_unit": [
+          "sw_m_unit",
+          4
+        ],
+        "r_label": [
+          "sw_r_label",
+          4
+        ],
+        "v_label": [
+          "sw_v_label",
+          3
+        ],
+        "v_title": [
+          "sw_v_title",
+          1
+        ]
+      }
+    }
+  },
   "widgets": [
     {
       "id": "dash",
@@ -92,6 +187,13 @@
         6500,
         7000
       ],
+      "coldLimit": [
+        48.89,
+        71.11,
+        4000
+      ],
+      "yellowLines": 2,
+      "waveBelow": 1200,
       "panels": [
         640,
         1280,
@@ -276,6 +378,13 @@
         6500,
         7000
       ],
+      "coldLimit": [
+        48.89,
+        71.11,
+        4000
+      ],
+      "yellowLines": 2,
+      "waveBelow": 1200,
       "panels": [
         640,
         1280,
