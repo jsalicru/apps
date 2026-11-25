@@ -154,22 +154,27 @@ TEXTS = [
     # lowered denominator; 1/2 high over its line, 1/1 above its mark's outer end
     ('1', 'e4_fr', 185.0, 335.0), ('/', 'e4_gl', 192.5, 340.0), ('2', 'e4_fr', 200.5, 346.0),
     ('1', 'e4_fr', 297.0, 376.0), ('/', 'e4_gl', 304.5, 381.0), ('1', 'e4_fr', 312.0, 387.0),
-    ('120', 'e4_oil', 1205.5, 509.5), ('210', 'e4_oil', 1320.5, 483.5), ('300', 'e4_oil', 1432.5, 514.0),
-    ('°F', 'e4_degf', 1402.0, 579.0),           # level with the oil can (its ink centre)
+    # the oil gauge's print as the real car's (photo, Nov 24 2026): 120 and 300 inside their long end marks, 210 under its
+    # short line, °F out to the right level with the hub
+    ('120', 'e4_oil', 1225.3, 531.2), ('210', 'e4_oil', 1320.0, 497.1), ('300', 'e4_oil', 1408.9, 529.3),
+    ('°F', 'e4_degf', 1448.8, 584.0),
 ]
 # icons by their ink: (name, ink centre x, y, ink height or width ('h' / 'w'), render px); ICON_INK: where each icon's
 # ink lies in its square (shared/icons.js, measured: x0, x1, y0, y1 as fractions)
-ICONS = [('fuel', 200.5, 455.5, 45, 'h'), ('e36cool', 1793.5, 446.0, 52, 'h'), ('e46oil', 1228.0, 579.0, 54, 'w')]
-ICON_INK = {'fuel': (0.080, 0.797, 0.220, 0.938), 'e36cool': (0.140, 0.858, 0.040, 0.978), 'e46oil': (0.035, 0.963, 0.247, 0.715)}
+# (the oil gauge: the oil can and a thermometer beside it, left of the hub, as the real car's)
+ICONS = [('fuel', 200.5, 455.5, 45, 'h'), ('e36cool', 1793.5, 446.0, 52, 'h'), ('e46oil', 1190.0, 588.0, 49, 'w'),
+         ('therm', 1233.0, 588.0, 28, 'h')]
+ICON_INK = {'fuel': (0.080, 0.797, 0.220, 0.938), 'e36cool': (0.140, 0.858, 0.040, 0.978), 'e46oil': (0.035, 0.963, 0.247, 0.715),
+            'therm': (0.280, 0.795, 0.070, 0.880)}
 LOGO = ('e36m', 660, 503, 96, 34)
 
 # the oil gauge at the rev counter's foot: upright, 120 .. 300 F, its pivot on the flat
 OIL_PIV = (1320.0, 575.0)
-OIL_ANG = lambda f: -63.0 + 126.0 * (f - 120) / 180.0
-# (F, width, inner and outer end): the end ticks short and out past their figures, as the render has them
-# a negative width: a round dot that wide at the tick's middle (all but the 210 line)
-OIL_TICKS = [(120, -7, 156, 170), (165, -8, 120, 136), (210, 6, 118, 137), (255, -8, 120, 136), (300, -7, 156, 170)]
-OIL_LEN, OIL_HUB = 132, 36
+OIL_ANG = lambda f: -70.0 + 140.0 * (f - 120) / 180.0      # 120 and 300 at 70 degrees either side (photo)
+# (F, width, inner and outer end), as the real car's (photo, Nov 24 2026): long marks at 120 and 300 out past their
+# figures, round dots at 165 and 255 (a negative width: a dot that wide at the tick's middle), a short line at 210
+OIL_TICKS = [(120, 4.5, 136, 170), (165, -11, 125, 134), (210, 5, 105, 124), (255, -11, 125, 134), (300, 4.5, 136, 170)]
+OIL_LEN, OIL_HUB = 121, 36
 
 # windows: the LCD, the top lamp, (none): x, y, w, h, radius, render px
 WINDOWS = [(740, 632, 500, 130, 8), (872, 22, 233, 76, 8), (0, 0, 0, 0, 0)]
@@ -201,12 +206,12 @@ def text_at(wid, text, fname, cx, cy, color='mark', align='center'):
 def layout():
     dials, needles = [], []
     spec = [  # (dial, signal, pivot, needle length, width, hub, tail, map, rest)
-        (FUEL, 'fuel', FUEL['pivot'], 165, 11, 42, 0, [(0, -40), (1, 40)], -46),
-        # the big needles reach well into the ticks (272 of their 250 .. 281), 16 wide at the hub (as the real car's, photos
+        (FUEL, 'fuel', FUEL['pivot'], 165, 8.87, 42, 0, [(0, -40), (1, 40)], -46),
+        # the big needles reach well into the ticks (272 of their 250 .. 281), as wide as the E36's (10.75 cluster px at the hub, the small ones 8.36; as the real car's, photos
         # Nov 24 2026); the hubs' tab (tail < 0: its size)
-        (SPD, 'speed', SPD['pivot'], 272, 16, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
-        (TACH, 'rpm', TACH['pivot'], 272, 16, 46, -21, [(0, rpm_ang(0)), (9000, rpm_ang(9)), (9600, rpm_ang(9) + 4)], rpm_ang(0) - 3),
-        (COOL, 'coolant', COOL['pivot'], 165, 11, 42, 0,
+        (SPD, 'speed', SPD['pivot'], 272, 11.4, 46, -21, MPH_TABLE + [(200, mph_ang(180) + 4)], mph_ang(0) - 3),
+        (TACH, 'rpm', TACH['pivot'], 272, 11.4, 46, -21, [(0, rpm_ang(0)), (9000, rpm_ang(9)), (9600, rpm_ang(9) + 4)], rpm_ang(0) - 3),
+        (COOL, 'coolant', COOL['pivot'], 165, 8.87, 42, 0,
          COOL_MAP, -47),
     ]
     for d, sig, piv, nl, nw, hub, tail, mp, rest in spec:
@@ -260,7 +265,7 @@ def layout():
     ny0 = max(0, math.floor(min(p[1] - k for p, k in reach)))
     ndl = {'id': 'needles', 'type': 'e36needles', 'class': 'content', 'z': 6, 'x': nx0, 'y': ny0, 'w': nx1 - nx0,
            'h': TOP - ny0, 'mph': True, 'dials': needles, 'look46': 2,
-           'econ': {'signal': 'oil', 'pivot': [px, py], 'top': top, 'len': L(OIL_LEN), 'width': L(10), 'cham': cham,
+           'econ': {'signal': 'oil', 'pivot': [px, py], 'top': top, 'len': L(OIL_LEN), 'width': L(8.87), 'cham': cham,
                     'tach': [cx, cy, r, cut], 'map': emap, 'rest': emap[0][1], 'hub': L(OIL_HUB)}}
 
     # the print
