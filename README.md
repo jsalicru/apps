@@ -31,7 +31,7 @@ Redraws the whole instrument cluster in a theme of your choice. Pick the theme o
     <td><img src="docs/images/p3-sweep.png" width="440" alt="Sweep theme"></td>
   </tr>
   <tr>
-    <td>A pure 90s E36 cluster: the 328i face, or the M3 face with its oil gauge and red needles, in mph or km/h. Orange-red lighting at night.</td>
+    <td>A pure 90s E36 cluster: the M3 face with its oil gauge and red needles, redlined at 7200 rpm, in mph or km/h. Orange-red lighting at night.</td>
     <td>A digital dash: a rev sweep across the top, the gear, boost, fuel, oil and water bars, and a window over BMW's map view.</td>
   </tr>
   <tr>
