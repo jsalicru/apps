@@ -36,13 +36,13 @@ FIT = [
     ('e4_mph', SEMI, 'MPH', 'MPH', 17, 44),              # MPH under the badge: spaced out, well under the render's 25 x 64
     ('e4_lab', SEMI, U + L + D + ' /', 'x1000', 25, 78), # 1/min, x1000: set tight
     ('e4_sm', SEMI, U + L + D + ' /°', 'km/h', 21, 52),  # km/h, miles, the LCD's units (°F / °C)
-    ('e4_gl', SEMIBOLD, D + '/', '0', 19.6, 11.9),           # the fuel gauge's 0, 1/2, 1/1 (width from 1/1 below)
+    ('e4_gl', SEMIBOLD, D + '/', '0', 24.0, 14.6),           # the fuel gauge's 0, 1/2, 1/1 (width from 1/1 below)
     ('e4_oil', SEMI, D, '210', 20.3, 35.7),                  # the oil gauge's 120 210 300
     ('e4_degf', SEMI, '°F', '°F', 17.5, 17.5),               # its °F
 ]
-WIDTH_ALSO = {'e4_gl': ('1/1', 25.9)}                    # fit the gap on this sample instead
+WIDTH_ALSO = {'e4_gl': ('1/1', 31.7)}                    # fit the gap on this sample instead
 FIXED = [('e4_lcd', 'DSEG7Classic-Bold.ttf', 40, D + '-.: '),
-         ('e4_fr', SEMI, 19, D)]                            # the fuel gauge's fractions' small figures
+         ('e4_fr', SEMI, 23, D)]                            # the fuel gauge's fractions' small figures
 
 
 def load(name):
