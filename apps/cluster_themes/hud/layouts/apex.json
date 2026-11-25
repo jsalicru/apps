@@ -1220,7 +1220,7 @@
       "font": "a_tp",
       "color": "fg",
       "align": "right",
-      "rate": 45,
+      "rate": 100,
       "toggle": "!leftStyle=gauges&left0=boost",
       "own": true,
       "conn": 2
@@ -1328,7 +1328,7 @@
       "color": "fg",
       "align": "right",
       "toggle": "leftStyle=gauges&left0=boost",
-      "rate": 45,
+      "rate": 100,
       "own": true,
       "conn": 2
     },
@@ -2436,7 +2436,7 @@
       "font": "a_tp",
       "color": "fg",
       "align": "right",
-      "rate": 45,
+      "rate": 100,
       "toggle": "!leftStyle=gauges&left1=boost",
       "own": true,
       "conn": 2
@@ -2544,7 +2544,7 @@
       "color": "fg",
       "align": "right",
       "toggle": "leftStyle=gauges&left1=boost",
-      "rate": 45,
+      "rate": 100,
       "own": true,
       "conn": 2
     },
@@ -3765,7 +3765,7 @@
       "font": "a_tp",
       "color": "fg",
       "align": "right",
-      "rate": 45,
+      "rate": 100,
       "toggle": "rightPanel=power",
       "conn": 1
     },
@@ -3845,7 +3845,7 @@
       "font": "a_tp",
       "color": "fg",
       "align": "right",
-      "rate": 45,
+      "rate": 100,
       "toggle": "rightPanel=power",
       "conn": 1
     },

@@ -25,7 +25,8 @@ CAR = [1570, 360, 50, 112]   # the tyre panel's car: centre x, y, half width, ha
 PERF, TYRES, POWER = 'rightPanel=performance', 'rightPanel=tyres', 'rightPanel=power'
 LBARS, LGAUGE = '!leftStyle=gauges', 'leftStyle=gauges'   # the left side's two styles
 LX0, LX1 = 110, 590            # the left panel's content
-FAST = 45                     # ms: the speed, gear and boost redraw on every 50 ms tick (other text every 200)
+FAST = 45                     # ms: the speed and gear redraw on every 50 ms tick (other text every 200)
+QUICK = 100                   # ms: boost, hp and torque ten times a second: twenty is a blur, and half the pictures sent
 FAST_IDS = ()   # Fast numbers withdrawn in 0.21.4: the GPU text (gtext) took the car's displays down (Nov 22 2026)
 OWN_IDS = ('gear', 'gear_s', 'gear_m', 'gear_ms', 'speed', 'speed_m', 'gear_c', 'gear_s_c', 'gear_m_c', 'gear_ms_c', 'speed_c', 'speed_m_c') + \
     tuple('%s%d%s_v' % (st, sp, k) for st in 'rg' for sp in (0, 1) for k in ('boost', 'oil', 'intake', 'oilP', 'coolant'))   # every pick's value alike (in-place switch)   # each on its own small image layer (0.21.5): a change uploads only that
@@ -203,7 +204,7 @@ def readout(n, x0, x1, y, label, tok, unit_tok, bar, lo, hi, toggle=None, conn=N
     """A left-panel block: label, a rule, the value and unit, the bar, min / max under it."""
     mid = (x0 + x1) / 2
     out = [text('r%s_l' % n, mid - 220, y + HEAD_DY, 440, HEAD_H, label, 'a_head', 'accent'),
-           text('r%s_v' % n, mid - 190, y + 79, 220, 38, tok, 'a_tp', 'fg', 'right', rate=FAST if tok in ('{{boost}}', '{{power}}', '{{torque}}') else None),
+           text('r%s_v' % n, mid - 190, y + 79, 220, 38, tok, 'a_tp', 'fg', 'right', rate=QUICK if tok in ('{{boost}}', '{{power}}', '{{torque}}') else None),
            text('r%s_u' % n, mid + 38, y + 84, 120, 36, unit_tok, 'm_unit', 'fg', 'left')]
     out += unit_labels('r%s_lo' % n, bar['x'] - 2, bar['y'] + 16, 80, 'left', lo)
     out += unit_labels('r%s_hi' % n, bar['x'] + bar['w'] - 78, bar['y'] + 16, 80, 'right', hi)
@@ -222,7 +223,7 @@ def gauge(n, y, label, tok, unit_tok, bar, scale_by_unit, toggle=None):
     the scale's numbers above the gauge (min, middle, max in red)."""
     t = LGAUGE + ('&' + toggle if toggle else '')
     out = [text('g%s_l' % n, LX0, y + HEAD_DY, 300, HEAD_H, label, 'a_head', 'accent', 'left', toggle=t),
-           text('g%s_v' % n, LX1 - 238, y + 3, 180, 38, tok, 'a_tp', 'fg', 'right', toggle=t, rate=FAST if tok == '{{boost}}' else None),
+           text('g%s_v' % n, LX1 - 238, y + 3, 180, 38, tok, 'a_tp', 'fg', 'right', toggle=t, rate=QUICK if tok == '{{boost}}' else None),
            text('g%s_u' % n, LX1 - 52, y + 8, 60, 36, unit_tok, 'm_unit', 'fg', 'left', toggle=t)]
     x0 = bar['x'] + bar['h'] / 2 * 0.45                       # the scale starts over the gauge's top-left corner
     ly = bar['y'] - bar['h'] / 2 - 14 - 10 - 27               # above the ticks

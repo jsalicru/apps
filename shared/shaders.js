@@ -2165,8 +2165,14 @@ void main() {
         if (n.x <= 0.0 || length(p - v.xy) > max(n.x, v.w) + n.y + 16.0) continue;
         K = float(i); V = v; N = n; PT = u_path[2 * i]; PA = u_path[2 * i + 1];
     }
+    vec2 d = p - V.xy, u = vec2(0.0, -1.0);
     if (K >= 0.0) {
-        vec2 d = p - V.xy, u = dir(ang(PT, PA));
+        // most of the dial's circle is far from its needle: only pixels within 30 px of the needle's line (its glow, its
+        // shadow 3, 8 px off) or of its hub and tab do the work below. Saves most of this layer's work on every frame
+        u = dir(ang(PT, PA));
+        if (abs(d.x * u.y - d.y * u.x) > N.y + 30.0 && length(d) > V.z + abs(V.w) + 30.0) K = -1.0;
+    }
+    if (K >= 0.0) {
         // its shadow first (over the economy needle, which lies lower): the needle stands off the dial, the light from
         // above and a little left. "Over" in straight alpha: what is drawn next covers what is under it
         vec3 s = parts(d - vec2(3.0, 8.0), u, V, N);
@@ -2699,6 +2705,9 @@ void main() {
     if (r > R) c += vec3(0.9, 0.06, 0.05) * 0.5 * u_shift.y * exp(-(r - R) / 22.0);
     if (u_mapHole.z <= 0.0)   // no drop shadow while the map shows
     c *= 1.0 - 0.85 * (1.0 - smoothstep(R + 6.0, R + (u_bgStyle > 0.5 ? 60.0 : 50.0), length(d - vec2(0.0, 14.0))));
+    // everything of the dial itself (face, bezel, band, marks, needle, sheen) lies within R + 21 px: a pixel further out
+    // skips it all (most of this full-width layer, on every frame it is drawn)
+    if (r < R + 26.0) {
     {
         vec3 face = mix(vec3(0.0), vec3(0.035, 0.036, 0.04), smoothstep(R * 0.3, R, r));
         if (u_tachStyle > 0.5) {
@@ -2820,6 +2829,7 @@ void main() {
         vec2 q = (d - vec2(-R * 0.35, -R * 0.55)) / vec2(R * 0.95, R * 0.5);
         c += vec3(0.05, 0.052, 0.058) * (1.0 - smoothstep(0.2, 1.0, length(q))) * smoothstep(R * 0.5, R * 0.62, r);
     }
+    }   // the dial
     // the line bars: track, red end zone, white fill to the value, a marker
     for (int i = 0; i < 8; i++) {
         vec4 b = u_bar[i];
@@ -3538,4 +3548,37 @@ void main() {
 }
 `;
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: RIBBON, deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES, twinface: TWINFACE, twinneedle: TWINNEEDLE, sweepdash: SWEEPDASH, cdash: CDASH, ldash: LDASH, gdash: GDASH, adash: ADASH, gtext: GTEXT };
+// The revs on the renderer's clock (the "smoothRevs" setting; hud.js REV_PATH): a layer made with "time" 1 gets u_time
+// every display frame, and the app sends the revs as a path in that clock (u_revT its four keys' times, the first in
+// u_time's seconds, the others after it; u_revV their values, 0..1 of the scale; shared/e36.js nextPathTo), so the
+// band and needle move on every frame instead of at the app's 20 Hz. u_revOn 0 (the setting off, or no path yet): the
+// tick's own value, as before. withRevPath(src, expr) adds this to a shader whose revs are the uniform expression
+// expr: every other use of expr reads g_rv, worked out once at the top of main().
+const REV_PATH = `
+uniform float u_time;
+uniform vec4 u_revT;
+uniform vec4 u_revV;
+uniform float u_revOn;
+float g_rv;
+float revPath(float tick) {
+    if (u_revOn < 0.5) return tick;
+    float s = u_time - u_revT.x;
+    s -= 3600.0 * floor((s + 1800.0) / 3600.0);
+    if (s < -0.25) return u_revV.x;
+    if (s < u_revT.y) return u_revV.x + (u_revV.y - u_revV.x) * s / max(u_revT.y, 0.0001);
+    if (s < u_revT.z) return u_revV.y + (u_revV.z - u_revV.y) * (s - u_revT.y) / max(u_revT.z - u_revT.y, 0.0001);
+    return u_revV.z + (u_revV.w - u_revV.z) * min(1.0, (s - u_revT.z) / max(u_revT.w - u_revT.z, 0.0001));
+}
+`;
+function withRevPath(src, expr) {
+    const at = src.indexOf('void main() {');
+    if (at < 0) throw new Error('withRevPath: no main()');
+    const head = src.slice(0, at), body = src.slice(at + 'void main() {'.length);
+    const esc = expr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const use = new RegExp('(^|[^A-Za-z0-9_])' + esc + '(?![A-Za-z0-9_])', 'g');
+    // uses in the helper functions above main() too, but not the uniform's own declaration
+    const head2 = head.split('\n').map((l) => (/^\s*uniform\b/.test(l) ? l : l.replace(use, '$1g_rv'))).join('\n');
+    return head2 + REV_PATH + 'void main() {\n    g_rv = revPath(' + expr + ');' + body.replace(use, '$1g_rv');
+}
+
+module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: withRevPath(RIBBON, 'u_value'), deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES, twinface: TWINFACE, twinneedle: TWINNEEDLE, sweepdash: withRevPath(SWEEPDASH, 'u_rpm'), cdash: withRevPath(CDASH, 'u_tachA.w'), ldash: LDASH, gdash: GDASH, adash: ADASH, gtext: GTEXT };
