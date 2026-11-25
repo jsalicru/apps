@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 24 2026
 
+- **P3 Clusters 0.21.6 (E46 M3):** long marks at the fuel gauge's 0 and 1/1, and a mark past each end of the coolant gauge's blue and red blocks, as on the real car.
 - **P3 Clusters 0.21.5 (E46 M3):** the oil temperature gauge as the real car's: long marks at 120 and 300 (now 70 degrees either side), dots at 165 and 255, a short line at 210, the figures inside the marks, a thermometer beside the oil can, °F level with the hub, and a shorter, slimmer needle.
 - **P3 Clusters 0.21.4 (E46 M3):** the needles as slim as the E36's, tapering the same way (the speedometer and rev needles were 16 wide at the hub; the fuel and coolant ones slimmer too).
 - **P3 Clusters 0.21.3 (E46 M3):** needles as the real car's by day: flat matte orange-red, a little wider and less tapered, no glow (they still glow at night). The print in Roboto Condensed Bold, a free stand-in for the real cluster's Univers 67 Bold Condensed.

@@ -41,7 +41,8 @@ FIT = [
     ('e4_degf', SEMI, '°F', '°F', 17.5, 17.5),               # its °F
 ]
 WIDTH_ALSO = {'e4_gl': ('1/1', 25.9)}                    # fit the gap on this sample instead
-FIXED = [('e4_lcd', 'DSEG7Classic-Bold.ttf', 40, D + '-.: ')]
+FIXED = [('e4_lcd', 'DSEG7Classic-Bold.ttf', 40, D + '-.: '),
+         ('e4_fr', SEMI, 19, D)]                            # the fuel gauge's fractions' small figures
 
 
 def load(name):
