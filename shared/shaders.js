@@ -1931,9 +1931,28 @@ void main() {
                 float ac = z.x + st * (li + 0.5);
                 float hw = (z.w - z.z) * 0.5;
                 vec2 q = vec2(abs(radians(a - ac)) * r, r - (z.z + z.w) * 0.5);
+                if (u_e46.y > 1.5) {
+                    // blocks, as the real E46 M3's (photo, Nov 24 2026): each lamp fills its step but for a thin gap at each
+                    // end (where the marks pass), slightly rounded, soft-edged like light through smoked glass. Unlit: a
+                    // smoky grey a little lighter than the face; lit: a warm glow, brightest in its middle, bleeding out
+                    float hl = min(radians(st) * r * 0.36, hw * 1.3);       // about square, a clear gap between
+                    vec2 e = abs(q) - vec2(hl, hw) + 4.0;
+                    float dp = length(max(e, 0.0)) + min(max(e.x, e.y), 0.0) - 4.0;
+                    float body = clamp(0.6 - dp / 1.8, 0.0, 1.0);
+                    if (k > 3.5) {
+                        vec3 smoke = mix(u_col[2], vec3(0.62, 0.6, 0.58), 0.3) * (0.88 + 0.24 * smoothstep(-hw, hw, -q.y));
+                        c = put(c, smoke, body * 0.9);
+                    } else {
+                        float core = 1.0 - 0.35 * smoothstep(0.0, 1.0, length(q / vec2(hl + 2.0, hw + 2.0)));
+                        c = mix(c, zc, 0.32 * (1.0 - smoothstep(0.0, 8.0, dp)));      // the glow round it
+                        c = put(c, mix(zc, vec3(1.0, 0.92, 0.82), 0.18 * (1.0 - core) + 0.0) * (0.75 + 0.35 * core), body);
+                        c = put(c, mix(zc, vec3(1.0, 0.85, 0.7), 0.4), body * 0.35 * (1.0 - smoothstep(0.0, hw * 0.9, abs(q.y + hw * 0.2))) * core);
+                    }
+                } else {
                 float dp = length(vec2(max(q.x - max(radians(st) * r * 0.2 - hw, 0.0), 0.0), q.y)) - hw;
                 if (k < 3.5) c = mix(c, zc, 0.38 * (1.0 - smoothstep(0.0, 9.0, dp)));       // a lit lamp's glow
                 c = put(c, zc * (1.0 + 0.25 * cov(abs(q.y + hw * 0.35) - hw * 0.3)), cov(dp));
+                }
             } else {
                 // n stripes, each in the middle 60 % of its step, so both ends of the zone fall in a gap (no sliver at the end)
                 if (n > 0.0) dd = max(dd, (abs(fract((a - z.x) / (z.y - z.x) * n) - 0.5) - 0.3) * radians(z.y - z.x) / n * r);
