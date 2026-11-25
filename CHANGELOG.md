@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 24 2026
 
+- **P3 Clusters 0.21.6 (E46 M3):** long marks at the fuel gauge's 0 and 1/1, and a mark past each end of the coolant gauge's blue and red blocks, as on the real car.
 - **P3 Clusters 0.21.3 (E46 M3):** needles as the real car's by day: flat matte orange-red, a little wider and less tapered, no glow (they still glow at night). The print in Roboto Condensed Bold, a free stand-in for the real cluster's Univers 67 Bold Condensed.
 - **P3 Clusters 0.21.2 (E46 M3):** the lamps round the rev counter are square blocks like the real car's, one between each pair of marks with a clear gap at each mark, soft-edged like light through smoked glass: unlit a smoky grey, lit glowing brightest in the middle. The half-thousand dots sit just inside them.
 - **P3 Clusters 0.21.1 (E36):** the red zone as the real E36 M3 prints it: on the ticks' own ring, three thin dashes centred on the 7 (the white 7 mark in the middle, a red dash spaced out either side), then solid red from the redline that stops short of the white 8 mark, with the white 7500 mark on it. Stripes no longer leave a sliver at their end.

@@ -110,9 +110,13 @@ TICKS = [
     [1, mph_ang(130), mph_ang(180), 11, 283, 29, 10, 2.55],
     [1, kmh_ang(10), kmh_ang(300), 30, 172, 5, 5, 1],         # the inner km/h ring, a dot every 10
     [2, rpm_ang(0), rpm_ang(9), 19, 281, 31, 10, 2.99],      # 0 .. 9 thousand, a dot at each half between, inside the lamps
+    [0, -40, 40, 2, 155, 31, 5],                              # fuel: long marks at 0 and 1/1, under their figures (as
+                                                              # the real car's, photo Nov 24 2026)
     [0, -23, 23, 2, 166, 9, 9, 1],                            # fuel: 1/4 and 3/4 dots (round the low pivot, near the rim);
                                                               # its 1/2 dash is a zone in the print's colour (ZONES)
     [3, -17, 17, 2, 187, 9, 9, 1],                            # coolant: two dots, no middle mark
+    [3, -46, 46, 2, 190, 26, 5],                              # coolant: a mark past each block's outer end, where the
+                                                              # needle rests (as the real car's, photo Nov 24 2026)
 ]
 # the lamps' ring: inner and outer radius (render px), centred on the marks' own span (250 .. 281)
 LAMP_R = (252, 279)
