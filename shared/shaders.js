@@ -2096,7 +2096,7 @@ uniform float u_econH;     // the economy (oil) needle's hub radius, cut off wit
 uniform float u_e46n;      // 1: the E46 M3's look (gen_e46.py): glowing needles with a bright core, hubs a black rim round a
                            // domed cap, the big dials' hubs with their square tab (u_piv.w < 0: its size); 0: the E36's;
                            // 2: the same hubs, the needles flat matte paint by day as the real car's (photo, Nov 24 2026),
-                           // a little less tapered, glowing only at night (u_light 0)
+                           // glowing only at night (u_light 0)
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 vec2 dir(float a) { float r = radians(a); return vec2(sin(r), -cos(r)); }
@@ -2119,7 +2119,7 @@ vec3 dome(vec3 h, vec2 d, float r) { return h * (1.0 + 1.1 * clamp(0.6 - length(
 // a dial's needle at d from its pivot, pointing u: the distances to its counterweight, its bar (tapered) and its hub
 vec3 parts(vec2 d, vec2 u, vec4 V, vec2 N) {
     float t = dot(d, u), side = abs(d.x * u.y - d.y * u.x);
-    float wt = mix(N.y, N.y * (u_e46n > 1.5 ? 0.68 : 0.55), clamp(t / N.x, 0.0, 1.0)) * 0.5;
+    float wt = mix(N.y, N.y * 0.55, clamp(t / N.x, 0.0, 1.0)) * 0.5;
     return vec3(max(side - N.y * 1.1, max(t, -t - max(V.w, 0.0))), max(side - wt, max(-t, t - N.x)), length(d) - V.z);
 }
 
@@ -2187,7 +2187,7 @@ void main() {
                 q.x = max(abs(dot(tc, u)), abs(tc.x * u.y - tc.y * u.x)) + V.w * 0.5;
             }
             float t = dot(d, u), side = abs(d.x * u.y - d.y * u.x);
-            float wt = mix(N.y, N.y * (u_e46n > 1.5 ? 0.68 : 0.55), clamp(t / N.x, 0.0, 1.0)) * 0.5;
+            float wt = mix(N.y, N.y * 0.55, clamp(t / N.x, 0.0, 1.0)) * 0.5;
             if (u_e46n > 1.5 && u_light > 0.5) {
                 // flat matte paint: one colour, a touch darker along the very edges
                 ndc = mix(u_col[0], u_col[0] * 0.82, smoothstep(0.6, 1.0, side / max(wt, 0.5)));
