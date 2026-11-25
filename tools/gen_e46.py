@@ -110,7 +110,7 @@ TICKS = [
     [1, mph_ang(130), mph_ang(180), 11, 283, 29, 10, 2.55],
     [1, kmh_ang(10), kmh_ang(300), 30, 172, 5, 5, 1],         # the inner km/h ring, a dot every 10
     [2, rpm_ang(0), rpm_ang(9), 19, 281, 31, 10, 2.99],      # 0 .. 9 thousand, a dot at each half between, inside the lamps
-    [0, -40, 40, 2, 164, 31, 5],                              # fuel: long marks at 0 and 1/1, under their figures (as
+    [0, -40, 40, 2, 196, 36, 5],                              # fuel: long marks at 0 and 1/1, under their figures (as
                                                               # the real car's, photo Nov 24 2026)
     [0, -23, 23, 2, 166, 9, 9, 1],                            # fuel: 1/4 and 3/4 dots (round the low pivot, near the rim);
                                                               # its 1/2 dash is a zone in the print's colour (ZONES)
@@ -148,7 +148,7 @@ FIGURES = ([('fs_%d' % v, str(v), 'e4_big') + MPH_AT[v] for v in range(0, 181, 2
 TEXTS = [
     ('km/h', 'e4_sm', 665.0, 450.5), ('MPH', 'e4_mph', 662.0, 555.5),
     ('1/min', 'e4_lab', 1315.0, 218.0), ('x1000', 'e4_lab', 1314.0, 250.5),
-    ('0', 'e4_gl', 71.0, 419.0), ('1/2', 'e4_gl', 192.5, 364.0), ('1/1', 'e4_gl', 296.5, 418.5),   # 0, 1/1 out past their marks
+    ('0', 'e4_gl', 72.0, 381.0), ('1/2', 'e4_gl', 192.5, 364.0), ('1/1', 'e4_gl', 303.5, 381.0),   # 0, 1/1 above their marks' outer ends
     ('120', 'e4_oil', 1205.5, 509.5), ('210', 'e4_oil', 1320.5, 483.5), ('300', 'e4_oil', 1432.5, 514.0),
     ('°F', 'e4_degf', 1402.0, 579.0),           # level with the oil can (its ink centre)
 ]
