@@ -1935,7 +1935,8 @@ void main() {
                 if (k < 3.5) c = mix(c, zc, 0.38 * (1.0 - smoothstep(0.0, 9.0, dp)));       // a lit lamp's glow
                 c = put(c, zc * (1.0 + 0.25 * cov(abs(q.y + hw * 0.35) - hw * 0.3)), cov(dp));
             } else {
-                if (n > 0.0) dd = max(dd, (abs(fract((a - z.x) / (z.y - z.x) * n) - 0.3) - 0.3) * radians(z.y - z.x) / n * r);
+                // n stripes, each in the middle 60 % of its step, so both ends of the zone fall in a gap (no sliver at the end)
+                if (n > 0.0) dd = max(dd, (abs(fract((a - z.x) / (z.y - z.x) * n) - 0.5) - 0.3) * radians(z.y - z.x) / n * r);
                 c = put(c, zc, cov(dd));
             }
         }

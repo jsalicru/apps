@@ -202,13 +202,25 @@ def rev_face(redline):
     top = rev_top(redline)
     a = tach_ang(top)
     at = lambda v: lerp_ang(a, v)
+    if top == 8:
+        # the M3 face as the real E36 M3 prints it (photo, Nov 24 2026), placed as Jose asked: the red on the ticks' own
+        # ring (the thousands' outer radius and length); three thin dashes centred on the 7, the middle one the white 7
+        # mark itself, a red one spaced out either side of it; then solid red from the redline, stopping short of the white 8 mark,
+        # with the white 7500 mark on it
+        span = 1000 * top - redline
+        r0, r1 = REV_TICK[0] - REV_TICK[1], REV_TICK[0]
+        mid, gap, dash = 1000 * (top - 1), 115, 70     # the red dashes 115 rpm either side of the 7; each one stripe
+        zones = [[2, at(redline), at(redline + 0.92 * span), r0, r1, 'red']]    # in the middle 60 % of its 70 rpm
+        zones += [[2, at(c - dash / 2), at(c + dash / 2), r0, r1, 'red', 1] for c in (mid - gap, mid + gap)]
+    else:
+        zones = ([[2, at(redline - REV_RED[top][0]), REV_END, 199, 226, 'red']]
+                 + ([[2, at(redline - 280), at(redline - 40), 205, 226, 'red', REV_RED[top][1]]] if REV_RED[top][1] else []))
     return {'top': top, 'map': a + [(1000 * top + 600, 125)],     # the needle's stop just past the end
             'ticks': [[2, REV_ZERO, REV_ZERO, 1] + list(REV_TICK) + [8],            # 0
                       [2, REV_ONE, REV_END, top] + list(REV_TICK) + [8],            # 1 .. top
-                      [2, at(500), at(500), 1, 234, 22, 3],                       # 500
-                      [2, at(1500), at(1000 * top - 500), top - 1, 234, 22, 3]],  # 1500 .. top - 500
-            'zones': [[2, at(redline - REV_RED[top][0]), REV_END, 199, 226, 'red']]
-            + ([[2, at(redline - 280), at(redline - 40), 205, 226, 'red', REV_RED[top][1]]] if REV_RED[top][1] else [])}
+                      [2, at(500), at(500), 1, 234, 22, 3]]                       # 500
+            + [[2, at(1500), at(1000 * top - 500), top - 1, 234, 22, 3]],   # 1500 .. top - 500
+            'zones': zones}
 
 
 # --- the metric (EU) face, eu-kmh-day-face.png (2000 x 1500) ----------------------------------------------------
