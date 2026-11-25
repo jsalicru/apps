@@ -738,6 +738,8 @@ class HudApp {
 
     /** A setting's value, or its default when the saved value isn't one the schema allows. */
     setting(key) {
+        // "redline": the active layout's own (layout "redline", e.g. the E36's 7200) wins over the Redline setting
+        if (key === 'redline' && isNum(this.layoutRedline)) return this.layoutRedline;
         // "mapUp": not saved, the Waze map is showing inside the theme now (the setting on, waze.js says so)
         if (key === 'mapUp') return !!(this.waze && this.waze.up && this.ctx.settings.get('mapInTheme') === true);
         // "ribScale": not saved, the Ribbon's scale numbers to show: thousands on the bar, "c" while the camera dip is on
@@ -1962,6 +1964,7 @@ class HudApp {
         this.stallTimers.forEach((t) => clearTimeout(t)); this.stallTimers.clear();
         this.refused = null;
         clearTimeout(this.statusAskT); this.statusAskT = null;
+        this.layoutRedline = null;       // a layout's own "redline" (rpm) stands in for the setting while it shows (below)
         this.car.setRedline(this.setting('redline'));
         const name = this._layoutName();
         this.activeName = name;
@@ -1982,6 +1985,7 @@ class HudApp {
             return;
         }
         this.problem = null;
+        if (isNum(layout.redline)) { this.layoutRedline = layout.redline; this.car.setRedline(layout.redline); }
         this.mapLayout = layout.widgets.some((w) => w.holeWhen === 'mapUp');
         // "mapLive" holds only while nothing else changes with the map (a widget toggled on mapUp needs the rebuild)
         this.mapLive = layout.mapLive === true && !layout.widgets.some((w) => typeof w.toggle === 'string' && w.toggle.indexOf('mapUp') >= 0);

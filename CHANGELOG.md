@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 24 2026
+
+- **P3 Clusters 0.19.6:** the E36 always redlines at 7200 rpm (the M3 face, red from 7200), whatever the Redline setting says; its shift point follows. Other themes still use the Redline setting. A layout can now carry its own "redline".
+
 ## Nov 23 2026
 
 - **README:** the cluster section is now P3 Clusters with a picture and a line for each of its five themes; the app guide covers E46 M3 and E36 and drops the themes this app doesn't have.

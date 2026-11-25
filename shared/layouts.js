@@ -100,6 +100,7 @@ class Layouts {
         if (!p || typeof p !== 'object') bad('not an object');
         if (p.schemaVersion !== 2) bad('schemaVersion must be 2 (got ' + p.schemaVersion + ')');
         if (!Array.isArray(p.widgets)) bad('missing widgets array');
+        if (p.redline !== undefined && !(typeof p.redline === 'number' && p.redline >= 1000 && p.redline <= 12000)) bad('"redline" must be rpm (1000 to 12000)');
         if (p.slots !== undefined) {
             if (!Array.isArray(p.slots)) bad('"slots" must be a list');
             p.slots.forEach((sl, i) => {

@@ -27,7 +27,7 @@ The E46 M3's cluster in orange, drawn to match a sketch of the real one.
 
 A pure E36 cluster of the 90s: white print on black dials in a dark grey face, with an LCD for the range, trip, clock and outside temperature.
 
-- **The face follows your settings:** a 328i face (with its economy gauge) below a 7000 rpm Redline setting, or the M3 face (with its oil temperature gauge and red needles) at 7000 and above; in mph or km/h by **Units**.
+- **Redline 7200:** the E36 always redlines at 7200 rpm on the M3 face (0 to 8, with its oil temperature gauge and red needles), whatever the **Redline** setting says; its shift lights and shift point use 7200 too. The other themes still follow **Redline**. In mph or km/h by **Units**.
 - **mph speedometer:** 0, 10, 20, then every 5 mph, as on the real US cluster.
 - **At night** the print and needles turn the E36's orange-red, as in night photos of the real car.
 
