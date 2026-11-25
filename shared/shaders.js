@@ -3548,6 +3548,217 @@ void main() {
 }
 `;
 
+// Apex's dial as imported (0.20.0 .. 0.20.1, the last that ran on Jose's car without the cluster restarting): the default
+// ("apexDial" Classic) while the crash with the newer one (0.21.0's finishes, CDASH) is looked into
+const CDASH_CLASSIC = `// The Apex theme in one cluster-render "effect" layer (GLSL ES 1.00), layout made by tools/gen_apex.py: a black backdrop with
+// a faint carbon weave and red-glow side panels (u_panels), a round needle rev counter (u_tach, u_tachA) whose outer band
+// lights white up to the revs over fixed amber-to-red zones (u_zone), a red needle, up to 6 line bars with a marker and a red
+// end zone (u_bar, u_barZ), and up to 8 thin rule lines (u_line). v_uv (0,0) is the top-left.
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+varying vec2 v_uv;
+uniform vec2 u_size;
+uniform vec4 u_tach;       // centre x, y, outer radius, band width (px)
+uniform vec4 u_tachA;      // start angle (deg, clockwise from 3 o'clock), sweep (deg), thousands on the scale, revs 0..1
+uniform vec2 u_zone;       // amber from, red from (0..1 of the scale)
+uniform vec4 u_panels;     // left panel's inner edge x, right panel's inner edge x, glow top y, glow bottom y
+uniform vec4 u_bar[8];     // left x, y, width (0 = none), value 0..1
+uniform float u_barZ[8];   // each bar's red zone from (0..1; 1 = none)
+uniform float u_barH[8];   // each bar's half height (px)
+uniform float u_barS[8];   // each bar's style: 0 a line with a marker, 1 a slanted striped gauge with a scale and a needle, 2 the
+                           // same solid, 3 / 4 the striped / solid gauge without the scale (the small bottom ones)
+uniform vec4 u_line[8];    // rule lines: from x, y, to x, y (all 0 = none)
+uniform float u_bgStyle;   // the backdrop: 0 the side panels' red glow on a faint weave, 1 carbon twill lit from the dial out
+uniform vec4 u_car;        // the tyre panel's car seen from above: centre x, y, half width, half length (0 = none)
+uniform vec4 u_tyre;       // its tyres FL, FR, RL, RR: 0 no reading (grey), 1 fine (green), 2 low (red)
+uniform vec4 u_mapHole;    // the Waze map's round window in the dial: centre x, y, radius (0 = none), how dark its foot gets 0..1
+uniform vec2 u_mapEdge;    // x: how wide its edge fades into the dial, px inward from the radius (0: a hard edge);
+                           // y: the top of Waze's picture (the panel's centred 1088x480: y 120), faded in below it (0: none)
+uniform vec4 u_glow;       // a soft glow fading outward from the gear's ring (0.5 of the radius): r, g, b, strength (0 = none)
+uniform float u_plain;     // 1: no backdrop (carbon, weave, side glow), plain black (the "Backgrounds" setting off)
+uniform vec2 u_shift;      // the shift light: x the count towards the shift point 0..1, y 1 while it flashes on (hud.js _shiftNow)
+
+const vec3 WHITE = vec3(0.95, 0.96, 0.97);
+const vec3 TRACK = vec3(0.16, 0.16, 0.18);
+const vec3 RED = vec3(0.93, 0.09, 0.1);
+const vec3 AMBER = vec3(0.95, 0.78, 0.1);
+
+float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
+vec3 put(vec3 c, vec3 col, float a) { return mix(c, col, clamp(a, 0.0, 1.0)); }
+float rboxd(vec2 p, vec2 c, vec2 h, float rad) {   // signed distance to a rounded box (centre, half size, corner)
+    vec2 q = abs(p - c) - h + rad;
+    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - rad;
+}
+float segd(vec2 p, vec2 a, vec2 b) {
+    vec2 ba = b - a;
+    float h = clamp(dot(p - a, ba) / max(dot(ba, ba), 0.001), 0.0, 1.0);
+    return length(p - a - ba * h);
+}
+vec3 zoneCol(float f) {   // amber at the zone's start, through orange, to red at the red line
+    float t = clamp((f - u_zone.x) / max(u_zone.y - u_zone.x, 0.001), 0.0, 1.0);
+    vec3 orange = vec3(0.97, 0.45, 0.08);
+    return t < 0.5 ? mix(AMBER, orange, t * 2.0) : mix(orange, RED, (t - 0.5) * 2.0);
+}
+
+void main() {
+    vec2 p = v_uv * u_size;
+    vec3 c;
+    if (u_bgStyle > 0.5) {
+        // carbon: a 2 x 2 twill (7 px strands, the over-strand two cells long, stepping one cell a row), lit brightest
+        // round the dial and fading to black at the screen's sides, a little darker towards the bottom
+        vec2 q = p / 7.0;
+        vec2 cell = floor(q), fq = fract(q);
+        bool across = mod(cell.x + cell.y, 4.0) < 2.0;
+        float lit = across ? 0.62 + 0.38 * sin(3.14159 * fq.y) : 0.3 + 0.22 * sin(3.14159 * fq.x);
+        lit *= smoothstep(0.0, 0.12, across ? fq.y : fq.x) * smoothstep(1.0, 0.88, across ? fq.y : fq.x) * 0.55 + 0.45;
+        // lit along the dial's row, fading to black at the top and the bottom, a little at the sides (as Circuit's)
+        float vert = 1.0 - smoothstep(40.0, u_size.y * 0.5 + 8.0, abs(p.y - u_tach.y));
+        float side = 1.0 - 0.45 * smoothstep(u_size.x * 0.3, u_size.x * 0.5, abs(p.x - u_tach.x));
+        c = vec3(0.086, 0.088, 0.094) * lit * pow(vert, 1.3) * side;
+    } else {
+        // near black with a faint carbon weave
+        vec2 q = p / 6.0;
+        vec2 cell = floor(q), fq = fract(q);
+        float dir = mod(cell.x + cell.y, 2.0);
+        float w = dir > 0.5 ? fq.x : fq.y;
+        c = vec3(0.045, 0.046, 0.05) * (0.7 + 0.6 * (0.5 - abs(w - 0.5)));
+    }
+    // the side panels: a muted red glow strongest at the screen's outer edges, fading in towards the dial (to the
+    // panel's inner edge), and out just above the bottom strip
+    float sideL = 1.0 - smoothstep(0.0, u_panels.x, p.x);
+    float sideR = smoothstep(u_panels.y, u_size.x, p.x);
+    float glowS = max(sideL, sideR);
+    float foot = 1.0 - smoothstep(u_panels.w - 80.0, u_panels.w, p.y);
+    c += vec3(0.13, 0.014, 0.02) * glowS * glowS * foot * (1.0 - u_bgStyle);
+    c *= 1.0 - u_plain;
+
+    vec2 d = p - u_tach.xy;
+    float r = length(d), R = u_tach.z, B = u_tach.w;
+    // the dial: drop shadow, a black face, a thin bezel
+    // the shift light's red halo round the dial while it flashes
+    if (r > R) c += vec3(0.9, 0.06, 0.05) * 0.5 * u_shift.y * exp(-(r - R) / 22.0);
+    if (u_mapHole.z <= 0.0)   // no drop shadow while the map shows
+    c *= 1.0 - 0.85 * (1.0 - smoothstep(R + 6.0, R + (u_bgStyle > 0.5 ? 60.0 : 50.0), length(d - vec2(0.0, 14.0))));
+    c = put(c, mix(vec3(0.0), vec3(0.035, 0.036, 0.04), smoothstep(R * 0.3, R, r)), cov(r - R - 8.0));
+    {   // the thin bezel: all round, or while the map shows only along the band (0 to the top of the scale)
+        float bz = cov(abs(r - R - 8.0) - 1.2);
+        if (u_mapHole.z > 0.0) bz *= step(mod(degrees(atan(d.y, d.x)) - u_tachA.x + 720.0, 360.0), u_tachA.y);
+        c = put(c, vec3(0.45, 0.46, 0.5), bz);
+    }
+    if (u_glow.w > 0.0 && r > R * 0.5 - 1.0) {
+        float gl = 1.0 - smoothstep(R * 0.5, R * 0.86, r);
+        c += u_glow.rgb * u_glow.w * gl * gl;
+    }
+    c = put(c, vec3(0.14, 0.14, 0.16), cov(abs(r - R * 0.5) - 0.8));
+    if (r > R * 0.55 && r < R + 4.0) {
+        float rel = mod(degrees(atan(d.y, d.x)) - u_tachA.x + 720.0, 360.0);
+        float f = rel / u_tachA.y;
+        float on = step(f, 1.0);
+        // the band: track, the zone always shown (dim), lit up to the revs
+        float band = cov(-min(r - (R - B), R - r)) * on;
+        vec3 z = zoneCol(f);
+        bool inZone = f >= u_zone.x;
+        vec3 off = inZone ? z * 0.35 : TRACK;
+        vec3 lit = inZone ? z : mix(vec3(0.46, 0.47, 0.5), vec3(0.62, 0.63, 0.66), f);
+        vec3 bc = f <= u_tachA.w ? lit : off;
+        // the shift light: the band reddens over the count-in, then the whole band flashes bright red
+        bc = mix(bc, vec3(0.75, 0.08, 0.07), u_shift.x * 0.45 * step(u_shift.y, 0.5));
+        bc = mix(bc, vec3(1.0, 0.13, 0.1), u_shift.y);
+        c = put(c, bc, band);
+        // marks: a long one every 1000, a short one every 500, red / amber in the zone
+        float per = u_tachA.y / u_tachA.z;
+        float m1 = abs(radians(mod(rel + per * 0.5, per) - per * 0.5)) * r;
+        float m2 = abs(radians(mod(rel + per * 0.25, per * 0.5) - per * 0.25)) * r;
+        vec3 mc = inZone ? zoneCol(f) : WHITE;
+        c = put(c, mc, cov(m1 - 1.6) * cov(abs(r - (R - B - 20.0)) - 13.0) * on);
+        c = put(c, mc * 0.8, cov(m2 - 1.0) * cov(abs(r - (R - B - 13.0)) - 6.0) * on);
+    }
+    // the needle: red, with a soft glow
+    {
+        float a = radians(u_tachA.x + u_tachA.y * u_tachA.w);
+        vec2 dir2 = vec2(cos(a), sin(a));
+        float nd = segd(p, u_tach.xy + dir2 * R * 0.56, u_tach.xy + dir2 * (R - 2.0));
+        float along = clamp(dot(d, dir2) / R, 0.0, 1.0);
+        float wdt = mix(2.0, 3.6, along);
+        c = put(c, RED * 0.6, clamp(1.0 - (nd - wdt) / 9.0, 0.0, 1.0) * 0.45);
+        c = put(c, mix(RED, vec3(1.0, 0.55, 0.5), 0.25), cov(nd - wdt));
+    }
+    // the line bars: track, red end zone, white fill to the value, a marker
+    for (int i = 0; i < 8; i++) {
+        vec4 b = u_bar[i];
+        if (b.z <= 0.0) continue;
+        if (u_barS[i] > 0.5) {
+            // hatched gauge: a parallelogram leaning right, slanted stripes (white to the value, grey past it, red in
+            // the red zone), a scale line with ticks above it, a red needle along the slant at the value
+            float hh = u_barH[i], k = 0.45, dy = p.y - b.y;
+            float xs = p.x + dy * k;
+            float t = (xs - b.x) / b.z;
+            float rz = u_barZ[i];
+            float inside = step(abs(dy), hh) * step(0.0, t) * step(t, 1.0);
+            float st = u_barS[i];
+            bool solid = abs(st - 2.0) < 0.5 || st > 3.5, scaled = st < 2.5;
+            float stripe = solid ? 1.0 : smoothstep(0.42, 0.5, fract(xs / 9.0)) * (1.0 - smoothstep(0.92, 1.0, fract(xs / 9.0)));   // 2: solid
+            vec3 on = t >= rz ? RED : WHITE;
+            vec3 off = t >= rz ? RED * 0.55 : vec3(0.24, 0.24, 0.27);
+            c = put(c, t <= b.w ? on : off, inside * stripe);
+            float ly = b.y - hh - 14.0, x0 = b.x + hh * k;
+            float ts = (p.x - x0) / b.z;
+            float onScale = step(0.0, ts) * step(ts, 1.0);
+            if (scaled) c = put(c, vec3(0.55, 0.56, 0.6), cov(abs(p.y - ly) - 0.7) * onScale);
+            float tk = abs(fract(ts * 10.0 + 0.5) - 0.5) * b.z / 10.0;
+            float major = step(abs(fract(ts * 2.0 + 0.5) - 0.5) * b.z / 2.0, 1.5);
+            float tl = major > 0.5 ? 10.0 : 6.0;
+            if (scaled) c = put(c, vec3(0.55, 0.56, 0.6), cov(tk - 0.8) * step(ly - tl, p.y) * step(p.y, ly) * step(-0.02, ts) * step(ts, 1.02));
+            float nx = b.x + b.z * b.w - dy * k;
+            float nOn = scaled ? step(-(hh + 30.0), dy) * step(dy, hh + 12.0) : step(-(hh + 7.0), dy) * step(dy, hh + 7.0);
+            c = put(c, RED, cov(abs(p.x - nx) * 0.91 - 1.4) * nOn);
+            continue;
+        }
+        float t = (p.x - b.x) / b.z;
+        float in1 = step(0.0, t) * step(t, 1.0);
+        float hh = u_barH[i];
+        float bar = cov(abs(p.y - b.y) - hh) * in1;
+        float rz = u_barZ[i];
+        c = put(c, t >= rz ? RED * 0.8 : vec3(0.42, 0.42, 0.45), bar);
+        c = put(c, WHITE, bar * step(t, b.w));
+        c = put(c, WHITE, cov(abs(p.x - (b.x + b.z * b.w)) - 2.0) * cov(abs(p.y - b.y) - hh - 7.5));
+    }
+    // the tyre panel's tyres, coloured by pressure; the car itself is an image over them (car_top.js), so only
+    // their outer part shows past its body
+    if (u_car.z > 0.0) {
+        vec2 cc = u_car.xy, hb = u_car.zw;
+        for (int k = 0; k < 4; k++) {
+            float sx = (k == 0 || k == 2) ? -1.0 : 1.0, sy = k < 2 ? -1.0 : 1.0;
+            float st = k == 0 ? u_tyre.x : k == 1 ? u_tyre.y : k == 2 ? u_tyre.z : u_tyre.w;
+            vec2 tc = cc + vec2(sx * (hb.x + 3.0), sy * hb.y * 0.6);
+            float td = rboxd(p, tc, vec2(8.0, 22.0), 6.0);
+            vec3 tcol = st > 1.5 ? vec3(0.86, 0.16, 0.16) : st > 0.5 ? vec3(0.22, 0.72, 0.36) : vec3(0.3, 0.3, 0.33);
+            c = put(c, tcol, cov(td));
+        }
+    }
+    // rule lines
+    for (int i = 0; i < 8; i++) {
+        vec4 s = u_line[i];
+        if (s.x == 0.0 && s.z == 0.0) continue;
+        c = put(c, vec3(0.5, 0.5, 0.53), cov(segd(p, s.xy, s.zw) - 0.8));
+    }
+    // the map window: see-through inside the circle, fading to black over its lower part (the gear sits there)
+    float alpha = 1.0;
+    if (u_mapHole.z > 0.0) {
+        vec2 mh = p - u_mapHole.xy;
+        float inside = u_mapEdge.x > 0.5 ? 1.0 - smoothstep(u_mapHole.z - u_mapEdge.x, u_mapHole.z, length(mh)) : clamp(u_mapHole.z - length(mh) + 0.5, 0.0, 1.0);
+        if (u_mapEdge.y > 0.0) inside *= smoothstep(u_mapEdge.y + 2.0, u_mapEdge.y + 50.0, p.y);   // nothing of the map above its picture
+        float foot = smoothstep(u_mapHole.z * 0.3, u_mapHole.z * 0.78, mh.y) * u_mapHole.w;   // w: how dark the foot gets (0: none)
+        alpha = 1.0 - inside * (1.0 - foot);
+        c = mix(c, vec3(0.0), inside);
+    }
+    gl_FragColor = vec4(c, alpha);
+}
+`;
+
 // The revs on the renderer's clock (the "smoothRevs" setting; hud.js REV_PATH): a layer made with "time" 1 gets u_time
 // every display frame, and the app sends the revs as a path in that clock (u_revT its four keys' times, the first in
 // u_time's seconds, the others after it; u_revV their values, 0..1 of the scale; shared/e36.js nextPathTo), so the
@@ -3581,4 +3792,4 @@ function withRevPath(src, expr) {
     return head2 + REV_PATH + 'void main() {\n    g_rv = revPath(' + expr + ');' + body.replace(use, '$1g_rv');
 }
 
-module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: withRevPath(RIBBON, 'u_value'), deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES, twinface: TWINFACE, twinneedle: TWINNEEDLE, sweepdash: withRevPath(SWEEPDASH, 'u_rpm'), cdash: withRevPath(CDASH, 'u_tachA.w'), ldash: LDASH, gdash: GDASH, adash: ADASH, gtext: GTEXT };
+module.exports = { shiftbar: SHIFTBAR, arc: ARC, revbar: REVBAR, lights: LIGHTS, fill: FILL, box: BOX, grid: GRID, segbar: SEGBAR, mdash: MDASH, mtach: MTACH, sdash: SDASH, boxes: BOXES, atext: ATEXT, meter: METER, gmeter: GMETER, revarc: REVARC, tiles: TILES, ribbon: withRevPath(RIBBON, 'u_value'), deco: DECO, mview: MVIEW, vdash: VDASH, e36dash: E36DASH, e36econ: E36ECON, e36needles: E36NEEDLES, twinface: TWINFACE, twinneedle: TWINNEEDLE, sweepdash: withRevPath(SWEEPDASH, 'u_rpm'), cdash: withRevPath(CDASH, 'u_tachA.w'), cdashClassic: CDASH_CLASSIC, ldash: LDASH, gdash: GDASH, adash: ADASH, gtext: GTEXT };
