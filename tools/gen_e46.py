@@ -153,8 +153,8 @@ TEXTS = [
 # icons by their ink: (name, ink centre x, y, ink height or width ('h' / 'w'), render px); ICON_INK: where each icon's
 # ink lies in its square (shared/icons.js, measured: x0, x1, y0, y1 as fractions)
 # (the oil gauge: the oil can and a thermometer beside it, left of the hub, as the real car's)
-ICONS = [('fuel', 200.5, 455.5, 45, 'h'), ('e36cool', 1793.5, 446.0, 52, 'h'), ('e46oil', 1185.0, 588.0, 61, 'w'),
-         ('therm', 1239.5, 588.0, 35, 'h')]
+ICONS = [('fuel', 200.5, 455.5, 45, 'h'), ('e36cool', 1793.5, 446.0, 52, 'h'), ('e46oil', 1190.0, 588.0, 49, 'w'),
+         ('therm', 1233.0, 588.0, 28, 'h')]
 ICON_INK = {'fuel': (0.080, 0.797, 0.220, 0.938), 'e36cool': (0.140, 0.858, 0.040, 0.978), 'e46oil': (0.035, 0.963, 0.247, 0.715),
             'therm': (0.280, 0.795, 0.070, 0.880)}
 LOGO = ('e36m', 660, 503, 96, 34)
