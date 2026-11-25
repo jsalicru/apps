@@ -995,6 +995,10 @@
         [
           "layered",
           "Layered rings"
+        ],
+        [
+          "segLayered",
+          "Lit segments in layered rings"
         ]
       ]
     },

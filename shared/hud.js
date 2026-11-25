@@ -3136,7 +3136,7 @@ class HudApp {
         x.c.uniform(x.ref, 'u_plain', [this.setting('backdrops') === false ? 1 : 0]);
         if (x.w.type === 'cdash') {
             x.c.uniform(x.ref, 'u_bgStyle', [this.setting('apexBackdrop') === 'carbon' ? 1 : 0]);
-            x.c.uniform(x.ref, 'u_tachStyle', [{ machined: 1, segments: 2, layered: 3 }[this.setting('tachStyle')] || 0]);
+            x.c.uniform(x.ref, 'u_tachStyle', [{ machined: 1, segments: 2, layered: 3, segLayered: 4 }[this.setting('tachStyle')] || 0]);
         }
         if (x.w.type === 'adash') x.c.uniform(x.ref, 'u_bgStyle', [{ carbon: 1, metal: 2 }[this.setting('aeroBackdrop')] || 0]);
     }
