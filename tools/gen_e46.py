@@ -114,8 +114,8 @@ TICKS = [
                                                               # its 1/2 dash is a zone in the print's colour (ZONES)
     [3, -17, 17, 2, 187, 9, 9, 1],                            # coolant: two dots, no middle mark
 ]
-# the lamps' ring: inner and outer radius (render px)
-LAMP_R = (256, 281)
+# the lamps' ring: inner and outer radius (render px), centred on the marks' own span (250 .. 281)
+LAMP_R = (252, 279)
 # [dial, from angle, to angle, inner radius, outer radius, colour(, stripes)]
 ZONES = [
     # the E46 M3's lamps round the rev counter's rim, one in each 500 rpm step from 4000: yellow to 7000 (the warm-up
