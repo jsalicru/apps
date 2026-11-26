@@ -34,7 +34,13 @@ CAR = [1560, 400, 175, 90]
 BAR_R, BAR_W = 602, 320                                # the left bars: one column, its right edge clear of the dial
 # the Waze map in the left panel (setting "Show Waze map inside the theme"): the window, and the right panel meanwhile:
 # the car a bit smaller and higher, two of the bars (boost or intake, oil) side by side under it
-MAP = [178, LEFT[1] + 14, CX - 40 - 178, LEFT[2] - 14 - (LEFT[1] + 14)]   # its left end is cut along the panel's bow
+# jsalicru (Nov 26 2026): while the map shows, the left panel reaches further left (MAP_LEFT) and the window with it, for
+# a bigger map (about 600 px of it in view instead of 460; Waze's picture enlarged ~1.15x)
+MAP_LEFT = [70, LEFT[1], LEFT[2], 26]
+MAP = [48, LEFT[1] + 14, CX - 40 - 48, LEFT[2] - 14 - (LEFT[1] + 14)]   # its left end is cut along the panel's bow
+# the car's arrow where jsbaughman's 0.26 from 178 put it relative to the part in view (its right end ~564, where the map
+# fades into the dial): the middle of x 48..564 now
+MAP_AIM = round((564 - MAP[0]) / 2.0 / MAP[2], 3)
 # the four bars in the right panel while the map shows (as on the left, clear of the dial's curve)
 RBAR_X, RBAR_W, RBAR_Y, RBAR_DY = 1430, 360, 296, 80
 # Waze's arrow sits a little right of its map's centre: the map's centre at 26 % across the window puts the arrow in the
@@ -83,7 +89,7 @@ def build(fonts):
     widgets.append({'id': 'dash', 'type': 'rdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'red': RED, 'left': [round(v, 1) for v in LEFT],
                     'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'car': CAR, 'tyresIf': 'vetroRight=tires',
-                    'tbox': [68, 37, 69, 1], 'hole': MAP, 'holeWhen': 'mapUp', 'holeInset': 0, 'holeAim': [0.26, 0.5],
+                    'tbox': [68, 37, 69, 1], 'hole': MAP, 'holeWhen': 'mapUp', 'holeInset': 0, 'holeAim': [MAP_AIM, 0.5], 'mapLeft': [round(v, 1) for v in MAP_LEFT],
                     'mapBars': MAP_BARS, 'media': MEDIA, 'mediaIf': 'vetroRight=music',
                     'coldLimit': [48.89, 71.11, 4000], 'yellowLines': 2, 'waveBelow': 1200})
 
@@ -172,11 +178,12 @@ def build(fonts):
     text('np_left', MX + MW, 516, 120, '{{mediaLeft}}', 'vt_time', 'dim', 'right', toggle=tg, showWhen='media')
     text('np_none', MX, 374, MW, 'Nothing playing', 'vt_head', 'dim', 'left', toggle=tg, showWhen='!media')
 
-    # --- the strip: covered, nothing in it; BMW's gear letter left clear ------------------------------------------------
+    # --- the strip: covered, nothing in it; BMW's gear and programme area (x 1214 to 1525 on the G80) left clear, as this
+    #     repo's other themes (jsbaughman's 1380 / 1460 gave the M3 black boxes) ------------------------------------------------
     widgets += [
-        {'id': 'strip_cover_l', 'type': 'fill', 'class': 'content', 'z': 0, 'x': 0, 'y': 660, 'w': 1380, 'h': 60,
+        {'id': 'strip_cover_l', 'type': 'fill', 'class': 'content', 'z': 0, 'x': 0, 'y': 660, 'w': 1214, 'h': 60,
          'color': 'bg', 'stripRow': 'l'},
-        {'id': 'strip_cover_r', 'type': 'fill', 'class': 'content', 'z': 0, 'x': 1460, 'y': 660, 'w': 460, 'h': 60,
+        {'id': 'strip_cover_r', 'type': 'fill', 'class': 'content', 'z': 0, 'x': 1525, 'y': 660, 'w': 395, 'h': 60,
          'color': 'bg', 'stripRow': 'r'},
     ]
     # connections (8 layers each): the right panel on 1, the left side on 2, the dial and the strip on 0

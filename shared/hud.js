@@ -2838,7 +2838,9 @@ class HudApp {
             c.uniform(ref, 'u_rev', [this.setting('vetroRev') === 'ladder' ? 1 : 0, 0, 0]);
             c.uniform(ref, 'u_sweep', [0, 1, 1, 1]);
             c.uniform(ref, 'u_bright', [this.setting('vetroBright') === true ? 1 : 0]);
-            c.uniform(ref, 'u_left', [L[0] - w.x, L[1] - w.y, L[2] - w.y, L[3]]);
+            // the left panel reaches further left while the map shows in it ("mapLeft", jsalicru)
+            const L2 = w.mapLeft && w.hole && this.setting('mapUp') === true ? w.mapLeft : L;
+            c.uniform(ref, 'u_left', [L2[0] - w.x, L2[1] - w.y, L2[2] - w.y, L2[3]]);
             c.uniform(ref, 'u_right', [Rg[0] - w.y, Rg[1] - w.y, Rg[2] - w.x, Rg[3] - w.x]);
             // while the map shows in the left panel ("hole", "holeWhen" mapUp), the tyres smaller ("mapCar", "mapTbox") and
             // two of the bars under the car ("mapBars")
