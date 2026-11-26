@@ -8,7 +8,7 @@ Redraws the whole instrument cluster in a theme of your choice. Open **P3 Cluste
 
 ## Themes
 
-Six themes: **E46 M3**, **E36**, **Sweep**, **Dyno**, **Ribbon** and **Apex**. Every theme fills the cluster but leaves BMW's gear and drive programme display at the bottom right uncovered (x 1214 to 1525 of the bottom row on a G80 M3): when a theme covers any of it, BMW draws black boxes over the theme.
+Seven themes: **E46 M3**, **E36**, **Sweep**, **Dyno**, **Ribbon**, **Apex** and **Vetro**. Every theme fills the cluster but leaves BMW's gear and drive programme display at the bottom right uncovered (x 1214 to 1525 of the bottom row on a G80 M3): when a theme covers any of it, BMW draws black boxes over the theme.
 
 ### E46 M3
 
@@ -77,6 +77,18 @@ A needle dash in a mid-engine supercar style, imported from jsbaughman/apps (Clu
 - Its settings show on the Settings tab only while Apex is on the cluster. Not yet tested on this car.
 
 <p align="center"><img src="../../docs/images/p3-apex.png" width="900" alt="Apex theme"></p>
+
+### Vetro
+
+An Italian GT style dash: a round dial under glass on a perforated metal floor, with blue glass panels round it. Imported from jsbaughman/apps (Cluster Themes 0.26.11), with its right panel changed for this car.
+
+- **Middle:** the rev counter, 0 at six o'clock clockwise to 8000 rpm, a ladder of ticks with a dot at each thousand, red from 7200; silver Michroma numbers; a red needle with a glow and a centre cap. The speed and the gear (AUTO / MANUAL under it) sit in see-through navy boxes. It flashes red at the shift point. **Rev display (Vetro):** Needle, or Lit ladder (the ticks fill with the revs, a peak mark after each pull). **Dial colour (Vetro):** black, red or yellow. **Brighter look (Vetro)**.
+- **Left:** a blue panel with four bars: boost (intake with "Show boost" off), oil temperature, water temperature and oil pressure; the fuel and range under it. **Peak boost (Vetro)** marks the highest boost of each pull.
+- **Map:** with **Show Waze map inside the theme** on, the Waze map takes the left panel while it shows, fading into the dial, and the four bars move to the right panel under "Gauges".
+- **Right, without the map (Right panel (Vetro)):** **Now playing** (the default: the song, the artist, its progress and times, from the head unit's own media state; "Nothing playing" otherwise) or **Tire pressures** (the car from above with each tire's pressure and temperature).
+- No smaller tach for the driver camera. Not yet tested on this car.
+
+<p align="center"><img src="../../docs/images/p3-vetro.png" width="900" alt="Vetro theme, now playing and with the Waze map"></p>
 
 E46 M3, E36, Dyno and Ribbon have no map window; with "Show Waze map inside the theme" on, Waze stays in its usual place while they show.
 

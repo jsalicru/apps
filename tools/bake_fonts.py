@@ -65,6 +65,26 @@ CLUSTER_FONTS = [
     ('a_unit', 'Outfit[wght].ttf', 34, LOWER + '/', 0, 'Bold', None, '', 0.2),   # the speed's unit (mph, km/h)
     ('a_tach', 'Outfit[wght].ttf', 58, DIGITS, 0, 'ExtraBold', None, '', 0.2),   # the rev counter's numbers, as the speed
     ('a_speed_m', 'Outfit[wght].ttf', 70, DIGITS, 0, 'ExtraBold', None, '', 0.2),   # the speed in map view, 20 % bigger
+    # Vetro (tools/gen_vetro.py): Michroma, a free face after Microgramma / Eurostile Extended (SIL OFL), its "1" a plain
+    # bar (its I) as on the Italian dials; Barlow where Michroma has no glyph (the degree sign) and for the small print
+    ('vt_num', 'Michroma-Regular.ttf', 54, DIGITS, 1, None, {'1': 'I'}),
+    ('vt_speed', 'Michroma-Regular.ttf', 66, DIGITS + '-', 1),
+    ('vt_gear', 'Michroma-Regular.ttf', 78, DIGITS + 'PRN-', 1, None, {'1': 'I'}),
+    ('vt_word', 'Michroma-Regular.ttf', 17, 'AUTOMANLHV'),
+    ('vt_unit', 'Michroma-Regular.ttf', 19, LOWER + '/'),
+    ('vt_small', 'Michroma-Regular.ttf', 14, LOWER + '%'),
+    ('vt_val', 'Michroma-Regular.ttf', 27, DIGITS + '.-', 1),
+    ('vt_tp', 'Michroma-Regular.ttf', 30, DIGITS + '.-', 1),
+    ('vt_range', 'Michroma-Regular.ttf', 22, DIGITS + '-'),
+    ('vt_mode', 'Michroma-Regular.ttf', 19, UPPER + ' '),
+    ('vt_deg', 'Barlow-Medium.ttf', 21, '°FC'),
+    ('vt_tt', 'Barlow-Medium.ttf', 20, DIGITS + '°FC-'),
+    ('vt_head', 'Barlow-Medium.ttf', 28, UPPER + LOWER + ' '),
+    ('vt_p', 'BarlowSemiCondensed-SemiBold.ttf', 15, 'P'),
+    ('vt_tiny', 'Michroma-Regular.ttf', 11, 'PEAK'),
+    ('vt_pk', 'Michroma-Regular.ttf', 17, DIGITS + '.-'),
+    ('vt_time', 'Michroma-Regular.ttf', 19, DIGITS + ':-'),   # now playing's times (jsalicru)
+    ('vt_artist', 'Barlow-Medium.ttf', 24, ''.join(chr(i) for i in range(32, 127))),   # now playing's artist (jsalicru)
     # the smaller tach for cars with the driver camera ("Leave room for the driver camera"), 0.81 of the above
     ('a_gear_c', 'Outfit[wght].ttf', 162, DIGITS + 'PRNDSM-', 0, 'Bold', None, '', 0.2, 5),
     ('a_gear_s_c', 'Outfit[wght].ttf', 162, DIGITS + 'PRNDSM-', 0, 'Bold', None, '', 0.2),

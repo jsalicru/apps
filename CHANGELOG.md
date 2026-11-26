@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 26 2026
+
+- **P3 Clusters 0.23.0 / HUD Widgets 0.14.13:** the **Vetro** theme from jsbaughman/apps (Cluster Themes 0.26.11): an Italian GT dial under glass on a perforated floor, blue glass panels, the Waze map in the left panel. Changed for the M3: while the map shows, the right panel has all four bars (boost or intake, oil, water, oil pressure) instead of the tires; without the map it shows **Right panel (Vetro)**: Now playing (default; song, artist, a progress track and times) or Tire pressures. No HV battery gauge. The app now listens to the head unit's media state (HmiMediaState, front screen, optional) for now playing. New settings: Right panel, Dial colour, Rev display, Brighter look, Peak boost (all Vetro).
+
 ## Nov 25 2026
 
 - **P3 Clusters 0.22.2 (E46 M3):** the fuel gauge's angles as the real car's: the needle from 48 degrees left (0) to 48 right (1/1), the end marks there, the dots at 1/4 and 3/4; and its low-fuel light, a lighter grey lamp under the 0 that lights in the rev lamps' orange when the range is down to 50 miles. Bigger fuel figures sitting right at their lines. The oil temperature needle tapered and shadowed like the others.

@@ -134,4 +134,67 @@ function paint(w, h) {
     return out;
 }
 
-module.exports = { paintCarTop };
+/** A box blur of a w x h float map, r px, twice (about a Gaussian). */
+function blurMap(m, w, h, r) {
+    let a = m, b = new Float32Array(w * h);
+    for (let pass = 0; pass < 2; pass++) {
+        for (let y = 0; y < h; y++) {
+            let acc = 0;
+            for (let x = -r; x < w + r; x++) {
+                if (x + r < w) acc += a[y * w + Math.min(w - 1, Math.max(0, x + r))];
+                if (x - r - 1 >= 0) acc -= a[y * w + x - r - 1];
+                if (x >= 0 && x < w) b[y * w + x] = acc / (2 * r + 1);
+            }
+        }
+        const c = new Float32Array(w * h);
+        for (let x = 0; x < w; x++) {
+            let acc = 0;
+            for (let y = -r; y < h + r; y++) {
+                if (y + r < h) acc += b[Math.min(h - 1, y + r) * w + x];
+                if (y - r - 1 >= 0) acc -= b[(y - r - 1) * w + x];
+                if (y >= 0 && y < h) c[y * w + x] = acc / (2 * r + 1);
+            }
+        }
+        a = c;
+    }
+    return a;
+}
+
+/**
+ * The Vetro theme's car (Nov 24 2026): the same car seen as an x-ray - its outline and creases glowing blue, a fine
+ * curved mesh over the body, the glass darker, a soft blue glow round it. Straight RGBA, w x h; drawn once.
+ */
+function paintCarXray(w, h) {
+    const src = paintCarTop(w, h);
+    const n = w * h, inten = new Float32Array(n), body = new Float32Array(n), glass = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+        const a = src[i * 4 + 3] / 255;
+        const lum = (src[i * 4] + src[i * 4 + 1] + src[i * 4 + 2]) / (3 * 255);
+        const x = i % w, y = Math.floor(i / w);
+        const u = (x - w / 2) / (w / 2);
+        const mu = Math.abs(((u * 7 + 1.8 * u * u * u) % 1 + 1) % 1 - 0.5);
+        const mv = Math.abs((((y / h) * 22 + 0.6 * u * u) % 1 + 1) % 1 - 0.5);
+        const mesh = (Math.max(0, 1 - mu * 24) + Math.max(0, 1 - mv * 24)) * a;
+        const lines = Math.min(1, Math.max(0, (lum - 0.25) / 0.4)) * a;
+        const gl = Math.min(1, Math.max(0, (0.06 - lum) / 0.04)) * a * (1 - lines);
+        body[i] = a; glass[i] = gl;
+        inten[i] = 0.18 * a + 0.22 * mesh * (1 - gl * 0.5) + 0.9 * lines - 0.08 * gl;
+    }
+    // the outline: the body less the body shrunk by 2 px
+    const er = blurMap(body, w, h, 1);
+    for (let i = 0; i < n; i++) inten[i] += Math.max(0, body[i] - Math.max(0, (er[i] - 0.66) * 3)) * 1.0;
+    const glow = blurMap(inten.map((v) => Math.min(1, Math.max(0, v))), w, h, 3);
+    const out = Buffer.alloc(n * 4);
+    for (let i = 0; i < n; i++) {
+        const I = Math.min(1.4, Math.max(0, inten[i] + 0.6 * glow[i]));
+        const r = 0.25 * I + 0.25 * I * I * I, g = 0.55 * I + 0.25 * I * I * I, b = I;
+        const al = Math.min(1, Math.max(body[i] * 0.75, glow[i] * 0.9));
+        out[i * 4] = Math.round(Math.min(1, r) * 255);
+        out[i * 4 + 1] = Math.round(Math.min(1, g) * 255);
+        out[i * 4 + 2] = Math.round(Math.min(1, b) * 255);
+        out[i * 4 + 3] = Math.round(al * 255);
+    }
+    return out;
+}
+
+module.exports = { paintCarTop, paintCarXray };
