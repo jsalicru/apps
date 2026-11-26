@@ -113,11 +113,11 @@ def build(fonts):
                     'revCurves': REV_CURVES})
     # --- the rev counter's numbers: a soft shadow under each, the number per face (silver; the redline one red)
     nr = R - 77                                         # (the ladder 19 px wide)
-    #     per rev scale ("revScale"), at their angle on it; the race scales leave out the 1 (crowded against the 0)
+    #     per rev scale ("revScale"), at their angle on it; the race scales leave out the 0 (no room for both; jsalicru: keep the 1)
     for scale, curve in [('even', 1)] + sorted(REV_CURVES.items()):
         sid = '' if scale == 'even' else '_' + scale
         for k in range(THOUSANDS + 1):
-            if k == 1 and scale != 'even':
+            if k == 0 and scale != 'even':
                 continue
             a = math.radians(START + SWEEP * (k / float(THOUSANDS)) ** curve)
             x, y = CX + nr * math.sin(a), CY - nr * math.cos(a)
