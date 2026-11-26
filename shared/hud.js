@@ -416,7 +416,7 @@ function cachedText(w, h, s, o) {
 }
 // settings that always rebuild (they pick another layout, change the theme's colours or what is placed where); every
 // other setting first tries _softSwitch, which swaps text in the layers already on the cluster
-const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont', 'smoothRevs', 'apexDial', 'mapInTheme', 'vetroRev', 'vetroBright', 'vetroRight'];
+const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont', 'smoothRevs', 'apexDial', 'mapInTheme', 'vetroRev', 'vetroBright', 'vetroRight', 'revScale'];
 // (0.17.4: "Leave BMW's bottom strip clear" is gone. Since 0.17.0 every cluster theme ends above BMW's strip anyway;
 // its squeeze to 662 / 720 only lifted the theme off the bottoms of BMW's own gauges, car photo Nov 14 2026.)
 // settings that only change what a text shows (the next tick paints it), no rebuild
@@ -2827,16 +2827,20 @@ class HudApp {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], 0]);
             c.uniform(ref, 'u_sweep', [T[3], T[4]]);
+            c.uniform(ref, 'u_curve', [this._revCurve(w)]);
             c.uniform(ref, 'u_col', this.setting('vetroDial') === 'red' ? [0.94, 0.95, 0.96] : [0.92, 0.11, 0.086]);
         } else if (w.type === 'rdash') {
             // Vetro (tools/gen_vetro.py): see the header; the face by "vetroDial" (black, red, yellow)
-            const T = w.tach, L = w.left, Rg = w.right, F = w.fuel, C = w.car;
+            const T = w.tach, L = w.left, Rg = w.right, C = w.car;
+            // the fuel with the gauges: under them on the right while the map shows ("mapFuel", jsalicru)
+            const F = w.mapFuel && w.hole && this.setting('mapUp') === true ? w.mapFuel : w.fuel;
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], 0]);
             c.uniform(ref, 'u_scale', [T[3], T[4], T[5], (w.red || 7200) / (T[5] * 1000)]);
             c.uniform(ref, 'u_dial', [{ red: 1, yellow: 2 }[this.setting('vetroDial')] || 0]);
             c.uniform(ref, 'u_rev', [this.setting('vetroRev') === 'ladder' ? 1 : 0, 0, 0]);
             c.uniform(ref, 'u_sweep', [0, 1, 1, 1]);
+            c.uniform(ref, 'u_curve', [this._revCurve(w)]);
             c.uniform(ref, 'u_bright', [this.setting('vetroBright') === true ? 1 : 0]);
             // the left panel reaches further left while the map shows in it ("mapLeft", jsalicru)
             const L2 = w.mapLeft && w.hole && this.setting('mapUp') === true ? w.mapLeft : L;
@@ -3254,8 +3258,18 @@ class HudApp {
 
     _barsOf(w) { return (w.bars || []).map((b) => this._pickOf(b)); }
 
+    /** A dial's rev scale spread by the "revScale" setting (Sweep's; layout "revCurves" { setting value: spread }), else 1. */
+    _revCurve(w) { const v = (w.revCurves || {})[this.setting('revScale')]; return isNum(v) ? v : 1; }
+
+    /** A bar's band by its "zones" [{ below | above, color }] (Sweep's temperature colours): 0 none, 1 cold, 2 warn, 3 hot. */
+    _zoneOf(b, v) {
+        if (!b || !Array.isArray(b.zones) || !isNum(v)) return 0;
+        const z = b.zones.find((r) => (isNum(r.above) ? v > r.above : v < r.below));
+        return z ? ({ cold: 1, warn: 2, hot: 3 }[z.color] || 0) : 0;
+    }
+
     /** A Vetro left bar: its own signal, or its "alt" while the setting "altWhen" is off ("Show boost" off: intake). */
-    _vetroBar(b) { return b.alt && this.setting(b.altWhen) === false ? Object.assign({}, b, { signal: b.alt, min: b.altMin, max: b.altMax }) : b; }
+    _vetroBar(b) { return b.alt && this.setting(b.altWhen) === false ? Object.assign({}, b, { signal: b.alt, min: b.altMin, max: b.altMax, zones: b.altZones }) : b; }
 
     /** One bar or scale with its "pick" filled in from the layout's "picks" (else as it is). */
     _pickOf(b) {
@@ -3481,9 +3495,13 @@ class HudApp {
             role = smartTemps.role(this, w, role);       // temperature bands (cold, warming, hot), outside ice
             // "lowWhen" { signal, below, color, font }: under that value the text takes that colour (and font), e.g. low fuel range
             let lowFont = null;
+            // (a list of them, each "below" or "above": the first that matches; jsalicru, Vetro's temperatures)
             if (w.lowWhen) {
-                const v = this._raw(w.lowWhen.signal);
-                if (isNum(v) && v < w.lowWhen.below) { role = w.lowWhen.color || 'low'; lowFont = w.lowWhen.font || null; }
+                const hit = (Array.isArray(w.lowWhen) ? w.lowWhen : [w.lowWhen]).find((r) => {
+                    const v = this._raw(r.signal);
+                    return isNum(v) && (isNum(r.above) ? v > r.above : v < r.below);
+                });
+                if (hit) { role = hit.color || 'low'; lowFont = hit.font || null; }
             }
             // over its warning limit: the value flashes in the shift red
             // ("warnFlash": false: not on a tile that turns red itself, the Dyno theme's)
@@ -3830,10 +3848,12 @@ class HudApp {
             const mapOn = !!(w.hole && this.setting('mapUp') === true);
             const bars = (mapOn && w.mapBars ? w.mapBars.map((m) => Object.assign({}, w.bars[m.of], { x: m.x, y: m.y, w: m.w })) : (w.bars || []))
                 .slice(0, 4).map((b) => this._vetroBar(b));
-            const bv = bars.map((b) => { const v = this._raw(b.signal); return isNum(v) ? q((v - b.min) / (b.max - b.min)) : 0; });
+            const bv = bars.map((b) => { const v = this._raw(b.signal); return isNum(v) ? q((v - b.min) / (b.max - b.min)) + 2 * this._zoneOf(b, v) : 0; });
             const low = isNum(w.tyreLow) ? w.tyreLow : 33;
             const ts = ['FL', 'FR', 'RL', 'RR'].map((k) => { const v = this._tyre('p', k); return isNum(v) ? (Math.round(v * 14.5038) < low ? 2 : 1) : 0; });
-            const fuel = this._raw('fuel'), fl = isNum(fuel) ? Math.round(Math.min(1, Math.max(0, fuel)) * 100) / 100 : 0;
+            const fuel = this._raw('fuel'), rng = this._raw('range');
+            // the fuel silver as the bars, amber (sent 2 over) with the range under "fuelLow" km (jsalicru: 50 miles)
+            const fl = (isNum(fuel) ? Math.round(Math.min(1, Math.max(0, fuel)) * 100) / 100 : 0) + (isNum(rng) && isNum(w.fuelLow) && rng < w.fuelLow ? 2 : 0);
             const pk = this._pullShown(), b0 = bars[0];
             const pkF = pk !== null && b0 && b0.signal === 'boost' ? q((pk - b0.min) / (b0.max - b0.min)) : -1;
             let sh = this._shiftNow(now);
@@ -3843,13 +3863,13 @@ class HudApp {
             // ("yellowLines") under it, the lit ticks turning yellow back from it over the last "waveBelow" rpm, and from
             // the shift point the ticks flash red about 5 times a second
             let sw = [0, 1, 1, 1];
-            if (this.setting('vetroRev') === 'sweep') {
+            {
                 const top = T[5] * 1000, redline = this.setting('redline'), oil = this._raw('oil'), C = w.coldLimit;
                 let limit = redline;
                 if (C && isNum(oil)) limit = Math.round((C[2] + (redline - C[2]) * Math.min(1, Math.max(0, (oil - C[0]) / (C[1] - C[0])))) / 50) * 50;
                 const yellow = (w.yellowLines || 2) * 100, waveAt = limit - (w.waveBelow || 1200), revs = rv * top;
                 const wave = revs <= waveAt ? 1 : Math.max(0, limit * (1 - (revs - waveAt) / (limit - waveAt)) / top);
-                sw = [1, limit / top, (limit - yellow) / top, Math.round(wave * 400) / 400];
+                sw = [this.setting('vetroRev') === 'sweep' ? 1 : 0, limit / top, (limit - yellow) / top, Math.round(wave * 400) / 400];
                 const shiftAt = limit - (isNum(this.setting('shiftBefore')) ? this.setting('shiftBefore') : 0);
                 sh = [0, this.setting('shiftLight') !== false && isNum(rpm) && rpm >= shiftAt && Math.floor(now / 100) % 2 === 0 ? 1 : 0];
             }
@@ -3867,7 +3887,7 @@ class HudApp {
             while (bu.length < 16) bu.push(0, -999, 1, 0);
             x.c.uniform(x.ref, 'u_bars', bu, { type: 'vec4' });
             x.c.uniform(x.ref, 'u_tyre', ts);
-            const F = w.fuel;
+            const F = mapOn && w.mapFuel ? w.mapFuel : w.fuel;
             x.c.uniform(x.ref, 'u_fuel', [F[0] - w.x, F[1] - w.y, F[2], fl]);
             x.c.uniform(x.ref, 'u_peak', [pkF]);
             if (x.mediaOn) { const M = w.media; x.c.uniform(x.ref, 'u_media', [M[0] - w.x, M[1] - w.y, mf < 0 ? 0 : M[2], Math.max(0, mf)]); }

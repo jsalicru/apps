@@ -3847,7 +3847,8 @@ uniform float u_plain;     // 1: no floor (the "Backgrounds" setting off)
 uniform vec4 u_hole;       // the Waze map's window in the left panel while it shows: x, y, w, h (w 0: none)
 uniform vec4 u_tbox;       // the tyre boxes' half width, half height, the wheels' x offset, the wheels' scale
 uniform float u_bright;    // "vetroBright": 1 the brighter look (a lifted face, more sheen, lighter panels, full white)
-uniform vec4 u_sweep;      // "vetroRev" sweep (jsalicru): x 1 the ticks light as Sweep's with the needle kept; y the red zone's start, z the yellow zone's, w the wave (lit ticks yellow from here), 0..1 of the scale
+uniform float u_curve;     // the rev scale's spread ("revScale", Sweep's): the angle goes as (rpm / max) ^ u_curve; 1 even
+uniform vec4 u_sweep;      // (jsalicru) x 1: the ticks light as Sweep's with the needle kept ("vetroRev" sweep); y the red zone's start (lower on a cold engine, every rev display), z the yellow zone's, w the wave (lit ticks yellow from here), 0..1 of the scale
 uniform vec3 u_rev;        // "vetroRev": x 1 the lit ladder (no needle), 0 the needle; y the revs' peak 0..1, z its fade 1..0
 uniform float u_peak;      // the peak boost on the first bar, 0..1 (< 0: none; setting "vetroPeak")
 uniform vec4 u_media;      // now playing on the right ("vetroRight" music): the progress track's x, y (its middle), width, the song's position 0..1; width 0: none
@@ -3929,24 +3930,25 @@ void main() {
         c = put(c, BLUE, max(cov(abs(dl + 0.8) - 0.7) * wl, wt) * 0.85);
     }
 
-    // --- the fuel: slanted cells filled amber (a yellow lower edge), a dark track, a slanted yellow stroke at its end
+    // --- the fuel: slanted cells filled silver (amber with the range low), a dark track
     vec4 F = u_fuel;
+    float lowF = step(1.5, F.w);
+    F.w -= 2.0 * lowF;
     float fy = (p.y - F.y) / 24.0;                      // the track 24 px tall
-    if (fy > -0.4 && fy < 1.4 && p.x > F.x - 10.0 && p.x < F.x + F.z + 34.0) {
+    if (fy > -0.4 && fy < 1.4 && p.x > F.x - 10.0 && p.x < F.x + F.z + 10.0) {
         float rel = p.x - F.x - 7.0 * (1.0 - fy);
         float inT = step(0.0, rel) * step(rel, F.z) * step(0.0, fy) * step(fy, 1.0);
         c = put(c, vec3(0.10, 0.14, 0.21), inT * 0.9);
         c = put(c, vec3(0.45, 0.52, 0.64), inT * (1.0 - step(1.3, rel) * step(rel, F.z - 1.3) * step(1.3 / 24.0, fy) * step(fy, 1.0 - 1.3 / 24.0)) * 0.7);
-        float cell = inT * step(2.6, mod(rel, F.z / 10.0)) * step(rel, F.w * F.z) * step(2.5 / 24.0, fy) * step(fy, 21.5 / 24.0);
-        vec3 amb = F.w < 0.12 ? vec3(0.95, 0.16, 0.10) : vec3(0.98, 0.42 + 0.30 * fy, 0.05 + 0.05 * fy);
+        float cell = inT * step(2.6, mod(rel, F.z / 10.0)) * step(rel, F.w * F.z + 0.01) * step(2.5 / 24.0, fy) * step(fy, 21.5 / 24.0);
+        // silver as the bars; amber with the range low (the level sent 2 over: jsalicru)
+        vec3 amb = lowF > 0.5 ? vec3(0.98, 0.42 + 0.30 * fy, 0.05 + 0.05 * fy) : vec3(0.86, 0.91, 1.0) * (0.8 + 0.2 * fy);
         c = put(c, amb, cell);
-        c = put(c, vec3(1.0, 0.85, 0.2), cell * step(18.0 / 24.0, fy) * 0.8);
-        float sx = p.x - (F.x + F.z + 12.0) - 0.55 * (p.y - F.y + 6.0);
-        c = put(c, vec3(1.0, 0.86, 0.15), cov(abs(sx) - 1.3) * step(-6.0, p.y - F.y) * step(p.y - F.y, 30.0));
+        c = put(c, lowF > 0.5 ? vec3(1.0, 0.85, 0.2) : vec3(0.30, 0.50, 1.0), cell * step(18.0 / 24.0, fy) * 0.8);
     }
 
     // --- the right panel: navy glass framed by fine light lines, a darker ring band round the dial, red lines along the
-    //     top (from the dial out, fading) and the foot (round the corner and up the right end), the mode's slanted stroke
+    //     top (from the dial out, fading) and the foot (round the corner and up the right end)
     float rt = u_right.x, rb = u_right.y;
     float xr = mix(u_right.z, u_right.w, (p.y - rt) / (rb - rt));
     float BAND = R + 36.0;
@@ -3969,8 +3971,6 @@ void main() {
         c = put(c, RED, max(m, m2));
         c += RED * 0.5 * (exp(-pow((p.y - yl) / 3.5, 2.0)) * step(R + 4.0, d) * clamp((1760.0 - p.x) / 420.0, 0.0, 1.0) * 0.4
                           + exp(-max(p.y - rb, 0.0) / 14.0) * step(rb, p.y) * step(p.x, xr) * clamp((p.x - C.x - 0.5 * R) / 300.0, 0.0, 1.0) * 0.35);
-        float tx = C.x + sqrt(max(pow(BAND + 6.0, 2.0) - pow(rt + 18.0 - C.y, 2.0), 0.0)) + 10.0;
-        c = put(c, vec3(1.0, 0.70, 0.17), cov(abs((p.x - tx - 2.5) - 0.48 * (p.y - rt - 6.0)) - 2.0) * step(rt + 6.0, p.y) * step(p.y, yl - 6.0));
         // the tyres: a box each out to the side (a bright edge toward the car), a leader to its wheel, the wheel outlined
         // green (fine) or red (low) beside the body
         for (int i = 0; i < 4; i++) {
@@ -4003,6 +4003,10 @@ void main() {
     //     right end), a crisp light fill from the left, a blue start, a small red mark at the end
     for (int i = 0; i < 4; i++) {
         vec4 B = u_bars[i];
+        // the value's whole part above 1 carries its band (jsalicru, Sweep's colours): 2 cold (blue), 4 warm (orange), 6 hot (red)
+        float zn = floor(B.w * 0.5);
+        B.w -= zn * 2.0;
+        vec3 fc_ = zn > 2.5 ? vec3(1.0, 0.2, 0.14) : zn > 1.5 ? vec3(1.0, 0.54, 0.07) : zn > 0.5 ? vec3(0.25, 0.59, 1.0) : vec3(0.86, 0.91, 1.0);
         vec2 bh = vec2(B.z * 0.5, 13.0), bc = B.xy + bh;
         float bd = rbox(p, bc, bh, 4.0);
         if (bd > 3.0) continue;
@@ -4010,7 +4014,7 @@ void main() {
         vec3 bcol = vec3(0.008, 0.012, 0.02);
         float pos = (p.x - B.x) / B.z;
         float fl = step(pos, B.w) * step(B.y + 4.0, p.y) * step(p.y, B.y + 23.0) * step(B.x + 3.0, p.x);
-        bcol = mix(bcol, vec3(0.86, 0.91, 1.0) * (0.95 - 0.2 * clamp((B.y + 9.0 - p.y) / 5.0, 0.0, 1.0)) * clamp(1.0 - (B.w - pos) * 1.2, 0.82, 1.0), fl);
+        bcol = mix(bcol, fc_ * (0.95 - 0.2 * clamp((B.y + 9.0 - p.y) / 5.0, 0.0, 1.0)) * clamp(1.0 - (B.w - pos) * 1.2, 0.82, 1.0), fl);
         bcol = mix(bcol, vec3(0.30, 0.50, 1.0), clamp(1.0 - (p.x - B.x) / 40.0, 0.0, 1.0) * 0.55);
         bcol = mix(bcol, vec3(0.85, 0.12, 0.10), step(B.x + B.z - 18.0, p.x) * step(p.x, B.x + B.z - 4.0) * step(B.y + 19.0, p.y) * step(p.y, B.y + 22.0));
         bcol *= 1.0 - 0.75 * clamp(1.0 - min(p.y - B.y - 3.0, p.x - B.x - 2.0) / 4.0, 0.0, 1.0);
@@ -4029,10 +4033,10 @@ void main() {
     // --- the dial
     if (d < R + 10.0) {
         float a = degrees(atan(q.x, -q.y));
-        float k = mod(a - u_scale.x + 720.0, 360.0) / u_scale.y * u_scale.z;      // thousands round the scale
+        float fa = max(mod(a - u_scale.x + 720.0, 360.0) / u_scale.y, 0.0);       // 0..1 round the scale
+        float k = u_scale.z * pow(fa, 1.0 / u_curve);                              // thousands there
         bool onScale = k <= u_scale.z + 0.02;
-        float redK = u_scale.w * u_scale.z;
-        float pxk = R * radians(u_scale.y) / u_scale.z;                            // px per thousand at the rim
+        float pxk = R * radians(u_scale.y) / u_scale.z * u_curve * pow(max(fa, 0.002), 1.0 - 1.0 / u_curve);   // px per thousand at the rim
         // the face: black, faintly lighter toward the rim; red or yellow from the inner ring out, lit from above
         float fv = 0.018 + 0.05 * pow(clamp((d / R - 0.5) / 0.5, 0.0, 1.0), 2.0) + u_bright * (0.035 + 0.05 * exp(-pow(d / (0.75 * R), 2.0)));
         vec3 fc = vec3(fv, fv, fv * 1.08);
@@ -4054,12 +4058,10 @@ void main() {
         // the ticks: two fine rings with rungs every 100 rpm between them, a dot on the inner one at each thousand
         vec3 tick = u_dial > 1.5 ? vec3(0.16) : vec3(0.77, 0.78, 0.82);
         vec3 tickR = u_dial > 0.5 && u_dial < 1.5 ? vec3(0.08, 0.016, 0.016) : vec3(0.92, 0.14, 0.12);
-        // the red zone fades in from 6500 to 85 % at 7000, to full at the top: almost solid from 7 to 8
-        float rz = 0.85 * smoothstep(6.5, 7.0, k) + 0.15 * clamp(k - 7.0, 0.0, 1.0);
-        // Sweep's way (u_sweep.x): the red zone from its start (lower on a cold engine), a yellow zone just under it
+        // the red zone from its start (lower on a cold engine, as Sweep's), a yellow zone just under it
         float kR = u_sweep.y * u_scale.z, kY = u_sweep.z * u_scale.z, kRev = u_tach.w * u_scale.z;
-        rz = mix(rz, smoothstep(kR - 0.03, kR + 0.03, k), u_sweep.x);
-        float yz = u_sweep.x * step(kY, k) * (1.0 - step(kR, k));
+        float rz = smoothstep(kR - 0.03, kR + 0.03, k);      // (jsalicru: in every rev display)
+        float yz = step(kY, k) * (1.0 - step(kR, k));
         float ro = R - 7.0, ri = R - 26.0;
         float inL = float(onScale) * step(ri, d) * step(d, ro);
         float lit = u_rev.x * step(k, u_tach.w * u_scale.z) * inL;            // the lit ladder: up to the revs
@@ -4094,7 +4096,7 @@ void main() {
         col = mix(col, vec3(1.0, 0.92, 0.85), clamp(1.6 - abs(pkd), 0.0, 1.0) * inL * u_rev.z * u_rev.x);
         col += vec3(1.0, 0.5, 0.2) * exp(-pkd * pkd / 18.0) * inL * u_rev.z * u_rev.x * 0.5;
         float kk = floor(k + 0.5);
-        float ak = radians(u_scale.x + u_scale.y * kk / u_scale.z);
+        float ak = radians(u_scale.x + u_scale.y * pow(kk / u_scale.z, u_curve));
         vec2 dot_ = C + ri * vec2(sin(ak), -cos(ak));
         col = mix(col, kk > 7.5 ? tickR : (u_dial > 1.5 ? vec3(0.1) : vec3(0.94, 0.95, 0.97)), cov(length(p - dot_) - 2.6) * step(kk, u_scale.z + 0.01));
         // the shift light on the ladder (needle): the ticks glow red while it flashes
@@ -4168,13 +4170,14 @@ varying vec2 v_uv;
 uniform vec2 u_size;
 uniform vec4 u_tach;       // centre x, y (in this layer), radius, revs 0..1
 uniform vec2 u_sweep;      // 0 at this angle (deg clockwise from 12 o'clock), sweep deg
+uniform float u_curve;     // the rev scale's spread, as the dash's
 uniform vec3 u_col;        // the blade's colour (red; white on the red face)
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 float segd(vec2 p, vec2 a, vec2 b) { vec2 ba = b - a; float h = clamp(dot(p - a, ba) / dot(ba, ba), 0.0, 1.0); return length(p - a - ba * h); }
 void main() {
     vec2 p = v_uv * u_size, C = u_tach.xy;
     float R = u_tach.z, d = length(p - C);
-    float an = radians(u_sweep.x + u_sweep.y * u_tach.w);
+    float an = radians(u_sweep.x + u_sweep.y * pow(u_tach.w, u_curve));
     vec2 un = vec2(sin(an), -cos(an));
     vec2 n0 = C + un * 0.04 * R, n1 = C + un * (R - 12.0);
     float t = clamp(dot(p - n0, un) / (R - 12.0 - 0.04 * R), 0.0, 1.0);

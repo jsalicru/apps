@@ -52,6 +52,17 @@ FACES = {                                                # the numbers' colours 
     'yellow': (('numDark', 'numDarkLow'), ('numRed', 'numRedLow')),
 }
 # the left bars: icon, value, unit, signal, min, max (+ the boost row's stand-in while "Show boost" is off)
+# Sweep's temperature bands (jsalicru, Nov 26 2026), deg C: the bar and its reading cold blue, warm orange, hot red
+F2C = lambda f: round((f - 32) * 5 / 9.0, 2)
+ZONES = {
+    'oil': [{'above': F2C(260), 'color': 'hot'}, {'above': F2C(235), 'color': 'warn'}, {'below': F2C(160), 'color': 'cold'}],
+    'coolant': [{'above': F2C(240), 'color': 'hot'}, {'below': F2C(160), 'color': 'cold'}],
+    'intake': [{'above': F2C(180), 'color': 'hot'}],
+}
+FUEL_LOW = 80.47                                         # km: the fuel and range amber under 50 miles
+# Sweep's rev scales ("revScale"): even, or race (5000 rpm half way round), race55 (5500): the angle goes as
+# (rpm / 8000) ^ spread
+REV_CURVES = {name: round(math.log(0.5) / math.log(rpm / 8000.0), 4) for name, rpm in (('race', 5000), ('race55', 5500))}
 ROWS = [
     ('gauge', '{{boost}}', '{{u:boostLc}}', 'vt_small', 'boost', 0, 2.758),
     ('oilcan', '{{oil}}', '{{u:temp}}', 'vt_deg', 'oil', 50, 150),
@@ -82,34 +93,43 @@ def build(fonts):
     bars, rows_y = [], [LEFT[1] + 62 + i * 86 for i in range(4)]
     for (icon, tok, unit, ufont, sig, mn, mx), by in zip(ROWS, rows_y):
         b = {'x': BAR_R - BAR_W, 'y': by, 'w': BAR_W, 'signal': sig, 'min': mn, 'max': mx}
+        if sig in ZONES:
+            b['zones'] = ZONES[sig]
         if sig == 'boost':
-            b.update({'alt': 'intake', 'altMin': 0, 'altMax': 100, 'altWhen': 'showBoost'})
+            b.update({'alt': 'intake', 'altMin': 0, 'altMax': 100, 'altWhen': 'showBoost', 'altZones': ZONES['intake']})
         bars.append(b)
     F = [BAR_R - BAR_W, LEFT[2] + 30, 250]
+    MF = [RBAR_X, LEFT[2] + 30, 250]                    # the fuel under the gauges on the right while the map shows
     widgets.append({'id': 'dash', 'type': 'rdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'red': RED, 'left': [round(v, 1) for v in LEFT],
-                    'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'car': CAR, 'tyresIf': 'vetroRight=tires',
+                    'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'mapFuel': MF, 'fuelLow': FUEL_LOW, 'car': CAR, 'tyresIf': 'vetroRight=tires',
                     'tbox': [68, 37, 69, 1], 'hole': MAP, 'holeWhen': 'mapUp', 'holeInset': 0, 'holeAim': [MAP_AIM, 0.5], 'mapLeft': [round(v, 1) for v in MAP_LEFT],
                     'mapBars': MAP_BARS, 'media': MEDIA, 'mediaIf': 'vetroRight=music',
-                    'coldLimit': [48.89, 71.11, 4000], 'yellowLines': 2, 'waveBelow': 1200})
+                    'coldLimit': [48.89, 71.11, 4000], 'yellowLines': 2, 'waveBelow': 1200, 'revCurves': REV_CURVES})
 
     # --- the needle and its cap on a layer of their own, over the numbers (z 6)
     widgets.append({'id': 'needle', 'type': 'rneedle', 'class': 'content', 'z': 6, 'x': CX - R, 'y': CY - R, 'w': 2 * R, 'h': 2 * R,
-                    'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'conn': 1, 'toggle': 'vetroRev=needle|sweep'})
+                    'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'conn': 1, 'toggle': 'vetroRev=needle|sweep',
+                    'revCurves': REV_CURVES})
     # --- the rev counter's numbers: a soft shadow under each, the number per face (silver; the redline one red)
     nr = R - 77                                         # (the ladder 19 px wide)
-    for k in range(THOUSANDS + 1):
-        a = math.radians(START + SWEEP * k / float(THOUSANDS))
-        x, y = CX + nr * math.sin(a), CY - nr * math.cos(a)
-        top = y - cell('vt_num') / 2.0 + 2
-        widgets.append({'id': 'n%d_sh' % k, 'type': 'text', 'z': 4, 'x': int(round(x - 50 + 1)), 'y': int(round(top + 4)),
-                        'w': 100, 'h': cell('vt_num'), 'text': str(k), 'font': 'vt_num', 'color': 'shade', 'align': 'center',
-                        'glow': True, 'rate': 60000})
-        for face, (lo, hi) in FACES.items():
-            c1, c2 = hi if k * 1000 >= RED else lo
-            widgets.append({'id': 'n%d_%s' % (k, face), 'type': 'text', 'z': 5, 'x': int(round(x - 50)), 'y': int(round(top)),
-                            'w': 100, 'h': cell('vt_num'), 'text': str(k), 'font': 'vt_num', 'color': c1, 'color2': c2,
-                            'align': 'center', 'toggle': 'vetroDial=' + face, 'rate': 60000})
+    #     per rev scale ("revScale"), at their angle on it; the race scales leave out the 0 (no room for both; jsalicru: keep the 1)
+    for scale, curve in [('even', 1)] + sorted(REV_CURVES.items()):
+        sid = '' if scale == 'even' else '_' + scale
+        for k in range(THOUSANDS + 1):
+            if k == 0 and scale != 'even':
+                continue
+            a = math.radians(START + SWEEP * (k / float(THOUSANDS)) ** curve)
+            x, y = CX + nr * math.sin(a), CY - nr * math.cos(a)
+            top = y - cell('vt_num') / 2.0 + 2
+            widgets.append({'id': 'n%d_sh%s' % (k, sid), 'type': 'text', 'z': 4, 'x': int(round(x - 50 + 1)), 'y': int(round(top + 4)),
+                            'w': 100, 'h': cell('vt_num'), 'text': str(k), 'font': 'vt_num', 'color': 'shade', 'align': 'center',
+                            'glow': True, 'rate': 60000, 'toggle': 'revScale=' + scale})
+            for face, (lo, hi) in FACES.items():
+                c1, c2 = hi if k * 1000 >= RED else lo
+                widgets.append({'id': 'n%d_%s%s' % (k, face, sid), 'type': 'text', 'z': 5, 'x': int(round(x - 50)), 'y': int(round(top)),
+                                'w': 100, 'h': cell('vt_num'), 'text': str(k), 'font': 'vt_num', 'color': c1, 'color2': c2,
+                                'align': 'center', 'toggle': 'vetroDial=' + face + '&revScale=' + scale, 'rate': 60000})
     # --- the speed (right-aligned, its unit after it) and the gear (AUTO / MANUAL under it), in their glass boxes
     text('speed', 1158, 306 + 0.36 * cell('vt_speed'), 220, '{{speed}}', 'vt_speed', 'fg', 'right', rate=FAST, own=True)
     text('speed_u', 1166, 320 + 7, 80, '{{u:speedLc}}', 'vt_unit', 'dim', 'left')
@@ -127,13 +147,15 @@ def build(fonts):
             for tg, t2, ic in (('showBoost', tok, 'gauge'), ('!showBoost', '{{intake}}', 'therm')):
                 k = '' if tg == 'showBoost' else 'i'
                 text('b%d_v%s%s' % (i, k, sfx), rx - 44, by - 8, 160, t2, 'vt_val', 'fg', 'right', toggle=tg + '&' + mt,
-                     rate=FAST if tg == 'showBoost' else None, own=True)
+                     rate=FAST if tg == 'showBoost' else None, own=True,
+                     lowWhen=None if tg == 'showBoost' else [dict(z, signal='intake') for z in ZONES['intake']])
                 text('b%d_u%s%s' % (i, k, sfx), rx - 38, by - 8, 44, unit if tg == 'showBoost' else '{{u:temp}}',
                      ufont if tg == 'showBoost' else 'vt_deg', 'dim', 'left', toggle=tg + '&' + mt)
                 widgets.append({'id': 'b%d_icon%s%s' % (i, k, sfx), 'type': 'icon', 'icon': ic, 'z': 5,
                                 'x': int(x0 - 45), 'y': int(by - 5), 'w': 35, 'h': 35, 'color': 'fg', 'toggle': tg + '&' + mt})
             continue
-        text('b%d_v%s' % (i, sfx), rx - 44, by - 8, 160, tok, 'vt_val', 'fg', 'right', own=True, toggle=mt)
+        text('b%d_v%s' % (i, sfx), rx - 44, by - 8, 160, tok, 'vt_val', 'fg', 'right', own=True, toggle=mt,
+             lowWhen=[dict(z, signal=sig) for z in ZONES[sig]] if sig in ZONES else None)
         text('b%d_u%s' % (i, sfx), rx - 38, by - 8, 44, unit, ufont, 'dim', 'left', toggle=mt)
         widgets.append({'id': 'b%d_icon%s' % (i, sfx), 'type': 'icon', 'icon': icon, 'z': 5, 'x': int(x0 - 45), 'y': int(by - 5),
                         'w': 35, 'h': 35, 'color': 'fg', 'toggle': mt})
@@ -145,19 +167,21 @@ def build(fonts):
         tg = 'vetroPeak&showBoost&' + mt
         text('pk_l' + sfx, x0, by - 9, 44, '{{pullPeakLabel}}', 'vt_tiny', 'accent', 'left', toggle=tg)
         text('pk_v' + sfx, x0 + 48, by - 9, 80, '{{pullPeak}}', 'vt_pk', 'accent', 'left', toggle=tg)
-    # --- the fuel: the pump icon before the cells, the range in amber after them
-    widgets.append({'id': 'fuel_icon', 'type': 'icon', 'icon': 'fuel', 'z': 5, 'x': F[0] - 42, 'y': F[1] - 4, 'w': 32, 'h': 32,
-                    'color': 'fg'})
-    text('range', F[0] + F[2] + 114, F[1] + 22, 110, '{{range}}', 'vt_range', 'accent', 'right')
-    text('range_u', F[0] + F[2] + 120, F[1] + 22, 50, '{{u:distLc}}', 'vt_small', 'accent', 'left')
+    # --- the fuel with the gauges (left; right under them while the map shows): the pump icon before the cells, the
+    #     range after them, white, amber under 50 miles as the cells (jsalicru)
+    low = {'signal': 'range', 'below': FUEL_LOW, 'color': 'accent'}
+    for (fx, fy, fw), mt, sfx in ((F, '!mapUp', ''), (MF, 'mapUp', '_m')):
+        widgets.append({'id': 'fuel_icon' + sfx, 'type': 'icon', 'icon': 'fuel', 'z': 5, 'x': fx - 42, 'y': fy - 4, 'w': 32, 'h': 32,
+                        'color': 'fg', 'toggle': mt})
+        text('range' + sfx, fx + fw + 104, fy + 22, 110, '{{range}}', 'vt_range', 'fg', 'right', toggle=mt, lowWhen=low)
+        text('range_u' + sfx, fx + fw + 110, fy + 22, 50, '{{u:distLc}}', 'vt_small', 'dim', 'left', toggle=mt, lowWhen=low)
 
     # --- the right panel: the drive mode by its stroke, the heading, the car, the tyres' readings in their boxes
     text('mode', tx + 30, RIGHT[0] + 24, 400, '{{mode}}', 'vt_mode', 'accent', 'left')
-    # the heading: the tyres, now playing, or the gauges while the map shows
+    # the heading: the tyres or now playing (none over the gauges while the map shows)
     hx = tx + 34
     text('tyre_head', hx, RIGHT[0] + 86, 200, 'Tires', 'vt_head', 'head', 'left', toggle='vetroRight=tires&!mapUp')
     text('music_head', hx, RIGHT[0] + 86, 260, 'Now Playing', 'vt_head', 'head', 'left', toggle='vetroRight=music&!mapUp')
-    text('gauge_head', hx, RIGHT[0] + 86, 200, 'Gauges', 'vt_head', 'head', 'left', toggle='mapUp')
     # the car and the tyres' readings (setting "vetroRight" tires, the map down)
     cx_, cy_, dx_, dy_ = CAR
     cw, bh, pf, py, ty = 150, 37, 'vt_tp', 40, 64
@@ -198,7 +222,7 @@ def build(fonts):
     for w in widgets:
         if w['type'] == 'text' and 'rate' not in w and not w.get('own'):
             toks = [t.split('}}')[0] for t in w['text'].split('{{')[1:]]
-            if any(t in ('oil', 'intake', 'oilP', 'mode', 'coolant', 'progWord', 'pullPeak', 'pullPeakLabel') for t in toks):
+            if w.get('lowWhen') or any(t in ('oil', 'intake', 'oilP', 'mode', 'coolant', 'progWord', 'pullPeak', 'pullPeakLabel') for t in toks):
                 continue
             w['rate'] = 2000 if all(t.startswith('u:') for t in toks) else 1000
     return {
