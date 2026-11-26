@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 26 2026
 
+- **P3 Clusters 0.24.2 (Vetro):** no level and upright guide lines through the dial's face.
 - **P3 Clusters 0.24.1 (Vetro):** on the Race rev scales the top is squeezed as Sweep's (7400 to 8000 rpm in 3/8 of its width), so 7 and 8 sit closer.
 - **P3 Clusters 0.24.0 (Vetro):** the fuel sits with the gauges (under the left bars, or under the right ones while the map shows) in the bars' silver, the cells and range amber only under 50 miles; no yellow slashes (by the fuel and by the drive mode); oil, water and intake temperatures coloured as Sweep's (blue cold under 160°F; oil orange over 235°F, red over 260°F; water red over 240°F; intake red over 180°F), the bar and its reading; the warm-up red zone, yellow zone and shift flash in every Rev display, and **Shift light** now covers Vetro; **Rev scale** (Sweep's Even / Race 5000 / Race 5500 in the middle) now spreads Vetro's dial too, the needle and numbers with it (the race scales leave out the 0, keeping the 1).
 - **P3 Clusters 0.23.1 (Vetro):** no "Gauges" heading over the right panel's bars while the map shows.

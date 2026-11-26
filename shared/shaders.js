@@ -4053,12 +4053,8 @@ void main() {
         float HUB = 0.43 * R;
         col = mix(col, vec3(0.040, 0.043, 0.052) * (1.0 + 0.6 * u_bright), cov(d - HUB));
         col *= 1.0 - pow(clamp(1.0 - (HUB - d) / 34.0, 0.0, 1.0), 1.6) * step(d, HUB) * (0.55 + 0.35 * clamp(up / 0.43, 0.0, 1.0));
-        vec3 ink = u_dial > 1.5 ? vec3(0.59, 0.44, 0.04) : u_dial > 0.5 ? vec3(0.37, 0.04, 0.03) : vec3(0.20, 0.21, 0.235);
         col += vec3(0.18 + 0.2 * clamp(up, 0.0, 1.0)) * cov(abs(d - HUB) - 0.6);
         col += vec3(0.9, 0.93, 1.0) * (0.16 + 0.14 * clamp(up, 0.0, 1.0)) * cov(abs(d - 0.5 * R) - 0.6);
-        // the guide lines, level and upright through the centre, between the inner ring and the ticks
-        float gld = min(abs(q.y), abs(q.x));
-        col = mix(col, ink, cov(gld - 0.6) * step(HUB + 2.0, d) * step(d, R - 27.0) * step(-0.5, -q.x * 0.0 + 1.0));
         // the ticks: two fine rings with rungs every 100 rpm between them, a dot on the inner one at each thousand
         vec3 tick = u_dial > 1.5 ? vec3(0.16) : vec3(0.77, 0.78, 0.82);
         vec3 tickR = u_dial > 0.5 && u_dial < 1.5 ? vec3(0.08, 0.016, 0.016) : vec3(0.92, 0.14, 0.12);
