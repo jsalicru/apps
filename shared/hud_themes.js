@@ -27,6 +27,7 @@ const THEMES = {
         bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [128, 130, 138, 255], head: [225, 230, 238, 255],
         ink: [12, 12, 14, 255], accent: [255, 176, 44, 255], well: [0, 0, 0, 255], faint: [96, 100, 110, 255],
         hot: [240, 60, 50, 255], cool: [120, 180, 255, 255],
+        cold: [64, 150, 255, 255], warn: [255, 138, 18, 255],             // Sweep's temperature colours (jsalicru)
         num: [246, 247, 250, 255], numLow: [158, 162, 172, 255],          // the silver numbers, light to dark down
         numRed: [240, 44, 36, 255], numRedLow: [175, 26, 22, 255],
         numDark: [108, 120, 142, 255], numDarkLow: [52, 58, 72, 255],     // on the yellow face: blue-grey metal

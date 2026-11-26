@@ -66,7 +66,7 @@ mgu.run({
             tabs: ['look', 'readouts', 'badge', 'map', 'alerts', 'gmeter', 'settings'],
             // the Settings tab lists these only while their theme is on the cluster (shared/page.js); not listed: every theme
             settingThemes: {
-                tempUnits: ['apex', 'vetro'], pressureUnits: ['apex', 'vetro'], shiftLight: ['apex'], backdrops: ['apex', 'vetro'], apexBackdrop: ['apex'], apexDial: ['apex'], apexFont: ['apex'], tachStyle: ['apex'], apexZones: ['apex'], tachResponse: ['apex'],
+                tempUnits: ['apex', 'vetro'], pressureUnits: ['apex', 'vetro'], shiftLight: ['apex', 'vetro'], backdrops: ['apex', 'vetro'], apexBackdrop: ['apex'], apexDial: ['apex'], apexFont: ['apex'], tachStyle: ['apex'], apexZones: ['apex'], tachResponse: ['apex'],
                 gearStyle: ['apex'], gearSource: ['apex'], tachSpeed: ['apex'], readingsCheck: ['apex'], dialGlow: ['apex'], leftStyle: ['apex'],
                 leftTop: ['apex'], leftBottom: ['apex'], gaugeFill: ['apex'], rightPanel: ['apex'],
                 vetroRight: ['vetro'], vetroDial: ['vetro'], vetroRev: ['vetro'], vetroBright: ['vetro'], vetroPeak: ['vetro'],
