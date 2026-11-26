@@ -3847,7 +3847,8 @@ uniform float u_plain;     // 1: no floor (the "Backgrounds" setting off)
 uniform vec4 u_hole;       // the Waze map's window in the left panel while it shows: x, y, w, h (w 0: none)
 uniform vec4 u_tbox;       // the tyre boxes' half width, half height, the wheels' x offset, the wheels' scale
 uniform float u_bright;    // "vetroBright": 1 the brighter look (a lifted face, more sheen, lighter panels, full white)
-uniform float u_curve;     // the rev scale's spread ("revScale", Sweep's): the angle goes as (rpm / max) ^ u_curve; 1 even
+uniform vec3 u_curve;      // the rev scale ("revScale", Sweep's): x the spread (the angle goes as (rpm / max) ^ x; 1 even); past y
+                           // (that spread's value at the tail's start) the rest squeezed to z times its width (Sweep's tail; z 1: none)
 uniform vec4 u_sweep;      // (jsalicru) x 1: the ticks light as Sweep's with the needle kept ("vetroRev" sweep); y the red zone's start (lower on a cold engine, every rev display), z the yellow zone's, w the wave (lit ticks yellow from here), 0..1 of the scale
 uniform vec3 u_rev;        // "vetroRev": x 1 the lit ladder (no needle), 0 the needle; y the revs' peak 0..1, z its fade 1..0
 uniform float u_peak;      // the peak boost on the first bar, 0..1 (< 0: none; setting "vetroPeak")
@@ -4034,9 +4035,12 @@ void main() {
     if (d < R + 10.0) {
         float a = degrees(atan(q.x, -q.y));
         float fa = max(mod(a - u_scale.x + 720.0, 360.0) / u_scale.y, 0.0);       // 0..1 round the scale
-        float k = u_scale.z * pow(fa, 1.0 / u_curve);                              // thousands there
+        float s0 = 1.0 - (1.0 - u_curve.y) * u_curve.z;                              // where the tail starts round it
+        float pv = fa <= s0 ? fa * u_curve.y / s0 : u_curve.y + (fa - s0) / u_curve.z;
+        float k = u_scale.z * pow(pv, 1.0 / u_curve.x);                             // thousands there
         bool onScale = k <= u_scale.z + 0.02;
-        float pxk = R * radians(u_scale.y) / u_scale.z * u_curve * pow(max(fa, 0.002), 1.0 - 1.0 / u_curve);   // px per thousand at the rim
+        float pxk = R * radians(u_scale.y) / u_scale.z * u_curve.x * pow(max(k / u_scale.z, 0.002), u_curve.x - 1.0)
+                    * (fa <= s0 ? s0 / u_curve.y : u_curve.z);                    // px per thousand at the rim
         // the face: black, faintly lighter toward the rim; red or yellow from the inner ring out, lit from above
         float fv = 0.018 + 0.05 * pow(clamp((d / R - 0.5) / 0.5, 0.0, 1.0), 2.0) + u_bright * (0.035 + 0.05 * exp(-pow(d / (0.75 * R), 2.0)));
         vec3 fc = vec3(fv, fv, fv * 1.08);
@@ -4096,7 +4100,8 @@ void main() {
         col = mix(col, vec3(1.0, 0.92, 0.85), clamp(1.6 - abs(pkd), 0.0, 1.0) * inL * u_rev.z * u_rev.x);
         col += vec3(1.0, 0.5, 0.2) * exp(-pkd * pkd / 18.0) * inL * u_rev.z * u_rev.x * 0.5;
         float kk = floor(k + 0.5);
-        float ak = radians(u_scale.x + u_scale.y * pow(kk / u_scale.z, u_curve));
+        float pk_ = pow(kk / u_scale.z, u_curve.x);
+        float ak = radians(u_scale.x + u_scale.y * (pk_ <= u_curve.y ? pk_ * s0 / u_curve.y : s0 + (pk_ - u_curve.y) * u_curve.z));
         vec2 dot_ = C + ri * vec2(sin(ak), -cos(ak));
         col = mix(col, kk > 7.5 ? tickR : (u_dial > 1.5 ? vec3(0.1) : vec3(0.94, 0.95, 0.97)), cov(length(p - dot_) - 2.6) * step(kk, u_scale.z + 0.01));
         // the shift light on the ladder (needle): the ticks glow red while it flashes
@@ -4170,14 +4175,15 @@ varying vec2 v_uv;
 uniform vec2 u_size;
 uniform vec4 u_tach;       // centre x, y (in this layer), radius, revs 0..1
 uniform vec2 u_sweep;      // 0 at this angle (deg clockwise from 12 o'clock), sweep deg
-uniform float u_curve;     // the rev scale's spread, as the dash's
+uniform vec3 u_curve;      // the rev scale, as the dash's
 uniform vec3 u_col;        // the blade's colour (red; white on the red face)
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 float segd(vec2 p, vec2 a, vec2 b) { vec2 ba = b - a; float h = clamp(dot(p - a, ba) / dot(ba, ba), 0.0, 1.0); return length(p - a - ba * h); }
 void main() {
     vec2 p = v_uv * u_size, C = u_tach.xy;
     float R = u_tach.z, d = length(p - C);
-    float an = radians(u_sweep.x + u_sweep.y * pow(u_tach.w, u_curve));
+    float pw = pow(u_tach.w, u_curve.x), s0 = 1.0 - (1.0 - u_curve.y) * u_curve.z;
+    float an = radians(u_sweep.x + u_sweep.y * (pw <= u_curve.y ? pw * s0 / u_curve.y : s0 + (pw - u_curve.y) * u_curve.z));
     vec2 un = vec2(sin(an), -cos(an));
     vec2 n0 = C + un * 0.04 * R, n1 = C + un * (R - 12.0);
     float t = clamp(dot(p - n0, un) / (R - 12.0 - 0.04 * R), 0.0, 1.0);

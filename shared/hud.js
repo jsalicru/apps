@@ -2827,7 +2827,7 @@ class HudApp {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], 0]);
             c.uniform(ref, 'u_sweep', [T[3], T[4]]);
-            c.uniform(ref, 'u_curve', [this._revCurve(w)]);
+            c.uniform(ref, 'u_curve', this._revCurve(w));
             c.uniform(ref, 'u_col', this.setting('vetroDial') === 'red' ? [0.94, 0.95, 0.96] : [0.92, 0.11, 0.086]);
         } else if (w.type === 'rdash') {
             // Vetro (tools/gen_vetro.py): see the header; the face by "vetroDial" (black, red, yellow)
@@ -2840,7 +2840,7 @@ class HudApp {
             c.uniform(ref, 'u_dial', [{ red: 1, yellow: 2 }[this.setting('vetroDial')] || 0]);
             c.uniform(ref, 'u_rev', [this.setting('vetroRev') === 'ladder' ? 1 : 0, 0, 0]);
             c.uniform(ref, 'u_sweep', [0, 1, 1, 1]);
-            c.uniform(ref, 'u_curve', [this._revCurve(w)]);
+            c.uniform(ref, 'u_curve', this._revCurve(w));
             c.uniform(ref, 'u_bright', [this.setting('vetroBright') === true ? 1 : 0]);
             // the left panel reaches further left while the map shows in it ("mapLeft", jsalicru)
             const L2 = w.mapLeft && w.hole && this.setting('mapUp') === true ? w.mapLeft : L;
@@ -3258,8 +3258,16 @@ class HudApp {
 
     _barsOf(w) { return (w.bars || []).map((b) => this._pickOf(b)); }
 
-    /** A dial's rev scale spread by the "revScale" setting (Sweep's; layout "revCurves" { setting value: spread }), else 1. */
-    _revCurve(w) { const v = (w.revCurves || {})[this.setting('revScale')]; return isNum(v) ? v : 1; }
+    /**
+     * A dial's rev scale by the "revScale" setting (Sweep's): [spread, its value at the tail's start, the tail's squeeze]
+     * from the layout's "revCurves" { setting value: spread } and "revTails" { setting value: [from rpm, squeeze] } (the
+     * scale past that rpm squeezed to that part of its width, as Sweep's), against "tach"'s thousands; [1, 1, 1] even.
+     */
+    _revCurve(w) {
+        const k = this.setting('revScale'), c = (w.revCurves || {})[k], t = (w.revTails || {})[k], top = w.tach[5] * 1000;
+        const cv = isNum(c) ? c : 1;
+        return Array.isArray(t) ? [cv, Math.pow(t[0] / top, cv), t[1]] : [cv, 1, 1];
+    }
 
     /** A bar's band by its "zones" [{ below | above, color }] (Sweep's temperature colours): 0 none, 1 cold, 2 warn, 3 hot. */
     _zoneOf(b, v) {

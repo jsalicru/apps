@@ -63,6 +63,19 @@ FUEL_LOW = 80.47                                         # km: the fuel and rang
 # Sweep's rev scales ("revScale"): even, or race (5000 rpm half way round), race55 (5500): the angle goes as
 # (rpm / 8000) ^ spread
 REV_CURVES = {name: round(math.log(0.5) / math.log(rpm / 8000.0), 4) for name, rpm in (('race', 5000), ('race55', 5500))}
+# and on them, as Sweep's, the top squeezed: from 7400 rpm to 8000 in 3/8 of its width, 7 and 8 closer (jsalicru)
+TAIL = [7400, 0.375]
+REV_TAILS = {name: TAIL for name in REV_CURVES}
+
+
+def rev_pos(v, curve, tail):
+    """Where rpm v (0..1 of the scale) sits round the dial (0..1), as the shaders have it (u_curve)."""
+    if not tail:
+        return v ** curve
+    p0, p = (tail[0] / 8000.0) ** curve, v ** curve
+    s0 = 1 - (1 - p0) * tail[1]
+    return p * s0 / p0 if p <= p0 else s0 + (p - p0) * tail[1]
+
 ROWS = [
     ('gauge', '{{boost}}', '{{u:boostLc}}', 'vt_small', 'boost', 0, 2.758),
     ('oilcan', '{{oil}}', '{{u:temp}}', 'vt_deg', 'oil', 50, 150),
@@ -105,12 +118,12 @@ def build(fonts):
                     'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'mapFuel': MF, 'fuelLow': FUEL_LOW, 'car': CAR, 'tyresIf': 'vetroRight=tires',
                     'tbox': [68, 37, 69, 1], 'hole': MAP, 'holeWhen': 'mapUp', 'holeInset': 0, 'holeAim': [MAP_AIM, 0.5], 'mapLeft': [round(v, 1) for v in MAP_LEFT],
                     'mapBars': MAP_BARS, 'media': MEDIA, 'mediaIf': 'vetroRight=music',
-                    'coldLimit': [48.89, 71.11, 4000], 'yellowLines': 2, 'waveBelow': 1200, 'revCurves': REV_CURVES})
+                    'coldLimit': [48.89, 71.11, 4000], 'yellowLines': 2, 'waveBelow': 1200, 'revCurves': REV_CURVES, 'revTails': REV_TAILS})
 
     # --- the needle and its cap on a layer of their own, over the numbers (z 6)
     widgets.append({'id': 'needle', 'type': 'rneedle', 'class': 'content', 'z': 6, 'x': CX - R, 'y': CY - R, 'w': 2 * R, 'h': 2 * R,
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'conn': 1, 'toggle': 'vetroRev=needle|sweep',
-                    'revCurves': REV_CURVES})
+                    'revCurves': REV_CURVES, 'revTails': REV_TAILS})
     # --- the rev counter's numbers: a soft shadow under each, the number per face (silver; the redline one red)
     nr = R - 77                                         # (the ladder 19 px wide)
     #     per rev scale ("revScale"), at their angle on it; the race scales leave out the 0 (no room for both; jsalicru: keep the 1)
@@ -119,7 +132,7 @@ def build(fonts):
         for k in range(THOUSANDS + 1):
             if k == 0 and scale != 'even':
                 continue
-            a = math.radians(START + SWEEP * (k / float(THOUSANDS)) ** curve)
+            a = math.radians(START + SWEEP * rev_pos(k / float(THOUSANDS), curve, REV_TAILS.get(scale)))
             x, y = CX + nr * math.sin(a), CY - nr * math.cos(a)
             top = y - cell('vt_num') / 2.0 + 2
             widgets.append({'id': 'n%d_sh%s' % (k, sid), 'type': 'text', 'z': 4, 'x': int(round(x - 50 + 1)), 'y': int(round(top + 4)),
