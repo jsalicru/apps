@@ -3851,7 +3851,6 @@ uniform vec4 u_sweep;      // "vetroRev" sweep (jsalicru): x 1 the ticks light a
 uniform vec3 u_rev;        // "vetroRev": x 1 the lit ladder (no needle), 0 the needle; y the revs' peak 0..1, z its fade 1..0
 uniform float u_peak;      // the peak boost on the first bar, 0..1 (< 0: none; setting "vetroPeak")
 uniform vec4 u_media;      // now playing on the right ("vetroRight" music): the progress track's x, y (its middle), width, the song's position 0..1; width 0: none
-uniform vec4 u_hv;         // the HV battery gauge (setting "vetroHv"): x, y, height, charge 0..1; x < 0: none
 
 float cov(float d) { return clamp(0.5 - d, 0.0, 1.0); }
 vec3 put(vec3 c, vec3 col, float a) { return mix(c, col, clamp(a, 0.0, 1.0)); }
@@ -3944,21 +3943,6 @@ void main() {
         c = put(c, vec3(1.0, 0.85, 0.2), cell * step(18.0 / 24.0, fy) * 0.8);
         float sx = p.x - (F.x + F.z + 12.0) - 0.55 * (p.y - F.y + 6.0);
         c = put(c, vec3(1.0, 0.86, 0.15), cov(abs(sx) - 1.3) * step(-6.0, p.y - F.y) * step(p.y - F.y, 30.0));
-    }
-
-    // --- the HV battery (a plug-in hybrid's charge): a tall recessed track left of the panel, filled from the foot in
-    //     cyan with a glow at the top (its battery icon and numbers are layers over it)
-    vec2 hp = p - u_hv.xy;
-    if (u_hv.x > 0.0 && hp.x > -2.0 && hp.x < 32.0 && hp.y > -2.0 && hp.y < u_hv.z + 12.0) {
-        float bd = max(abs(hp.x - 15.0) - 15.0, abs(hp.y - u_hv.z * 0.5) - u_hv.z * 0.5);
-        float pos = 1.0 - hp.y / u_hv.z;
-        vec3 hcl = mix(vec3(0.008, 0.012, 0.02), vec3(0.32, 0.86, 0.99) * (0.85 + 0.15 * sin(hp.x * 0.1047)),
-                       step(pos, u_hv.w) * step(4.0, hp.x) * step(hp.x, 27.0) * step(hp.y, u_hv.z - 3.0));
-        hcl += vec3(0.2, 0.7, 1.0) * exp(-pow((pos - u_hv.w) * u_hv.z / 5.0, 2.0)) * 0.3;
-        hcl *= 1.0 - 0.75 * clamp(1.0 - min(hp.y - 3.0, hp.x - 2.0) / 4.0, 0.0, 1.0);
-        c *= 1.0 - 0.4 * step(0.0, bd) * step(u_hv.z, hp.y);
-        c = put(c, hcl, cov(bd));
-        c = put(c, BLUE * 0.85, cov(abs(bd) - 0.6) * step(15.0, hp.x + max(hp.y - u_hv.z + 15.0, 0.0)) * 0.7);
     }
 
     // --- the right panel: navy glass framed by fine light lines, a darker ring band round the dial, red lines along the
