@@ -16,6 +16,23 @@
  * (redline - 1500), or a fraction of the bar (M climbs light blue -> blue at 50%).
  */
 const THEMES = {
+    // Vetro (layout vetro.json, tools/gen_vetro.py): an Italian GT style, a round dial under glass on a perforated floor,
+    // blue glass panels round it; off-white type (no pure white), silver numbers, amber fuel and drive mode.
+    vetro: {
+        name: 'Vetro',
+        fg: [240, 241, 244, 255], dim: [200, 206, 216, 255], track: [44, 44, 50, 255], arc: [240, 241, 244, 255],
+        glow: 0.85, stripe: false,
+        bar: { low: [240, 241, 244], mid: [240, 241, 244], high: [235, 36, 30], midAt: 'shift' },
+        rev: { from: [235, 36, 30], to: [235, 36, 30] },
+        bg: [0, 0, 0, 255], panel: [0, 0, 0, 255], line: [128, 130, 138, 255], head: [225, 230, 238, 255],
+        ink: [12, 12, 14, 255], accent: [255, 176, 44, 255], well: [0, 0, 0, 255], faint: [96, 100, 110, 255],
+        hot: [240, 60, 50, 255], cool: [120, 180, 255, 255],
+        num: [246, 247, 250, 255], numLow: [158, 162, 172, 255],          // the silver numbers, light to dark down
+        numRed: [240, 44, 36, 255], numRedLow: [175, 26, 22, 255],
+        numDark: [108, 120, 142, 255], numDarkLow: [52, 58, 72, 255],     // on the yellow face: blue-grey metal
+        numBlack: [30, 30, 34, 255], numBlackLow: [8, 8, 10, 255],         // the red face's redline number
+        shade: [0, 0, 0, 210],
+    },
     classic: {
         name: 'Classic',
         fg: [243, 246, 250, 255], dim: [200, 208, 220, 255], track: [243, 246, 250, 96], arc: [243, 246, 250, 255],

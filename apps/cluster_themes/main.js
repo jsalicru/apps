@@ -62,15 +62,16 @@ mgu.run({
         if (!hud) return;
         new Page(ctx, hud, {
             title: ctx.spec.title, what: 'cluster',
-            look: { name: 'Themes', style: 'hero', tags: { e46test2: 'E46 M3 · orange', e36: '328i · 90s', sweep: 'rev sweep · map', dyno: 'safety tiles', ribbon: 'calm · holidays', apex: 'needle dash · G-meter' } },
+            look: { name: 'Themes', style: 'hero', tags: { e46test2: 'E46 M3 · orange', e36: '328i · 90s', sweep: 'rev sweep · map', dyno: 'safety tiles', ribbon: 'calm · holidays', apex: 'needle dash · G-meter', vetro: 'dial under glass · map' } },
             tabs: ['look', 'readouts', 'badge', 'map', 'alerts', 'gmeter', 'settings'],
-            // the Settings tab lists these only while Apex is on the cluster (shared/page.js); not listed: every theme
+            // the Settings tab lists these only while their theme is on the cluster (shared/page.js); not listed: every theme
             settingThemes: {
-                tempUnits: ['apex'], pressureUnits: ['apex'], shiftLight: ['apex'], backdrops: ['apex'], apexBackdrop: ['apex'], apexDial: ['apex'], apexFont: ['apex'], tachStyle: ['apex'], apexZones: ['apex'], tachResponse: ['apex'],
+                tempUnits: ['apex', 'vetro'], pressureUnits: ['apex', 'vetro'], shiftLight: ['apex'], backdrops: ['apex', 'vetro'], apexBackdrop: ['apex'], apexDial: ['apex'], apexFont: ['apex'], tachStyle: ['apex'], apexZones: ['apex'], tachResponse: ['apex'],
                 gearStyle: ['apex'], gearSource: ['apex'], tachSpeed: ['apex'], readingsCheck: ['apex'], dialGlow: ['apex'], leftStyle: ['apex'],
                 leftTop: ['apex'], leftBottom: ['apex'], gaugeFill: ['apex'], rightPanel: ['apex'],
+                vetroRight: ['vetro'], vetroDial: ['vetro'], vetroRev: ['vetro'], vetroBright: ['vetro'], vetroPeak: ['vetro'],
             },
-            settings: ['units', 'tempUnits', 'pressureUnits', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'gearGap', 'sweepColor', 'revScale', 'sweepCenter', 'intakeBar', 'showEthanol', 'shiftFlash', 'shiftLight', 'nightDim', 'smoothRevs', 'backdrops', 'apexBackdrop', 'apexDial', 'apexFont', 'tachStyle', 'apexZones', 'tachResponse', 'gearStyle', 'gearSource', 'tachSpeed', 'readingsCheck', 'dialGlow', 'leftStyle', 'leftTop', 'leftBottom', 'gaugeFill', 'rightPanel', 'cameraNotch', 'holiday', 'demo'],
+            settings: ['units', 'tempUnits', 'pressureUnits', 'clock', 'timeZone', 'tankLitres', 'redline', 'shiftBefore', 'coldGuard', 'showBoost', 'gearGap', 'sweepColor', 'revScale', 'sweepCenter', 'intakeBar', 'showEthanol', 'shiftFlash', 'shiftLight', 'nightDim', 'smoothRevs', 'backdrops', 'apexBackdrop', 'apexDial', 'apexFont', 'tachStyle', 'apexZones', 'tachResponse', 'gearStyle', 'gearSource', 'tachSpeed', 'readingsCheck', 'dialGlow', 'leftStyle', 'leftTop', 'leftBottom', 'gaugeFill', 'rightPanel', 'vetroRight', 'vetroDial', 'vetroRev', 'vetroBright', 'vetroPeak', 'cameraNotch', 'holiday', 'demo'],
             // the drive mode check's candidates this app's app.json listens to (issue #8; shared/hud.js modeDiagLines)
             modeCheck: ['HMI', 'MDrive', 'Engine', 'Sport2'],
         }).start();

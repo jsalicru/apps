@@ -105,6 +105,15 @@
  *             (with "holeWhen": "mapUp"), "holeFoot" 0..1 how dark its lower part gets (0), "holeFeather" px its edge fades over, inward (0: hard), "holeTop" y where the map picture starts (faded in below it)
  *   adash     effect layer; the whole Aero theme (shaders.js adash, layout made by tools/gen_aero.py): the rev rail, the left
  *             rails ("arcs" picked), frame lines, tyres, fuel column
+ *   rdash     effect layer; the whole Vetro theme (shaders.js rdash, layout made by tools/gen_vetro.py): "tach" [cx, cy, r,
+ *             start deg, sweep deg, thousands], "red" rpm, "left" [end x, top y, bottom y, bow] (the left panel), "right" [top
+ *             y, bottom y, right x at the top, at the bottom], "bars" (4: { x, y, w, signal, min, max, alt, altWhen }: the
+ *             left bars; "alt" the signal shown instead while the setting "altWhen" is off), "fuel" [x, y, w], "hv" [x, y,
+ *             height] (the HV battery gauge, shown with the setting "vetroHv"), "tbox" [box half w, half h, wheel dx,
+ *             wheel scale]; the Waze map in the left panel ("hole", "holeWhen" mapUp) with "mapCar", "mapTbox" and "mapBars"
+ *             ({ of: bar index, x, y, w }) for the right panel meanwhile; "car"
+ *             [cx, cy, box dx, wheel dy] (the tyres); the face by the "vetroDial" setting
+ *   rneedle   effect layer; Vetro's needle and cap over the rev counter's numbers (shaders.js rneedle): "tach" as rdash's
  *   gdash     effect layer; the whole Circuit theme (shaders.js gdash, layout made by tools/gen_circuit.py): three round dials
  *             ("tach", "left", "right"), the left one's two scales ("arcs", picked like Apex's left gauges), the tyres ("car")
  *   ldash     effect layer; the whole Veloce theme (shaders.js ldash, layout made by tools/gen_veloce.py): "arc" [cx, cy, rx,
@@ -317,7 +326,7 @@ const visible = require('./visible');
 const sun = require('./sun');
 const textRaster = require('./hud_text');
 const { paintIcon } = require('./icons');
-const { paintCarTop } = require('./car_top');
+const { paintCarTop, paintCarXray } = require('./car_top');
 const shaders = require('./shaders');
 const calibration = require('./calibration');
 const Car = require('./kit/car');
@@ -407,7 +416,7 @@ function cachedText(w, h, s, o) {
 }
 // settings that always rebuild (they pick another layout, change the theme's colours or what is placed where); every
 // other setting first tries _softSwitch, which swaps text in the layers already on the cluster
-const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont', 'smoothRevs', 'apexDial'];
+const HARD_KEYS = ['hudLayout', 'byMode', 'inComfort', 'inSport', 'inEco', 'keepStrip', 'holiday', 'nightDim', 'redline', 'demo', 'apexFont', 'smoothRevs', 'apexDial', 'mapInTheme', 'vetroRev', 'vetroBright', 'vetroRight'];
 // (0.17.4: "Leave BMW's bottom strip clear" is gone. Since 0.17.0 every cluster theme ends above BMW's strip anyway;
 // its squeeze to 662 / 720 only lifted the theme off the bottoms of BMW's own gauges, car photo Nov 14 2026.)
 // settings that only change what a text shows (the next tick paints it), no rebuild
@@ -465,7 +474,9 @@ function mediaText(v) {
 /** Seconds as m:ss. */
 function clockOf(sec) { const t = Math.max(0, Math.floor(sec)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); }   // its speed scale: 0..200 mph by 20, 0..330 km/h by 30 (linear)
 const ROAD_DASH_M = 12;            // the Sport road: metres per dash and gap (shaders.js sdash u_road)
-const CUE_TYPES = { lights: true, shiftbar: true, revbar: true, revarc: true, ribbon: true, mtach: true, cdash: true, ldash: true, gdash: true, adash: true };
+const PULL_LOW = 0.2, PULL_RESET_MS = 4000, PULL_SHOW = 0.3;   // Vetro's peak boost: bar under which a pull ends, ms, bar to show from
+const REV_PEAK_DROP = 0.06, REV_PEAK_HOLD = 400, REV_PEAK_FADE = 1000, REV_PEAK_MIN = 0.45;   // Vetro's lit ladder: its peak mark
+const CUE_TYPES = { lights: true, shiftbar: true, revbar: true, revarc: true, ribbon: true, mtach: true, cdash: true, ldash: true, gdash: true, adash: true, rdash: true };
 // the shift-light test (page.js Alerts): rpm climbs from TEST_FROM to just past the shift point, then holds
 const TEST_FROM = 1500, TEST_CLIMB_MS = 2500, TEST_HOLD_MS = 1200;
 // night colours (Cluster Themes "nightDim"): after sunset the theme's whites and greys go to this brightness
@@ -711,7 +722,7 @@ class HudApp {
             if (['hudLayout', 'inComfort', 'inSport', 'inEco', 'byMode'].indexOf(key) >= 0 && this.screen.yielded) this.screen.release();
             if (PLACE_KEYS.indexOf(key) >= 0) this._guard('place', () => this._place());
             else if (LIVE_KEYS.indexOf(key) >= 0) this.widgets.forEach((x) => { x.last = null; });
-            else if (LOOK_KEYS.indexOf(key) >= 0) this.widgets.forEach((x) => { if (!x.sheet && /^[clga]dash$/.test(x.w.type)) this._dashLook(x); });
+            else if (LOOK_KEYS.indexOf(key) >= 0) this.widgets.forEach((x) => { if (!x.sheet && /^[clgar]dash$/.test(x.w.type)) this._dashLook(x); });
             else if (key !== 'demo') {
                 let soft = false;
                 try { soft = this._softSwitch(key); } catch (e) { this.log.error('hud soft switch: ' + (e && e.stack || e)); }
@@ -888,6 +899,8 @@ class HudApp {
         if (key === 'redline' && isNum(this.layoutRedline)) return this.layoutRedline;
         // "mapUp": not saved, the Waze map is showing inside the theme now (the setting on, waze.js says so)
         if (key === 'mapUp') return !!(this.waze && this.waze.up && this.ctx.settings.get('mapInTheme') === true);
+        // "mapHere": not saved, the map is up and this layout has a window for it now (a window with "holeIf" may be off)
+        if (key === 'mapHere') return !!this.mapLayout && this.setting('mapUp');
         // "uTemp" / "uPress": not saved, 'us' or 'metric' for temperatures / pressures as the readings show them (the
         // Temperature and Pressure settings, "Match speed" following Units): the gauges' scale numbers toggle on these
         if (key === 'uTemp') return this._us('temp') ? 'us' : 'metric';
@@ -1166,9 +1179,11 @@ class HudApp {
         if (w) {
             const h = w.hole, a = h[2] / h[3];
             const MW = 1088, MH = 480;
-            let sw = MH * a, sh = MH;
-            if (sw > MW) { sw = MW; sh = MW / a; }
-            m = { x: h[0], y: h[1], w: h[2], h: h[3], src_x: (MW - sw) / 2, src_y: (MH - sh) / 2, src_w: sw, src_h: sh };
+            // "holeAim" [fx, fy]: where in the window the map's centre (the car's arrow) goes (0.5, 0.5: the middle); the
+            // biggest part of the map of the window's shape with its centre there that stays inside the map
+            const ax = Array.isArray(w.holeAim) ? w.holeAim[0] : 0.5, ay = Array.isArray(w.holeAim) ? w.holeAim[1] : 0.5;
+            let sw = Math.min(MW / 2 / Math.max(ax, 1 - ax), MH / 2 / Math.max(ay, 1 - ay) * a), sh = sw / a;
+            m = { x: h[0], y: h[1], w: h[2], h: h[3], src_x: MW / 2 - ax * sw, src_y: MH / 2 - ay * sh, src_w: sw, src_h: sh };
         }
         const key = m ? ci + ' ' + JSON.stringify(m) : '';
         if (key === this.mapHostKey) return;
@@ -2086,6 +2101,8 @@ class HudApp {
             case 'intakeProbe': return this.setting('intakeProbe') === true ? (this.intakeProbeText || 'PROBE ASKING') : '';
             case 'ethanol': { const v = this._raw('ethanol'); return fix(v, 0); }
             case 'intake': { const v = this._raw('intake'); return fix(isNum(v) ? (usT ? v * 9 / 5 + 32 : v) : v, 0); }
+            case 'pullPeak': { const v = this._pullShown(); return v === null ? '' : usP ? fix(v * 14.5038, 1) : fix(v, 2); }
+            case 'pullPeakLabel': return this._pullShown() === null ? '' : 'PEAK';
             case 'boostPeak': { const v = this.boostPeak; return usP ? fix(isNum(v) ? v * 14.5038 : v, 1) : fix(v, 2); }
             case 'run': { const v = this.runs.shown(Date.now()); return isNum(v) ? v.toFixed(this.runs.state === 'run' ? 1 : 2) : '0.00'; }
             case 'runBest': { const v = this.runs.best[us ? 'us' : 'metric']; return v > 0 ? v.toFixed(2) : '-.--'; }
@@ -2179,6 +2196,10 @@ class HudApp {
             case 'progLetter': {     // in drive the programme letter D / S / M, else nothing (Aero's small letter by the gear)
                 const d = this.car.data();
                 return d.stage === 'D' || (!d.stage && isNum(d.gear) && d.gear > 0) ? this._program(d) : '';
+            }
+            case 'progWord': {       // in drive AUTO (D, S) or MANUAL (M), else nothing (Vetro's gear box)
+                const d = this.car.data();
+                return d.stage === 'D' || (!d.stage && isNum(d.gear) && d.gear > 0) ? (this._program(d) === 'M' ? 'MANUAL' : 'AUTO') : '';
             }
             case 'stage': {          // the selector letter alone: P R N, or D / S / M by the shifter programme
                 const d = this.car.data();
@@ -2367,7 +2388,7 @@ class HudApp {
         this.problem = null;
         if (isNum(layout.redline)) { this.layoutRedline = layout.redline; this.car.setRedline(layout.redline); }
         this.mapWin = layout.widgets.find((w) => w.holeWhen === 'mapUp' && Array.isArray(w.hole) && w.hole[2] >= 64 && w.hole[3] >= 32
-            && !(w.toggle && !this._toggleOn(w.toggle))) || null;   // the one shown (Apex has a second dash for camera cars)
+            && !(w.toggle && !this._toggleOn(w.toggle)) && !(w.holeIf && !this._toggleOn(w.holeIf))) || null;   // the one shown (Apex has a second dash for camera cars)
         this.mapLayout = !!this.mapWin;
         // "mapLive" holds only while nothing else changes with the map (a widget toggled on mapUp needs the rebuild)
         this.mapLive = layout.mapLive === true && !layout.widgets.some((w) => typeof w.toggle === 'string' && w.toggle.indexOf('mapUp') >= 0);
@@ -2378,6 +2399,11 @@ class HudApp {
         this.themeName = this._themeName();
         this.theme = THEMES[this.themeName] || THEMES.classic;
         // Circuit's band colour (setting "circuitColor"): the numbers on the bands ("bandInk")
+        // Vetro's brighter look ("vetroBright"): the type full white, the silver numbers brighter
+        if (this.themeName === 'vetro' && this.setting('vetroBright') === true) {
+            this.theme = Object.assign({}, this.theme, { fg: [255, 255, 255, 255], dim: [222, 228, 236, 255], num: [255, 255, 255, 255],
+                numLow: [184, 188, 198, 255], head: [245, 248, 252, 255] });
+        }
         if (this.themeName === 'circuit') this.theme = Object.assign({}, this.theme, { bandInk: (CIRCUIT_COLORS[this.setting('circuitColor')] || CIRCUIT_COLORS.red).ink });
         this.hudHoliday = this._hudHoliday();      // the HUD's holiday colours (hud_holiday.js), null for none
         if (this.hudHoliday) this.theme = hudHoliday.theme(this.theme, this.hudHoliday);
@@ -2622,8 +2648,9 @@ class HudApp {
         else if (w.type === 'nav') this._navCreate(x);
         else if (w.type === 'garland') { x.tw = new Garland.Twinkle(w); this._blit(x, null, Garland.paint(w, x.tw.lvl, null)); }
         else if (w.type === 'icon' && w.icon === 'carTop') this._blit(x, null, paintCarTop(w.w, w.h));   // the tyre panel's car (car_top.js)
+        else if (w.type === 'icon' && w.icon === 'carXray') this._blit(x, null, paintCarXray(w.w, w.h));   // Vetro's x-ray car
         else if (w.type === 'icon') this._blit(x, null, paintIcon(w.icon, w.w, w.h, color(t, w.color || 'fg')));
-        if (w.type === 'cdash' || w.type === 'ldash' || w.type === 'gdash' || w.type === 'adash') this._dashLook(x);
+        if (w.type === 'cdash' || w.type === 'ldash' || w.type === 'gdash' || w.type === 'adash' || w.type === 'rdash') this._dashLook(x);
         if (w.type === 'sdash') {
             c.uniform(ref, 'u_size', [w.w, w.h]);
             c.uniform(ref, 'u_geo', w.geo);
@@ -2794,6 +2821,42 @@ class HudApp {
             c.uniform(ref, 'u_car', [C[0] - w.x, C[1] - w.y, C[2], C[3]]);
             c.uniform(ref, 'u_hole', this._hole(w));
             c.uniform(ref, 'u_holeF', [isNum(w.holeFeather) ? w.holeFeather : 0]);
+        } else if (w.type === 'rneedle') {
+            // Vetro's needle over the numbers (tools/gen_vetro.py): "tach" as the dash's; white on the red face
+            const T = w.tach;
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], 0]);
+            c.uniform(ref, 'u_sweep', [T[3], T[4]]);
+            c.uniform(ref, 'u_col', this.setting('vetroDial') === 'red' ? [0.94, 0.95, 0.96] : [0.92, 0.11, 0.086]);
+        } else if (w.type === 'rdash') {
+            // Vetro (tools/gen_vetro.py): see the header; the face by "vetroDial" (black, red, yellow)
+            const T = w.tach, L = w.left, Rg = w.right, F = w.fuel, C = w.car;
+            c.uniform(ref, 'u_size', [w.w, w.h]);
+            c.uniform(ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], 0]);
+            c.uniform(ref, 'u_scale', [T[3], T[4], T[5], (w.red || 7200) / (T[5] * 1000)]);
+            c.uniform(ref, 'u_dial', [{ red: 1, yellow: 2 }[this.setting('vetroDial')] || 0]);
+            c.uniform(ref, 'u_rev', [this.setting('vetroRev') === 'ladder' ? 1 : 0, 0, 0]);
+            c.uniform(ref, 'u_sweep', [0, 1, 1, 1]);
+            c.uniform(ref, 'u_bright', [this.setting('vetroBright') === true ? 1 : 0]);
+            // the left panel reaches further left while the map shows in it ("mapLeft", jsalicru)
+            const L2 = w.mapLeft && w.hole && this.setting('mapUp') === true ? w.mapLeft : L;
+            c.uniform(ref, 'u_left', [L2[0] - w.x, L2[1] - w.y, L2[2] - w.y, L2[3]]);
+            c.uniform(ref, 'u_right', [Rg[0] - w.y, Rg[1] - w.y, Rg[2] - w.x, Rg[3] - w.x]);
+            // while the map shows in the left panel ("hole", "holeWhen" mapUp), the tyres smaller ("mapCar", "mapTbox") and
+            // two of the bars under the car ("mapBars")
+            const mapOn = !!(w.hole && this.setting('mapUp') === true);
+            const C2 = mapOn && w.mapCar ? w.mapCar : C;
+            // the tyres only while they show: "tyresIf" (jsalicru: the right panel's "vetroRight" setting) and, with the
+            // map up, only if the layout has a smaller car for then ("mapCar"); else their boxes go off the layer
+            const tyOn = !(w.tyresIf && !this._toggleOn(w.tyresIf)) && !(mapOn && !w.mapCar);
+            c.uniform(ref, 'u_car', tyOn ? [C2[0] - w.x, C2[1] - w.y, C2[2], C2[3]] : [-9999, -9999, 0, 0]);
+            // now playing's progress track ("media" [x, y, w], shown by "mediaIf" with the map down)
+            const M = w.media;
+            x.mediaOn = !!(M && !mapOn && !(w.mediaIf && !this._toggleOn(w.mediaIf)));
+            c.uniform(ref, 'u_media', x.mediaOn ? [M[0] - w.x, M[1] - w.y, M[2], 0] : [0, 0, 0, 0]);
+            c.uniform(ref, 'u_tbox', (mapOn && w.mapTbox) || w.tbox || [68, 37, 69, 1]);
+            c.uniform(ref, 'u_hole', this._hole(w));
+            c.uniform(ref, 'u_fuel', [F[0] - w.x, F[1] - w.y, F[2], 0]);
         } else if (w.type === 'gdash') {
             // Circuit (tools/gen_circuit.py): "tach" [cx, cy, r, start deg, sweep deg, thousands], "zones" [amber, red] rpm,
             // "left" / "right" [cx, cy, r] (the side dials), "gbox" [cx, cy, half w, half h] (the gear's box), "car"
@@ -2808,6 +2871,7 @@ class HudApp {
             c.uniform(ref, 'u_gbox', [G[0] - w.x, G[1] - w.y, G[2], G[3]]);
             c.uniform(ref, 'u_car', [C[0] - w.x, C[1] - w.y, C[2], C[3]]);
             c.uniform(ref, 'u_bandCol', (CIRCUIT_COLORS[this.setting('circuitColor')] || CIRCUIT_COLORS.red).band);
+            c.uniform(ref, 'u_hole', this._hole(w));
         } else if (w.type === 'cdash') {
             // Apex (tools/gen_apex.py): "tach" [cx, cy, outer r, band, start deg, sweep deg, thousands], "zones" [amber, red] rpm,
             // "panels" [left inner x, right inner x, glow top y, bottom y], "bars" (up to 4: {x, y, w, signal, min, max, red}),
@@ -3162,7 +3226,7 @@ class HudApp {
 
     /** A widget's map hole in layer px, inset by "holeInset" (6) a side, while "holeWhen" is on; else no hole. */
     _hole(w) {
-        const on = w.holeWhen === true || (w.holeWhen && this.setting(w.holeWhen) === true);   // true: always cut
+        const on = (w.holeWhen === true || (w.holeWhen && this.setting(w.holeWhen) === true)) && !(w.holeIf && !this._toggleOn(w.holeIf));   // true: always cut; "holeIf": only while that setting allows
         const h = w.hole && on ? w.hole : null;
         if (!h) return [0, 0, 0, 0];
         const inset = isNum(w.holeInset) ? w.holeInset : 6;
@@ -3184,10 +3248,14 @@ class HudApp {
             x.c.uniform(x.ref, 'u_bgStyle', [this.setting('apexBackdrop') === 'carbon' ? 1 : 0]);
             if (this._apexNew()) x.c.uniform(x.ref, 'u_tachStyle', [{ machined: 1, segments: 2, layered: 3, segLayered: 4 }[this.setting('tachStyle')] || 0]);
         }
+        if (x.w.type === 'rdash') x.c.uniform(x.ref, 'u_dial', [{ red: 1, yellow: 2 }[this.setting('vetroDial')] || 0]);
         if (x.w.type === 'adash') x.c.uniform(x.ref, 'u_bgStyle', [{ carbon: 1, metal: 2 }[this.setting('aeroBackdrop')] || 0]);
     }
 
     _barsOf(w) { return (w.bars || []).map((b) => this._pickOf(b)); }
+
+    /** A Vetro left bar: its own signal, or its "alt" while the setting "altWhen" is off ("Show boost" off: intake). */
+    _vetroBar(b) { return b.alt && this.setting(b.altWhen) === false ? Object.assign({}, b, { signal: b.alt, min: b.altMin, max: b.altMax }) : b; }
 
     /** One bar or scale with its "pick" filled in from the layout's "picks" (else as it is). */
     _pickOf(b) {
@@ -3275,6 +3343,7 @@ class HudApp {
         this._gTick(now);
         const b = this._boost();
         if (isNum(b) && (!isNum(this.boostPeak) || b > this.boostPeak)) this.boostPeak = b;
+        this._pullPeak(b, now);
         if (!this.client.ready) return;
         // shift light: blink the whole bar at 8 Hz once the rpm reaches the redline
         const rpm = this._raw('rpm');
@@ -3283,6 +3352,37 @@ class HudApp {
         // the count-in's latched flash: the shift bars and arcs flash with it at 5 Hz (shift_cue.js)
         if (!flashing && this._countIn() && this.cue.now.shift) this.flash = this.cue.blink(now);
         this.widgets.forEach((x) => this._guard('widget ' + x.w.id, () => this._update(x, now, false)));
+    }
+
+    /**
+     * Vetro's peak boost (setting "vetroPeak"): the highest boost of this pull, held while boost stays up; once it has
+     * been under PULL_LOW bar for PULL_RESET_MS the pull is over and the peak goes (the next pull starts afresh).
+     * Shown only from PULL_SHOW bar up ({{pullPeak}}, {{pullPeakLabel}}, the bar's marker).
+     */
+    _pullPeak(b, now) {
+        if (!isNum(b)) return;
+        if (!isNum(this.pullPeak) || b > this.pullPeak) this.pullPeak = b;
+        if (b < PULL_LOW) {
+            if (!this.pullLowAt) this.pullLowAt = now;
+            else if (now - this.pullLowAt > PULL_RESET_MS) this.pullPeak = null;
+        } else this.pullLowAt = 0;
+    }
+
+    /** bar, the pull's peak to show, or null (under PULL_SHOW, or the setting off). */
+    _pullShown() { return this.setting('vetroPeak') !== false && isNum(this.pullPeak) && this.pullPeak >= PULL_SHOW ? this.pullPeak : null; }
+
+    /**
+     * Vetro's lit ladder: the highest revs of a pull (fraction f of the scale), held while they climb; once they have
+     * dropped REV_PEAK_DROP below it, it stays REV_PEAK_HOLD ms and fades over REV_PEAK_FADE ms; a pull under REV_PEAK_MIN
+     * shows none. [peak, brightness].
+     */
+    _revPeak(now, f) {
+        const P = this.revPk || (this.revPk = { v: 0, at: 0 });
+        if (f >= P.v || (P.at && now - P.at > REV_PEAK_HOLD + REV_PEAK_FADE)) { P.v = f; P.at = 0; }
+        else if (!P.at && P.v - f > REV_PEAK_DROP) P.at = now;
+        if (!P.at || P.v < REV_PEAK_MIN) return [0, 0];
+        const t = now - P.at;
+        return [P.v, Math.round(Math.max(0, Math.min(1, 1 - (t - REV_PEAK_HOLD) / REV_PEAK_FADE)) * 20) / 20];
     }
 
     /** The engine speed as it comes: the shift test's sweep while it runs, else the car's own (rpm, unfiltered). */
@@ -3715,6 +3815,62 @@ class HudApp {
             const mu = [];
             ms.forEach((m, i) => mu.push(m ? m.x - w.x : 0, m ? m.y - w.y : 0, m ? m.w : 0, mv[i]));
             x.c.uniform(x.ref, 'u_mini', mu, { type: 'vec4' });
+        } else if (w.type === 'rneedle') {
+            const T = w.tach, rpm = this._raw('rpm');
+            const rv = isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (T[5] * 1000))) * 2000) / 2000 : 0;
+            if (!force && rv === x.last) return;
+            x.last = rv;
+            x.c.uniform(x.ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], rv]);
+        } else if (w.type === 'rdash') {
+            // Vetro (tools/gen_vetro.py): the revs, the shift flash, the bars (on the right while the map is up), tyres,
+            // fuel, the peak boost marker, the lit ladder's peak
+            const T = w.tach, q = (v) => Math.round(Math.min(1, Math.max(0, v)) * 400) / 400;
+            const rpm = this._raw('rpm');
+            const rv = isNum(rpm) ? Math.round(Math.min(1, Math.max(0, rpm / (T[5] * 1000))) * 2000) / 2000 : 0;
+            const mapOn = !!(w.hole && this.setting('mapUp') === true);
+            const bars = (mapOn && w.mapBars ? w.mapBars.map((m) => Object.assign({}, w.bars[m.of], { x: m.x, y: m.y, w: m.w })) : (w.bars || []))
+                .slice(0, 4).map((b) => this._vetroBar(b));
+            const bv = bars.map((b) => { const v = this._raw(b.signal); return isNum(v) ? q((v - b.min) / (b.max - b.min)) : 0; });
+            const low = isNum(w.tyreLow) ? w.tyreLow : 33;
+            const ts = ['FL', 'FR', 'RL', 'RR'].map((k) => { const v = this._tyre('p', k); return isNum(v) ? (Math.round(v * 14.5038) < low ? 2 : 1) : 0; });
+            const fuel = this._raw('fuel'), fl = isNum(fuel) ? Math.round(Math.min(1, Math.max(0, fuel)) * 100) / 100 : 0;
+            const pk = this._pullShown(), b0 = bars[0];
+            const pkF = pk !== null && b0 && b0.signal === 'boost' ? q((pk - b0.min) / (b0.max - b0.min)) : -1;
+            let sh = this._shiftNow(now);
+            const rp = this.setting('vetroRev') === 'ladder' ? this._revPeak(now, rv) : [0, 0];
+            // "Rev display (Vetro)" Needle + lit ticks (jsalicru): the ticks light up to the revs as Sweep's, the red zone
+            // starting low on a cold engine ("coldLimit") and rising to the Redline setting as the oil warms, a yellow zone
+            // ("yellowLines") under it, the lit ticks turning yellow back from it over the last "waveBelow" rpm, and from
+            // the shift point the ticks flash red about 5 times a second
+            let sw = [0, 1, 1, 1];
+            if (this.setting('vetroRev') === 'sweep') {
+                const top = T[5] * 1000, redline = this.setting('redline'), oil = this._raw('oil'), C = w.coldLimit;
+                let limit = redline;
+                if (C && isNum(oil)) limit = Math.round((C[2] + (redline - C[2]) * Math.min(1, Math.max(0, (oil - C[0]) / (C[1] - C[0])))) / 50) * 50;
+                const yellow = (w.yellowLines || 2) * 100, waveAt = limit - (w.waveBelow || 1200), revs = rv * top;
+                const wave = revs <= waveAt ? 1 : Math.max(0, limit * (1 - (revs - waveAt) / (limit - waveAt)) / top);
+                sw = [1, limit / top, (limit - yellow) / top, Math.round(wave * 400) / 400];
+                const shiftAt = limit - (isNum(this.setting('shiftBefore')) ? this.setting('shiftBefore') : 0);
+                sh = [0, this.setting('shiftLight') !== false && isNum(rpm) && rpm >= shiftAt && Math.floor(now / 100) % 2 === 0 ? 1 : 0];
+            }
+            const playing = !!x.mediaOn && this._mediaOn(), mp = playing ? this._raw('mediaPct') : null;
+            const mf = playing ? (isNum(mp) ? Math.round(Math.min(1, Math.max(0, mp / 100)) * 500) / 500 : 0) : -1;
+            const key = [rv].concat(bv, ts, [fl, pkF, mf], sh, rp, sw).join('|');
+            if (!force && key === x.last) return;
+            x.last = key;
+            x.c.uniform(x.ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], rv]);
+            x.c.uniform(x.ref, 'u_shift', sh);
+            x.c.uniform(x.ref, 'u_sweep', sw);
+            if (this.setting('vetroRev') === 'ladder') x.c.uniform(x.ref, 'u_rev', [1, rp[0], rp[1]]);
+            const bu = [];
+            bars.forEach((b, i) => bu.push(b.x - w.x, b.y - w.y, b.w, bv[i]));
+            while (bu.length < 16) bu.push(0, -999, 1, 0);
+            x.c.uniform(x.ref, 'u_bars', bu, { type: 'vec4' });
+            x.c.uniform(x.ref, 'u_tyre', ts);
+            const F = w.fuel;
+            x.c.uniform(x.ref, 'u_fuel', [F[0] - w.x, F[1] - w.y, F[2], fl]);
+            x.c.uniform(x.ref, 'u_peak', [pkF]);
+            if (x.mediaOn) { const M = w.media; x.c.uniform(x.ref, 'u_media', [M[0] - w.x, M[1] - w.y, mf < 0 ? 0 : M[2], Math.max(0, mf)]); }
         } else if (w.type === 'adash') {
             const Sc = w.scale, q = (v) => Math.round(Math.min(1, Math.max(0, v)) * 1000) / 1000;
             const rpm = this._raw('rpm');
