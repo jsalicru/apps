@@ -153,11 +153,10 @@ def build(fonts):
 
     # --- the right panel: the drive mode by its stroke, the heading, the car, the tyres' readings in their boxes
     text('mode', tx + 30, RIGHT[0] + 24, 400, '{{mode}}', 'vt_mode', 'accent', 'left')
-    # the heading: the tyres, now playing, or the gauges while the map shows
+    # the heading: the tyres or now playing (none over the gauges while the map shows)
     hx = tx + 34
     text('tyre_head', hx, RIGHT[0] + 86, 200, 'Tires', 'vt_head', 'head', 'left', toggle='vetroRight=tires&!mapUp')
     text('music_head', hx, RIGHT[0] + 86, 260, 'Now Playing', 'vt_head', 'head', 'left', toggle='vetroRight=music&!mapUp')
-    text('gauge_head', hx, RIGHT[0] + 86, 200, 'Gauges', 'vt_head', 'head', 'left', toggle='mapUp')
     # the car and the tyres' readings (setting "vetroRight" tires, the map down)
     cx_, cy_, dx_, dy_ = CAR
     cw, bh, pf, py, ty = 150, 37, 'vt_tp', 40, 64

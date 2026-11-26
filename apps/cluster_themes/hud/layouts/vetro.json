@@ -1429,22 +1429,6 @@
       "rate": 2000
     },
     {
-      "id": "gauge_head",
-      "type": "text",
-      "z": 5,
-      "x": 1305,
-      "y": 213,
-      "w": 200,
-      "h": 31,
-      "text": "Gauges",
-      "font": "vt_head",
-      "color": "head",
-      "align": "left",
-      "toggle": "mapUp",
-      "conn": 1,
-      "rate": 2000
-    },
-    {
       "id": "tyre_car",
       "type": "icon",
       "icon": "carXray",

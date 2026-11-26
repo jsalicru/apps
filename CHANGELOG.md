@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 26 2026
 
+- **P3 Clusters 0.23.1 (Vetro):** no "Gauges" heading over the right panel's bars while the map shows.
 - **P3 Clusters 0.23.0 / HUD Widgets 0.14.13:** the **Vetro** theme from jsbaughman/apps (Cluster Themes 0.26.11): an Italian GT dial under glass on a perforated floor, blue glass panels, the Waze map in the left panel. Changed for the M3: while the map shows, the right panel has all four bars (boost or intake, oil, water, oil pressure) instead of the tires; without the map it shows **Right panel (Vetro)**: Now playing (default; song, artist, a progress track and times) or Tire pressures. No HV battery gauge. The app now listens to the head unit's media state (HmiMediaState, front screen, optional) for now playing. New settings: Right panel, Dial colour, Rev display, Brighter look, Peak boost (all Vetro). Rev display's default is **Needle + lit ticks**: the ticks light up to the revs as Sweep's, with its warm-up red zone, yellow zone and shift flash, the needle kept. With the map up, the left panel reaches further left for a bigger map (about 600 px of it in view instead of 460). The strip covers leave x 1214 to 1525 clear, as the other themes here (jsbaughman's wider covers gave the M3 black boxes).
 
 ## Nov 25 2026
