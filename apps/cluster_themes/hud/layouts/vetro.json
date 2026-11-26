@@ -133,7 +133,14 @@
         474,
         500
       ],
-      "mediaIf": "vetroRight=music"
+      "mediaIf": "vetroRight=music",
+      "coldLimit": [
+        48.89,
+        71.11,
+        4000
+      ],
+      "yellowLines": 2,
+      "waveBelow": 1200
     },
     {
       "id": "needle",
@@ -153,7 +160,7 @@
         8
       ],
       "conn": 1,
-      "toggle": "vetroRev=needle"
+      "toggle": "vetroRev=needle|sweep"
     },
     {
       "id": "n0_sh",

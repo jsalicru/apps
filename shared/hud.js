@@ -2836,6 +2836,7 @@ class HudApp {
             c.uniform(ref, 'u_scale', [T[3], T[4], T[5], (w.red || 7200) / (T[5] * 1000)]);
             c.uniform(ref, 'u_dial', [{ red: 1, yellow: 2 }[this.setting('vetroDial')] || 0]);
             c.uniform(ref, 'u_rev', [this.setting('vetroRev') === 'ladder' ? 1 : 0, 0, 0]);
+            c.uniform(ref, 'u_sweep', [0, 1, 1, 1]);
             c.uniform(ref, 'u_bright', [this.setting('vetroBright') === true ? 1 : 0]);
             c.uniform(ref, 'u_left', [L[0] - w.x, L[1] - w.y, L[2] - w.y, L[3]]);
             c.uniform(ref, 'u_right', [Rg[0] - w.y, Rg[1] - w.y, Rg[2] - w.x, Rg[3] - w.x]);
@@ -3835,15 +3836,31 @@ class HudApp {
             const hv = this._raw('hvSoc'), hvF = isNum(hv) ? Math.round(Math.min(1, Math.max(0, hv / 100)) * 200) / 200 : 0;
             const pk = this._pullShown(), b0 = bars[0];
             const pkF = pk !== null && b0 && b0.signal === 'boost' ? q((pk - b0.min) / (b0.max - b0.min)) : -1;
-            const sh = this._shiftNow(now);
+            let sh = this._shiftNow(now);
             const rp = this.setting('vetroRev') === 'ladder' ? this._revPeak(now, rv) : [0, 0];
+            // "Rev display (Vetro)" Needle + lit ticks (jsalicru): the ticks light up to the revs as Sweep's, the red zone
+            // starting low on a cold engine ("coldLimit") and rising to the Redline setting as the oil warms, a yellow zone
+            // ("yellowLines") under it, the lit ticks turning yellow back from it over the last "waveBelow" rpm, and from
+            // the shift point the ticks flash red about 5 times a second
+            let sw = [0, 1, 1, 1];
+            if (this.setting('vetroRev') === 'sweep') {
+                const top = T[5] * 1000, redline = this.setting('redline'), oil = this._raw('oil'), C = w.coldLimit;
+                let limit = redline;
+                if (C && isNum(oil)) limit = Math.round((C[2] + (redline - C[2]) * Math.min(1, Math.max(0, (oil - C[0]) / (C[1] - C[0])))) / 50) * 50;
+                const yellow = (w.yellowLines || 2) * 100, waveAt = limit - (w.waveBelow || 1200), revs = rv * top;
+                const wave = revs <= waveAt ? 1 : Math.max(0, limit * (1 - (revs - waveAt) / (limit - waveAt)) / top);
+                sw = [1, limit / top, (limit - yellow) / top, Math.round(wave * 400) / 400];
+                const shiftAt = limit - (isNum(this.setting('shiftBefore')) ? this.setting('shiftBefore') : 0);
+                sh = [0, this.setting('shiftLight') !== false && isNum(rpm) && rpm >= shiftAt && Math.floor(now / 100) % 2 === 0 ? 1 : 0];
+            }
             const playing = !!x.mediaOn && this._mediaOn(), mp = playing ? this._raw('mediaPct') : null;
             const mf = playing ? (isNum(mp) ? Math.round(Math.min(1, Math.max(0, mp / 100)) * 500) / 500 : 0) : -1;
-            const key = [rv].concat(bv, ts, [fl, hvF, pkF, mf], sh, rp).join('|');
+            const key = [rv].concat(bv, ts, [fl, hvF, pkF, mf], sh, rp, sw).join('|');
             if (!force && key === x.last) return;
             x.last = key;
             x.c.uniform(x.ref, 'u_tach', [T[0] - w.x, T[1] - w.y, T[2], rv]);
             x.c.uniform(x.ref, 'u_shift', sh);
+            x.c.uniform(x.ref, 'u_sweep', sw);
             if (this.setting('vetroRev') === 'ladder') x.c.uniform(x.ref, 'u_rev', [1, rp[0], rp[1]]);
             const bu = [];
             bars.forEach((b, i) => bu.push(b.x - w.x, b.y - w.y, b.w, bv[i]));

@@ -3847,6 +3847,7 @@ uniform float u_plain;     // 1: no floor (the "Backgrounds" setting off)
 uniform vec4 u_hole;       // the Waze map's window in the left panel while it shows: x, y, w, h (w 0: none)
 uniform vec4 u_tbox;       // the tyre boxes' half width, half height, the wheels' x offset, the wheels' scale
 uniform float u_bright;    // "vetroBright": 1 the brighter look (a lifted face, more sheen, lighter panels, full white)
+uniform vec4 u_sweep;      // "vetroRev" sweep (jsalicru): x 1 the ticks light as Sweep's with the needle kept; y the red zone's start, z the yellow zone's, w the wave (lit ticks yellow from here), 0..1 of the scale
 uniform vec3 u_rev;        // "vetroRev": x 1 the lit ladder (no needle), 0 the needle; y the revs' peak 0..1, z its fade 1..0
 uniform float u_peak;      // the peak boost on the first bar, 0..1 (< 0: none; setting "vetroPeak")
 uniform vec4 u_media;      // now playing on the right ("vetroRight" music): the progress track's x, y (its middle), width, the song's position 0..1; width 0: none
@@ -4071,16 +4072,31 @@ void main() {
         vec3 tickR = u_dial > 0.5 && u_dial < 1.5 ? vec3(0.08, 0.016, 0.016) : vec3(0.92, 0.14, 0.12);
         // the red zone fades in from 6500 to 85 % at 7000, to full at the top: almost solid from 7 to 8
         float rz = 0.85 * smoothstep(6.5, 7.0, k) + 0.15 * clamp(k - 7.0, 0.0, 1.0);
+        // Sweep's way (u_sweep.x): the red zone from its start (lower on a cold engine), a yellow zone just under it
+        float kR = u_sweep.y * u_scale.z, kY = u_sweep.z * u_scale.z, kRev = u_tach.w * u_scale.z;
+        rz = mix(rz, smoothstep(kR - 0.03, kR + 0.03, k), u_sweep.x);
+        float yz = u_sweep.x * step(kY, k) * (1.0 - step(kR, k));
         float ro = R - 7.0, ri = R - 26.0;
         float inL = float(onScale) * step(ri, d) * step(d, ro);
         float lit = u_rev.x * step(k, u_tach.w * u_scale.z) * inL;            // the lit ladder: up to the revs
         float lead = clamp(1.0 - (u_tach.w * u_scale.z - k) / 3.0, 0.0, 1.0);
-        vec3 tc = mix(tick, tickR, rz) * (1.0 - 0.45 * u_rev.x * (1.0 - lit));     // the unlit ladder dimmer with it
+        float litS = u_sweep.x * step(k, kRev) * inL;                           // Sweep's way: lit up to the revs
+        vec3 tc = mix(tick, tickR, rz) * (1.0 - 0.45 * max(u_rev.x, u_sweep.x) * (1.0 - max(lit, litS)));     // the unlit ladder dimmer with it
         float rng = min(abs(d - ro) - 0.85, abs(d - ri) - 0.75);
         float rung = abs(fract(k * 10.0 + 0.5) - 0.5) / 10.0 * pxk * (d / R) - 0.75;
         float lad = onScale ? min(rng, max(rung, max(ri - d, d - ro))) : 99.0;
         col = mix(col, tc, cov(lad));
         col = mix(col, tickR, rz * inL * 0.92 * (1.0 - lit));
+        // Sweep's way: the yellow zone's rungs yellow; the lit rungs silver white, yellow in the yellow zone or once the
+        // wave has spread down to them, red in the red zone, a white leading edge, all red while the shift light flashes;
+        // a soft glow inward off the lit part
+        vec3 YEL = vec3(1.0, 0.76, 0.12);
+        col = mix(col, YEL * 0.85, yz * inL * cov(lad) * (1.0 - litS));
+        vec3 sc = k >= kR ? vec3(1.0, 0.13, 0.09) : k >= min(kY, u_sweep.w * u_scale.z) ? YEL : vec3(0.90, 0.93, 0.98);
+        sc = mix(sc, vec3(1.0), 0.55 * clamp(1.0 - (kRev - k) / 0.35, 0.0, 1.0) * step(k, kY));
+        sc = mix(sc, vec3(1.0, 0.12, 0.08), u_shift.y);
+        col = mix(col, sc * (1.0 + 0.35 * u_shift.y), litS * mix(0.75, 1.0, cov(lad)));
+        col += sc * exp(-max(ri - d, 0.0) / 12.0) * step(d, ri) * step(ri - 40.0, d) * step(k, kRev) * u_sweep.x * float(onScale) * 0.16;
         // the lit ladder: the band filled in the revs' colour, brightest at the value, a white-hot tip, an orange glow
         // spilling inward; red and bright while the shift light flashes
         vec3 rc = mix(revCol(k / u_scale.z), vec3(1.0, 0.12, 0.08), u_shift.y);

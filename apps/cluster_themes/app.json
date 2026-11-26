@@ -1294,15 +1294,19 @@
       "key": "vetroRev",
       "label": "Rev display (Vetro)",
       "type": "choice",
-      "default": "needle",
+      "default": "sweep",
       "options": [
+        [
+          "sweep",
+          "Needle + lit ticks (Sweep style)"
+        ],
         [
           "needle",
           "Needle"
         ],
         [
           "ladder",
-          "Lit ladder"
+          "Lit ladder (no needle)"
         ]
       ]
     },

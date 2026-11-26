@@ -84,11 +84,12 @@ def build(fonts):
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'red': RED, 'left': [round(v, 1) for v in LEFT],
                     'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'car': CAR, 'tyresIf': 'vetroRight=tires',
                     'tbox': [68, 37, 69, 1], 'hole': MAP, 'holeWhen': 'mapUp', 'holeInset': 0, 'holeAim': [0.26, 0.5],
-                    'mapBars': MAP_BARS, 'media': MEDIA, 'mediaIf': 'vetroRight=music'})
+                    'mapBars': MAP_BARS, 'media': MEDIA, 'mediaIf': 'vetroRight=music',
+                    'coldLimit': [48.89, 71.11, 4000], 'yellowLines': 2, 'waveBelow': 1200})
 
     # --- the needle and its cap on a layer of their own, over the numbers (z 6)
     widgets.append({'id': 'needle', 'type': 'rneedle', 'class': 'content', 'z': 6, 'x': CX - R, 'y': CY - R, 'w': 2 * R, 'h': 2 * R,
-                    'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'conn': 1, 'toggle': 'vetroRev=needle'})
+                    'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'conn': 1, 'toggle': 'vetroRev=needle|sweep'})
     # --- the rev counter's numbers: a soft shadow under each, the number per face (silver; the redline one red)
     nr = R - 77                                         # (the ladder 19 px wide)
     for k in range(THOUSANDS + 1):
