@@ -12,8 +12,8 @@ rdash effect layer (shaders.js) with text layers over it:
   oil temperature; water temperature; oil pressure) with their readings, the fuel cells and the range under it;
 - on the right a framed glass panel: the drive mode, "Tires", the car as an x-ray from above, each tyre's pressure and
   temperature in a box, its wheel green or red (under 33 psi).
-With "Show Waze map inside the theme" on, Waze's map takes the left panel while it shows; the right panel then has all four
-bars, stacked as on the left (jsalicru, Nov 25 2026: gauges by the map, not the tyres).
+With "Show Waze map inside the theme" on, Waze's map takes the right panel while it shows; the gauges stay on the left
+always (jsalicru, Nov 28 2026).
 Without the map the right panel shows the setting "vetroRight": now playing (the song, the artist, its progress; the
 default) or the tyres. No HV battery gauge (the M3 has none).
 Nothing in the strip (covered, BMW's gear letter left clear, as Circuit).
@@ -37,34 +37,12 @@ LEFT = [70, 36, 646, 26]                                 # the left panel: its e
 RIGHT = [36, 646, 1890, 1862]                           # the right panel: top, bottom, right x at the top, at the bottom
 CAR = [1560, 372, 175, 90]
 BAR_R, BAR_W = 588, 430                                # the left bars: one column, its right edge clear of the dial
-# the Waze map in the left panel (setting "Show Waze map inside the theme"): the window, and the right panel meanwhile:
-# the car a bit smaller and higher, two of the bars (boost or intake, oil) side by side under it
-# jsalicru (Nov 26 2026): while the map shows, the left panel reaches further left (MAP_LEFT) and the window with it, for
-# a bigger map (about 600 px of it in view instead of 460; Waze's picture enlarged ~1.15x)
-# (Nov 27) and taller, near the screen's top to just over the strip: about 570 px of map high instead of 380
-# (Nov 28) out to the screen's left edge: the panel's end straight at x 0, the window from x 0
-# (jsalicru, Nov 28 2026) the map moved to the right panel: the gauges stay on the left always, the right panel shows the
-# map, now playing or the tyres. The window: under the panel's header (the drive mode, the red line) to just over its
-# foot, from under the dial's ring (where it fades out) to the panel's slanted right end
+# the Waze map (setting "Show Waze map inside the theme"; jsalicru, Nov 28 2026: in the right panel, the gauges on the left
+# always; it was in the left panel to 0.25): the window from under the panel's header (the drive mode, the red line) to
+# just over its foot, from under the dial's ring (where it fades out) to the panel's slanted right end
 MAP = [1180, RIGHT[0] + 44, 1920 - 1180, RIGHT[1] - 10 - (RIGHT[0] + 44)]
-# the car's arrow where jsbaughman's 0.26 from 178 put it relative to the part in view (its right end ~564, where the map
-# fades into the dial): the middle of x 48..564 now
 MAP_AIM = round((1605 - MAP[0]) / float(MAP[2]), 3)                                        # the car's arrow in the middle of the part in view (x ~1340 to ~1870)
-# the four bars in the right panel while the map shows (as on the left, clear of the dial's curve)
-RBAR_X, RBAR_W, RBAR_Y, RBAR_DY = 1400, 420, 130, 110
-ROW_Y, ROW_DY = 130, 110                                # the left bars' rows; the fuel a row under the last
-# Waze's arrow sits a little right of its map's centre: the map's centre at 26 % across the window puts the arrow in the
-# middle of the part that shows (the window runs on under the dial, where it fades out)
-# (jsalicru, Nov 28 2026: the top one shorter, its reading ran under the cluster's top right corner on the car)
-RBAR_CUT = [90, 0, 0, 0]
-# (jsalicru, Nov 28 2026: the gauges' left ends follow the curve of the panel's left edge, round the dial; the right
-# ends stay put) - each row starts RCURVE_GAP px right of a circle RCURVE_R round the dial's centre, at the track's height
-RCURVE_R, RCURVE_GAP, RBAR_END = R + 40, 60, RBAR_X + RBAR_W
-def rcurve_x(y):
-    dy = y + 15 - CY
-    return int(round(CX + math.sqrt(max(RCURVE_R ** 2 - dy * dy, 0)) + RCURVE_GAP))
-MAP_BARS = [{'of': i, 'x': rcurve_x(RBAR_Y + i * RBAR_DY), 'y': RBAR_Y + i * RBAR_DY,
-             'w': RBAR_END - RBAR_CUT[i] - rcurve_x(RBAR_Y + i * RBAR_DY)} for i in range(4)]
+ROW_Y, ROW_DY = 130, 110                                # the bars' rows (always in the left panel); the fuel a row under the last
 FACES = {                                                # the numbers' colours per face: (0..7, 8)
     'black': (('num', 'numLow'), ('numRed', 'numRedLow')),
     'red': (('num', 'numLow'), ('numBlack', 'numBlackLow')),
@@ -131,7 +109,6 @@ def build(fonts):
             b.update({'alt': 'intake', 'altMin': 0, 'altMax': 100, 'altWhen': 'showBoost', 'altZones': ZONES['intake']})
         bars.append(b)
     F = [BAR_R - BAR_W, ROW_Y + 4 * ROW_DY, BAR_W]                             # (Nov 28) a bar as the others, its reading over its right end
-    MF = [rcurve_x(RBAR_Y + 4 * RBAR_DY), RBAR_Y + 4 * RBAR_DY, RBAR_END - rcurve_x(RBAR_Y + 4 * RBAR_DY)]                    # the fuel under the gauges on the right while the map shows
     widgets.append({'id': 'dash', 'type': 'rdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'red': RED, 'left': [round(v, 1) for v in LEFT],
                     'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'fuelLow': FUEL_LOW, 'car': CAR, 'tyresIf': 'vetroRight=tires',
