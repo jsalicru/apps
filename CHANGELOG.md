@@ -4,6 +4,8 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 28 2026
 
+- **P3 Clusters 0.26.0 (Vetro):** the gauges stay in the left panel all the time, and Waze's map moved to the right panel (under its header, out to its slanted end, fading out round the tach), so nothing jumps sides when the map comes and goes; with the map off the right panel shows now playing or the tires as before. The boost bar is full length again. The fuel is now a bar like the others, with the range above its right end, and every bar has a little texture: brushed metal in the fill, a fine dark weave in the empty track.
+
 - **P3 Clusters 0.25.0 (Vetro):** the tach about 13% bigger (radius 340, from 300) and lower, its foot running on into BMW's bottom strip left of the gear and drive mode gap (x 1214 to 1525 still clear), drawn there by a small second dash layer; the speed and gear boxes grow with it. With the map up, the map's window starts at the screen's left edge (x 0, from 48) and the boost bar on the right is 90 px shorter, so its reading clears the cluster's top right corner.
 
 ## Nov 27 2026
