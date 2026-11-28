@@ -4,6 +4,7 @@ Newest first. Dates are when the build was pushed.
 
 ## Nov 27 2026
 
+- **P3 Clusters 0.24.4 (Vetro):** both panels as tall as the screen allows (y 36 to 646) and the left one out to the edge, map or not: the bars longer (440 px on the left, 420 on the right) and spaced further apart, the fuel a row of its own inside the panel, now playing and the tires centred in the taller right panel.
 - **P3 Clusters 0.24.3 (Vetro):** the map's panel taller while it shows, from near the top of the screen to just over the strip (the window 872×582, from 872×380).
 
 ## Nov 26 2026

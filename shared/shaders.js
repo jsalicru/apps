@@ -3931,23 +3931,6 @@ void main() {
         c = put(c, BLUE, max(cov(abs(dl + 0.8) - 0.7) * wl, wt) * 0.85);
     }
 
-    // --- the fuel: slanted cells filled silver (amber with the range low), a dark track
-    vec4 F = u_fuel;
-    float lowF = step(1.5, F.w);
-    F.w -= 2.0 * lowF;
-    float fy = (p.y - F.y) / 24.0;                      // the track 24 px tall
-    if (fy > -0.4 && fy < 1.4 && p.x > F.x - 10.0 && p.x < F.x + F.z + 10.0) {
-        float rel = p.x - F.x - 7.0 * (1.0 - fy);
-        float inT = step(0.0, rel) * step(rel, F.z) * step(0.0, fy) * step(fy, 1.0);
-        c = put(c, vec3(0.10, 0.14, 0.21), inT * 0.9);
-        c = put(c, vec3(0.45, 0.52, 0.64), inT * (1.0 - step(1.3, rel) * step(rel, F.z - 1.3) * step(1.3 / 24.0, fy) * step(fy, 1.0 - 1.3 / 24.0)) * 0.7);
-        float cell = inT * step(2.6, mod(rel, F.z / 10.0)) * step(rel, F.w * F.z + 0.01) * step(2.5 / 24.0, fy) * step(fy, 21.5 / 24.0);
-        // silver as the bars; amber with the range low (the level sent 2 over: jsalicru)
-        vec3 amb = lowF > 0.5 ? vec3(0.98, 0.42 + 0.30 * fy, 0.05 + 0.05 * fy) : vec3(0.86, 0.91, 1.0) * (0.8 + 0.2 * fy);
-        c = put(c, amb, cell);
-        c = put(c, lowF > 0.5 ? vec3(1.0, 0.85, 0.2) : vec3(0.30, 0.50, 1.0), cell * step(18.0 / 24.0, fy) * 0.8);
-    }
-
     // --- the right panel: navy glass framed by fine light lines, a darker ring band round the dial, red lines along the
     //     top (from the dial out, fading) and the foot (round the corner and up the right end)
     float rt = u_right.x, rb = u_right.y;
@@ -3988,6 +3971,23 @@ void main() {
             vec3 wcol = st > 1.5 ? vec3(0.92, 0.2, 0.16) : st > 0.5 ? vec3(0.31, 0.86, 0.47) : vec3(0.35, 0.38, 0.44);
             c = put(c, wcol, cov(abs(rbox(p, wc, vec2(9.0, 22.0) * u_tbox.w, 5.0)) - 1.0));
         }
+    }
+
+    // --- the fuel: slanted cells filled silver (amber with the range low), a dark track
+    vec4 F = u_fuel;
+    float lowF = step(1.5, F.w);
+    F.w -= 2.0 * lowF;
+    float fy = (p.y - F.y) / 24.0;                      // the track 24 px tall
+    if (fy > -0.4 && fy < 1.4 && p.x > F.x - 10.0 && p.x < F.x + F.z + 10.0) {
+        float rel = p.x - F.x - 7.0 * (1.0 - fy);
+        float inT = step(0.0, rel) * step(rel, F.z) * step(0.0, fy) * step(fy, 1.0);
+        c = put(c, vec3(0.10, 0.14, 0.21), inT * 0.9);
+        c = put(c, vec3(0.45, 0.52, 0.64), inT * (1.0 - step(1.3, rel) * step(rel, F.z - 1.3) * step(1.3 / 24.0, fy) * step(fy, 1.0 - 1.3 / 24.0)) * 0.7);
+        float cell = inT * step(2.6, mod(rel, F.z / 10.0)) * step(rel, F.w * F.z + 0.01) * step(2.5 / 24.0, fy) * step(fy, 21.5 / 24.0);
+        // silver as the bars; amber with the range low (the level sent 2 over: jsalicru)
+        vec3 amb = lowF > 0.5 ? vec3(0.98, 0.42 + 0.30 * fy, 0.05 + 0.05 * fy) : vec3(0.86, 0.91, 1.0) * (0.8 + 0.2 * fy);
+        c = put(c, amb, cell);
+        c = put(c, lowF > 0.5 ? vec3(1.0, 0.85, 0.2) : vec3(0.30, 0.50, 1.0), cell * step(18.0 / 24.0, fy) * 0.8);
     }
 
     // --- now playing's progress: a fine recessed track, filled light to the song's position, a small round head there
