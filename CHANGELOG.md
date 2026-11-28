@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 27 2026
+
+- **P3 Clusters 0.24.3 (Vetro):** the map's panel taller while it shows, from near the top of the screen to just over the strip (the window 872×582, from 872×380).
+
 ## Nov 26 2026
 
 - **P3 Clusters 0.24.2 (Vetro):** no level and upright guide lines through the dial's face.
