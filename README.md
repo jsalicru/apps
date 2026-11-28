@@ -44,7 +44,7 @@ Redraws the whole instrument cluster in a theme of your choice. Pick the theme o
   </tr>
   <tr>
     <td>A safety dash for hard pulls in BMW M colours: twelve readout tiles plus power and torque, each flashing red over its warning limit.</td>
-    <td>Calm and premium: one ribbon of light fills with the revs over a big thin speed. Holiday editions for Christmas, Thanksgiving, New Year and the Fourth of July.</td>
+    <td>Calm and premium: one ribbon of light fills with the revs over a big thin speed.</td>
   </tr>
   <tr>
     <th align="center" colspan="2">Apex</th>

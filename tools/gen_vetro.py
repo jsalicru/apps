@@ -33,10 +33,12 @@ STRIP_R = 1210                                          # the strip piece's righ
 START, SWEEP, THOUSANDS, RED = 180, 225, 8, 7200
 FAST = 45
 # (jsalicru, Nov 27 2026: the panels as big as the screen allows, near its top to just over BMW's strip)
-LEFT = [70, 36, 646, 26]                                 # the left panel: its end x, top, bottom, bow
+# (jsalicru, Nov 28 2026: out to the screen's left edge, no bowed end, as the map runs out on the right; was 70 .. 26)
+LEFT = [0, 36, 646, 0]                                 # the left panel: its end x, top, bottom, bow
 RIGHT = [36, 646, 1890, 1862]                           # the right panel: top, bottom, right x at the top, at the bottom
 CAR = [1560, 372, 175, 90]
-BAR_R, BAR_W = 588, 430                                # the left bars: one column, its right edge clear of the dial
+LCURVE_R, LCURVE_GAP = R + 40, 24                      # the bars' right ends round the dial (Nov 28)
+BAR_R, BAR_W = 640, 482                                # the left bars: one column, its right edge clear of the dial
 # the Waze map (setting "Show Waze map inside the theme"; jsalicru, Nov 28 2026: in the right panel, the gauges on the left
 # always; it was in the left panel to 0.25): the window from under the panel's header (the drive mode, the red line) to
 # just over its foot, from under the dial's ring (where it fades out) to the panel's slanted right end
@@ -73,11 +75,12 @@ def rev_pos(v, curve, tail):
     s0 = 1 - (1 - p0) * tail[1]
     return p * s0 / p0 if p <= p0 else s0 + (p - p0) * tail[1]
 
+# (jsalicru, Nov 28 2026: the two oil gauges together, the water temperature a row down)
 ROWS = [
     ('gauge', '{{boost}}', '{{u:boostLc}}', 'vt_small', 'boost', 0, 2.758),
     ('oilcan', '{{oil}}', '{{u:temp}}', 'vt_deg', 'oil', 50, 150),
-    ('therm', '{{coolant}}', '{{u:temp}}', 'vt_deg', 'coolant', 50, 130),
     ('oilcan', '{{oilP}}', '{{u:boostLc}}', 'vt_small', 'oilP', 0, 5.516),
+    ('therm', '{{coolant}}', '{{u:temp}}', 'vt_deg', 'coolant', 50, 130),
 ]
 
 
@@ -101,14 +104,17 @@ def build(fonts):
     MEDIA = [MX, 420, MW]
     # bars' boxes: right ends on a curve round the dial, so the stack leans with it
     bars, rows_y = [], [ROW_Y + i * ROW_DY for i in range(4)]
+    # (jsalicru, Nov 28 2026) their right ends follow the curve of the panel's right edge round the dial: LCURVE_GAP px
+    # left of a circle LCURVE_R round its centre at the track's height; the left ends stay put
+    lend = lambda y: min(BAR_R, int(round(CX - math.sqrt(max(LCURVE_R ** 2 - (y + 15 - CY) ** 2, 0)) - LCURVE_GAP)))
     for (icon, tok, unit, ufont, sig, mn, mx), by in zip(ROWS, rows_y):
-        b = {'x': BAR_R - BAR_W, 'y': by, 'w': BAR_W, 'signal': sig, 'min': mn, 'max': mx}
+        b = {'x': BAR_R - BAR_W, 'y': by, 'w': lend(by) - (BAR_R - BAR_W), 'signal': sig, 'min': mn, 'max': mx}
         if sig in ZONES:
             b['zones'] = ZONES[sig]
         if sig == 'boost':
             b.update({'alt': 'intake', 'altMin': 0, 'altMax': 100, 'altWhen': 'showBoost', 'altZones': ZONES['intake']})
         bars.append(b)
-    F = [BAR_R - BAR_W, ROW_Y + 4 * ROW_DY, BAR_W]                             # (Nov 28) a bar as the others, its reading over its right end
+    F = [BAR_R - BAR_W, ROW_Y + 4 * ROW_DY, lend(ROW_Y + 4 * ROW_DY) - (BAR_R - BAR_W)]                             # (Nov 28) a bar as the others, its reading over its right end
     widgets.append({'id': 'dash', 'type': 'rdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'red': RED, 'left': [round(v, 1) for v in LEFT],
                     'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'fuelLow': FUEL_LOW, 'car': CAR, 'tyresIf': 'vetroRight=tires',
@@ -157,7 +163,7 @@ def build(fonts):
     # --- the bars: the reading over the right end (the number, the unit small after it), the icon before the track; in
     #     the left panel, or the first two under the car while the map shows
     J = lambda *ts: '&'.join(t for t in ts if t) or None
-    places = [(b['x'], b['y'], BAR_W, i, None, '') for i, b in enumerate(bars)]     # always on the left (Nov 28)
+    places = [(b['x'], b['y'], b['w'], i, None, '') for i, b in enumerate(bars)]     # always on the left (Nov 28)
     for x0, by, bw, i, mt, sfx in places:
         icon, tok, unit, ufont, sig, mn, mx = ROWS[i]
         rx = x0 + bw
