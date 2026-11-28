@@ -28,22 +28,24 @@ W, H = 1920, 660
 CX, CY, R = 960, 330, 300
 START, SWEEP, THOUSANDS, RED = 180, 225, 8, 7200
 FAST = 45
-LEFT = [200, CY - 0.56 * R, CY + 0.80 * R, 26]          # the left panel: its end x, top, bottom, bow
-RIGHT = [CY - 0.60 * R, CY + 0.86 * R, 1890, 1846]      # the right panel: top, bottom, right x at the top, at the bottom
-CAR = [1560, 400, 175, 90]
-BAR_R, BAR_W = 602, 320                                # the left bars: one column, its right edge clear of the dial
+# (jsalicru, Nov 27 2026: the panels as big as the screen allows, near its top to just over BMW's strip)
+LEFT = [70, 36, 646, 26]                                 # the left panel: its end x, top, bottom, bow
+RIGHT = [36, 646, 1890, 1862]                           # the right panel: top, bottom, right x at the top, at the bottom
+CAR = [1560, 372, 175, 90]
+BAR_R, BAR_W = 602, 440                                # the left bars: one column, its right edge clear of the dial
 # the Waze map in the left panel (setting "Show Waze map inside the theme"): the window, and the right panel meanwhile:
 # the car a bit smaller and higher, two of the bars (boost or intake, oil) side by side under it
 # jsalicru (Nov 26 2026): while the map shows, the left panel reaches further left (MAP_LEFT) and the window with it, for
 # a bigger map (about 600 px of it in view instead of 460; Waze's picture enlarged ~1.15x)
 # (Nov 27) and taller, near the screen's top to just over the strip: about 570 px of map high instead of 380
-MAP_LEFT = [70, 36, 646, 26]
+MAP_LEFT = list(LEFT)
 MAP = [48, MAP_LEFT[1] + 14, CX - 40 - 48, MAP_LEFT[2] - 14 - (MAP_LEFT[1] + 14)]   # its left end is cut along the panel's bow
 # the car's arrow where jsbaughman's 0.26 from 178 put it relative to the part in view (its right end ~564, where the map
 # fades into the dial): the middle of x 48..564 now
 MAP_AIM = round((564 - MAP[0]) / 2.0 / MAP[2], 3)
 # the four bars in the right panel while the map shows (as on the left, clear of the dial's curve)
-RBAR_X, RBAR_W, RBAR_Y, RBAR_DY = 1430, 360, 296, 80
+RBAR_X, RBAR_W, RBAR_Y, RBAR_DY = 1400, 420, 130, 110
+ROW_Y, ROW_DY = 130, 110                                # the left bars' rows; the fuel a row under the last
 # Waze's arrow sits a little right of its map's centre: the map's centre at 26 % across the window puts the arrow in the
 # middle of the part that shows (the window runs on under the dial, where it fades out)
 MAP_BARS = [{'of': i, 'x': RBAR_X, 'y': RBAR_Y + i * RBAR_DY, 'w': RBAR_W} for i in range(4)]
@@ -91,7 +93,7 @@ def build(fonts):
     widgets = []
     band = R + 36
     tx = CX + math.sqrt((band + 6) ** 2 - (RIGHT[0] + 18 - CY) ** 2) + 10
-    MX, MW = tx + 34, 500                               # now playing: its left end, its width
+    MX, MW = CX + R + 70, 480                           # now playing: its left end (clear of the dial at mid height), its width
 
     def text(id_, x, baseline, w, t, font, color='fg', align='left', **kw):
         """A text box w wide whose glyphs sit on baseline; x is its left (align left), right (right) or middle (center)."""
@@ -102,9 +104,9 @@ def build(fonts):
         widgets.append(d)
 
     # now playing's progress track (the shader's): x, y (its middle), width
-    MEDIA = [MX, 474, MW]
+    MEDIA = [MX, 420, MW]
     # bars' boxes: right ends on a curve round the dial, so the stack leans with it
-    bars, rows_y = [], [LEFT[1] + 62 + i * 86 for i in range(4)]
+    bars, rows_y = [], [ROW_Y + i * ROW_DY for i in range(4)]
     for (icon, tok, unit, ufont, sig, mn, mx), by in zip(ROWS, rows_y):
         b = {'x': BAR_R - BAR_W, 'y': by, 'w': BAR_W, 'signal': sig, 'min': mn, 'max': mx}
         if sig in ZONES:
@@ -112,8 +114,8 @@ def build(fonts):
         if sig == 'boost':
             b.update({'alt': 'intake', 'altMin': 0, 'altMax': 100, 'altWhen': 'showBoost', 'altZones': ZONES['intake']})
         bars.append(b)
-    F = [BAR_R - BAR_W, LEFT[2] + 30, 250]
-    MF = [RBAR_X, LEFT[2] + 30, 250]                    # the fuel under the gauges on the right while the map shows
+    F = [BAR_R - BAR_W, ROW_Y + 4 * ROW_DY - 4, BAR_W - 150]
+    MF = [RBAR_X, RBAR_Y + 4 * RBAR_DY - 4, RBAR_W - 150]                    # the fuel under the gauges on the right while the map shows
     widgets.append({'id': 'dash', 'type': 'rdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'red': RED, 'left': [round(v, 1) for v in LEFT],
                     'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'mapFuel': MF, 'fuelLow': FUEL_LOW, 'car': CAR, 'tyresIf': 'vetroRight=tires',
@@ -193,7 +195,7 @@ def build(fonts):
     # --- the right panel: the drive mode by its stroke, the heading, the car, the tyres' readings in their boxes
     text('mode', tx + 30, RIGHT[0] + 24, 400, '{{mode}}', 'vt_mode', 'accent', 'left')
     # the heading: the tyres or now playing (none over the gauges while the map shows)
-    hx = tx + 34
+    hx = MX
     text('tyre_head', hx, RIGHT[0] + 86, 200, 'Tires', 'vt_head', 'head', 'left', toggle='vetroRight=tires&!mapUp')
     text('music_head', hx, RIGHT[0] + 86, 260, 'Now Playing', 'vt_head', 'head', 'left', toggle='vetroRight=music&!mapUp')
     # the car and the tyres' readings (setting "vetroRight" tires, the map down)
@@ -210,11 +212,11 @@ def build(fonts):
     # now playing (setting "vetroRight" music, the map down): the song, the artist under it, the progress track (the
     # shader's) with the time gone and the time left under its ends; a quiet line while nothing plays
     tg = 'vetroRight=music&!mapUp'
-    text('np_title', MX, 374, MW, '{{mediaTitle}}', 'v_title', 'fg', 'left', toggle=tg, showWhen='media', ellipsis=True)
-    text('np_artist', MX, 422, MW, '{{mediaArtist}}', 'vt_artist', 'dim', 'left', toggle=tg, showWhen='media', ellipsis=True)
-    text('np_at', MX, 516, 120, '{{mediaElapsed}}', 'vt_time', 'dim', 'left', toggle=tg, showWhen='media')
-    text('np_left', MX + MW, 516, 120, '{{mediaLeft}}', 'vt_time', 'dim', 'right', toggle=tg, showWhen='media')
-    text('np_none', MX, 374, MW, 'Nothing playing', 'vt_head', 'dim', 'left', toggle=tg, showWhen='!media')
+    text('np_title', MX, 300, MW, '{{mediaTitle}}', 'v_title', 'fg', 'left', toggle=tg, showWhen='media', ellipsis=True)
+    text('np_artist', MX, 348, MW, '{{mediaArtist}}', 'vt_artist', 'dim', 'left', toggle=tg, showWhen='media', ellipsis=True)
+    text('np_at', MX, 462, 120, '{{mediaElapsed}}', 'vt_time', 'dim', 'left', toggle=tg, showWhen='media')
+    text('np_left', MX + MW, 462, 120, '{{mediaLeft}}', 'vt_time', 'dim', 'right', toggle=tg, showWhen='media')
+    text('np_none', MX, 300, MW, 'Nothing playing', 'vt_head', 'dim', 'left', toggle=tg, showWhen='!media')
 
     # --- the strip: covered, nothing in it; BMW's gear and programme area (x 1214 to 1525 on the G80) left clear, as this
     #     repo's other themes (jsbaughman's 1380 / 1460 gave the M3 black boxes) ------------------------------------------------
