@@ -43,11 +43,13 @@ BAR_R, BAR_W = 588, 430                                # the left bars: one colu
 # a bigger map (about 600 px of it in view instead of 460; Waze's picture enlarged ~1.15x)
 # (Nov 27) and taller, near the screen's top to just over the strip: about 570 px of map high instead of 380
 # (Nov 28) out to the screen's left edge: the panel's end straight at x 0, the window from x 0
-MAP_LEFT = [0, LEFT[1], LEFT[2], 0]
-MAP = [0, MAP_LEFT[1] + 14, CX - 40, MAP_LEFT[2] - 14 - (MAP_LEFT[1] + 14)]   # its left end is cut along the panel's bow
+# (jsalicru, Nov 28 2026) the map moved to the right panel: the gauges stay on the left always, the right panel shows the
+# map, now playing or the tyres. The window: under the panel's header (the drive mode, the red line) to just over its
+# foot, from under the dial's ring (where it fades out) to the panel's slanted right end
+MAP = [1180, RIGHT[0] + 44, 1920 - 1180, RIGHT[1] - 10 - (RIGHT[0] + 44)]
 # the car's arrow where jsbaughman's 0.26 from 178 put it relative to the part in view (its right end ~564, where the map
 # fades into the dial): the middle of x 48..564 now
-MAP_AIM = round((CX - R - 36 - MAP[0]) / 2.0 / MAP[2], 3)
+MAP_AIM = round((1605 - MAP[0]) / float(MAP[2]), 3)                                        # the car's arrow in the middle of the part in view (x ~1340 to ~1870)
 # the four bars in the right panel while the map shows (as on the left, clear of the dial's curve)
 RBAR_X, RBAR_W, RBAR_Y, RBAR_DY = 1400, 420, 130, 110
 ROW_Y, ROW_DY = 130, 110                                # the left bars' rows; the fuel a row under the last
@@ -132,9 +134,9 @@ def build(fonts):
     MF = [rcurve_x(RBAR_Y + 4 * RBAR_DY), RBAR_Y + 4 * RBAR_DY, RBAR_END - rcurve_x(RBAR_Y + 4 * RBAR_DY)]                    # the fuel under the gauges on the right while the map shows
     widgets.append({'id': 'dash', 'type': 'rdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'red': RED, 'left': [round(v, 1) for v in LEFT],
-                    'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'mapFuel': MF, 'fuelLow': FUEL_LOW, 'car': CAR, 'tyresIf': 'vetroRight=tires',
-                    'tbox': [68, 37, 69, 1], 'hole': MAP, 'holeWhen': 'mapUp', 'holeInset': 0, 'holeAim': [MAP_AIM, 0.5], 'mapLeft': [round(v, 1) for v in MAP_LEFT],
-                    'mapBars': MAP_BARS, 'media': MEDIA, 'mediaIf': 'vetroRight=music',
+                    'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'fuelLow': FUEL_LOW, 'car': CAR, 'tyresIf': 'vetroRight=tires',
+                    'tbox': [68, 37, 69, 1], 'hole': MAP, 'holeWhen': 'mapUp', 'holeInset': 0, 'holeAim': [MAP_AIM, 0.5],
+                    'media': MEDIA, 'mediaIf': 'vetroRight=music',
                     'coldLimit': [48.89, 71.11, 4000], 'yellowLines': 2, 'waveBelow': 1200, 'revCurves': REV_CURVES, 'revTails': REV_TAILS})
 
     # --- the dial's foot in BMW's strip (y 660 on): the same dash shader on a small layer left of the gear gap, plain
@@ -177,21 +179,21 @@ def build(fonts):
 
     # --- the bars: the reading over the right end (the number, the unit small after it), the icon before the track; in
     #     the left panel, or the first two under the car while the map shows
-    places = [(b['x'], b['y'], BAR_W, i, '!mapUp', '') for i, b in enumerate(bars)]
-    places += [(m['x'], m['y'], m['w'], m['of'], 'mapUp', 'm') for m in MAP_BARS]
+    J = lambda *ts: '&'.join(t for t in ts if t) or None
+    places = [(b['x'], b['y'], BAR_W, i, None, '') for i, b in enumerate(bars)]     # always on the left (Nov 28)
     for x0, by, bw, i, mt, sfx in places:
         icon, tok, unit, ufont, sig, mn, mx = ROWS[i]
         rx = x0 + bw
         if sig == 'boost':
             for tg, t2, ic in (('showBoost', tok, 'gauge'), ('!showBoost', '{{intake}}', 'therm')):
                 k = '' if tg == 'showBoost' else 'i'
-                text('b%d_v%s%s' % (i, k, sfx), rx - 44, by - 8, 160, t2, 'vt_val', 'fg', 'right', toggle=tg + '&' + mt,
+                text('b%d_v%s%s' % (i, k, sfx), rx - 44, by - 8, 160, t2, 'vt_val', 'fg', 'right', toggle=J(tg, mt),
                      rate=FAST if tg == 'showBoost' else None, own=True,
                      lowWhen=None if tg == 'showBoost' else [dict(z, signal='intake') for z in ZONES['intake']])
                 text('b%d_u%s%s' % (i, k, sfx), rx - 38, by - 8, 44, unit if tg == 'showBoost' else '{{u:temp}}',
-                     ufont if tg == 'showBoost' else 'vt_deg', 'dim', 'left', toggle=tg + '&' + mt)
+                     ufont if tg == 'showBoost' else 'vt_deg', 'dim', 'left', toggle=J(tg, mt))
                 widgets.append({'id': 'b%d_icon%s%s' % (i, k, sfx), 'type': 'icon', 'icon': ic, 'z': 5,
-                                'x': int(x0 - 45), 'y': int(by - 5), 'w': 35, 'h': 35, 'color': 'fg', 'toggle': tg + '&' + mt})
+                                'x': int(x0 - 45), 'y': int(by - 5), 'w': 35, 'h': 35, 'color': 'fg', 'toggle': J(tg, mt)})
             continue
         text('b%d_v%s' % (i, sfx), rx - 44, by - 8, 160, tok, 'vt_val', 'fg', 'right', own=True, toggle=mt,
              lowWhen=[dict(z, signal=sig) for z in ZONES[sig]] if sig in ZONES else None)
@@ -202,14 +204,14 @@ def build(fonts):
             text('b%d_p%s' % (i, sfx), x0 - 14, by + 5, 14, 'P', 'vt_p', 'fg', 'center', toggle=mt)
     # --- the peak boost (setting "vetroPeak"): PEAK and its reading in amber over the boost bar's left end (the marker on
     #     the bar is the shader's); in the left panel, or under the car while the map shows
-    for x0, by, mt, sfx in ((bars[0]['x'], bars[0]['y'], '!mapUp', ''), (MAP_BARS[0]['x'], MAP_BARS[0]['y'], 'mapUp', 'm')):
-        tg = 'vetroPeak&showBoost&' + mt
+    for x0, by, mt, sfx in ((bars[0]['x'], bars[0]['y'], None, ''),):
+        tg = J('vetroPeak&showBoost', mt)
         text('pk_l' + sfx, x0, by - 9, 44, '{{pullPeakLabel}}', 'vt_tiny', 'accent', 'left', toggle=tg)
         text('pk_v' + sfx, x0 + 48, by - 9, 80, '{{pullPeak}}', 'vt_pk', 'accent', 'left', toggle=tg)
     # --- the fuel with the gauges (left; right under them while the map shows): the pump icon before the cells, the
     #     range after them, white, amber under 50 miles as the cells (jsalicru)
     low = {'signal': 'range', 'below': FUEL_LOW, 'color': 'accent'}
-    for (fx, fy, fw), mt, sfx in ((F, '!mapUp', ''), (MF, 'mapUp', '_m')):
+    for (fx, fy, fw), mt, sfx in ((F, None, ''),):
         widgets.append({'id': 'fuel_icon' + sfx, 'type': 'icon', 'icon': 'fuel', 'z': 5, 'x': fx - 44, 'y': fy - 4, 'w': 32, 'h': 32,
                         'color': 'fg', 'toggle': mt})
         # the range over the bar's right end, as the gauges' readings (jsalicru, Nov 28 2026)

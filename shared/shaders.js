@@ -4145,9 +4145,12 @@ void main() {
     // fading out toward the dial; its lower part a little darker
     float ma = 0.0, mf = 1.0;
     if (u_hole.z > 0.0) {
-        // its left end follows the panel's bow, 12 px in (so it keeps the panel's round corners), top and bottom straight
-        float hd = max(abs(p.y - u_hole.y - u_hole.w * 0.5) - u_hole.w * 0.5, dl + 12.0);
-        ma = cov(hd) * cov(dl) * pow(clamp((d - R - 20.0) / 90.0, 0.0, 1.0), 1.2);
+        // in the left panel: its left end follows the panel's bow, 12 px in (so it keeps the panel's round corners); in the
+        // right panel (the window right of the dial, jsalicru Nov 28 2026): its right end along the panel's slanted end, 12 px
+        // in. Top and bottom straight either way
+        float hr = u_hole.x > C.x ? p.x - xr + 12.0 : dl + 12.0;
+        float hd = max(abs(p.y - u_hole.y - u_hole.w * 0.5) - u_hole.w * 0.5, max(hr, u_hole.x - p.x));
+        ma = cov(hd) * (u_hole.x > C.x ? 1.0 : cov(dl)) * pow(clamp((d - R - 20.0) / 90.0, 0.0, 1.0), 1.2);
         mf = 1.0 - 0.45 * clamp((p.y - u_hole.y - 0.55 * u_hole.w) / (0.45 * u_hole.w), 0.0, 1.0);
     }
     float al = 1.0 - ma * mf;
