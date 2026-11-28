@@ -25,30 +25,37 @@ import math
 import sys
 
 W, H = 1920, 660
-CX, CY, R = 960, 330, 300
+# (jsalicru, Nov 28 2026: the tach bigger, down into BMW's strip: its foot runs on under y 660 left of the gear gap,
+# drawn there by a small second dash layer, "dash_low"; was 960, 330, 300)
+CX, CY, R = 960, 370, 340
+NX = 628                                                # the needle layer's left end (its tip reaches x 632; BMW's belt light ends at 626)
+STRIP_R = 1210                                          # the strip piece's right end: clear of BMW's gap (x 1214 to 1525)
 START, SWEEP, THOUSANDS, RED = 180, 225, 8, 7200
 FAST = 45
 # (jsalicru, Nov 27 2026: the panels as big as the screen allows, near its top to just over BMW's strip)
 LEFT = [70, 36, 646, 26]                                 # the left panel: its end x, top, bottom, bow
 RIGHT = [36, 646, 1890, 1862]                           # the right panel: top, bottom, right x at the top, at the bottom
 CAR = [1560, 372, 175, 90]
-BAR_R, BAR_W = 602, 440                                # the left bars: one column, its right edge clear of the dial
+BAR_R, BAR_W = 588, 430                                # the left bars: one column, its right edge clear of the dial
 # the Waze map in the left panel (setting "Show Waze map inside the theme"): the window, and the right panel meanwhile:
 # the car a bit smaller and higher, two of the bars (boost or intake, oil) side by side under it
 # jsalicru (Nov 26 2026): while the map shows, the left panel reaches further left (MAP_LEFT) and the window with it, for
 # a bigger map (about 600 px of it in view instead of 460; Waze's picture enlarged ~1.15x)
 # (Nov 27) and taller, near the screen's top to just over the strip: about 570 px of map high instead of 380
-MAP_LEFT = list(LEFT)
-MAP = [48, MAP_LEFT[1] + 14, CX - 40 - 48, MAP_LEFT[2] - 14 - (MAP_LEFT[1] + 14)]   # its left end is cut along the panel's bow
+# (Nov 28) out to the screen's left edge: the panel's end straight at x 0, the window from x 0
+MAP_LEFT = [0, LEFT[1], LEFT[2], 0]
+MAP = [0, MAP_LEFT[1] + 14, CX - 40, MAP_LEFT[2] - 14 - (MAP_LEFT[1] + 14)]   # its left end is cut along the panel's bow
 # the car's arrow where jsbaughman's 0.26 from 178 put it relative to the part in view (its right end ~564, where the map
 # fades into the dial): the middle of x 48..564 now
-MAP_AIM = round((564 - MAP[0]) / 2.0 / MAP[2], 3)
+MAP_AIM = round((CX - R - 36 - MAP[0]) / 2.0 / MAP[2], 3)
 # the four bars in the right panel while the map shows (as on the left, clear of the dial's curve)
 RBAR_X, RBAR_W, RBAR_Y, RBAR_DY = 1400, 420, 130, 110
 ROW_Y, ROW_DY = 130, 110                                # the left bars' rows; the fuel a row under the last
 # Waze's arrow sits a little right of its map's centre: the map's centre at 26 % across the window puts the arrow in the
 # middle of the part that shows (the window runs on under the dial, where it fades out)
-MAP_BARS = [{'of': i, 'x': RBAR_X, 'y': RBAR_Y + i * RBAR_DY, 'w': RBAR_W} for i in range(4)]
+# (jsalicru, Nov 28 2026: the top one shorter, its reading ran under the cluster's top right corner on the car)
+RBAR_CUT = [90, 0, 0, 0]
+MAP_BARS = [{'of': i, 'x': RBAR_X, 'y': RBAR_Y + i * RBAR_DY, 'w': RBAR_W - RBAR_CUT[i]} for i in range(4)]
 FACES = {                                                # the numbers' colours per face: (0..7, 8)
     'black': (('num', 'numLow'), ('numRed', 'numRedLow')),
     'red': (('num', 'numLow'), ('numBlack', 'numBlackLow')),
@@ -123,8 +130,17 @@ def build(fonts):
                     'mapBars': MAP_BARS, 'media': MEDIA, 'mediaIf': 'vetroRight=music',
                     'coldLimit': [48.89, 71.11, 4000], 'yellowLines': 2, 'waveBelow': 1200, 'revCurves': REV_CURVES, 'revTails': REV_TAILS})
 
+    # --- the dial's foot in BMW's strip (y 660 on): the same dash shader on a small layer left of the gear gap, plain
+    #     black round the dial as the strip covers (jsalicru, Nov 28 2026: the tach bigger and lower)
+    d0 = widgets[-1]
+    lx = 740                                            # (the foot is x 771 to 1149 at y 660; BMW's belt light x 587 to 626 left clear)
+    widgets.append({'id': 'dash_low', 'type': 'rdash', 'class': 'content', 'z': 1, 'x': lx, 'y': H, 'w': STRIP_R - lx, 'h': 720 - H,
+                    'plain': True, 'tach': d0['tach'], 'red': RED, 'left': d0['left'], 'right': d0['right'], 'bars': d0['bars'],
+                    'fuel': d0['fuel'], 'car': CAR, 'tyresIf': 'vetroRight=tires', 'tbox': d0['tbox'],
+                    'coldLimit': d0['coldLimit'], 'yellowLines': 2, 'waveBelow': 1200, 'revCurves': REV_CURVES, 'revTails': REV_TAILS})
+
     # --- the needle and its cap on a layer of their own, over the numbers (z 6)
-    widgets.append({'id': 'needle', 'type': 'rneedle', 'class': 'content', 'z': 6, 'x': CX - R, 'y': CY - R, 'w': 2 * R, 'h': 2 * R,
+    widgets.append({'id': 'needle', 'type': 'rneedle', 'class': 'content', 'z': 6, 'x': NX, 'y': CY - R, 'w': STRIP_R - NX, 'h': 720 - (CY - R),
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'conn': 1, 'toggle': 'vetroRev=needle|sweep',
                     'revCurves': REV_CURVES, 'revTails': REV_TAILS})
     # --- the rev counter's numbers: a soft shadow under each, the number per face (silver; the redline one red)
@@ -147,10 +163,10 @@ def build(fonts):
                                 'w': 100, 'h': cell('vt_num'), 'text': str(k), 'font': 'vt_num', 'color': c1, 'color2': c2,
                                 'align': 'center', 'toggle': 'vetroDial=' + face + '&revScale=' + scale, 'rate': 60000})
     # --- the speed (right-aligned, its unit after it) and the gear (AUTO / MANUAL under it), in their glass boxes
-    text('speed', 1158, 306 + 0.36 * cell('vt_speed'), 220, '{{speed}}', 'vt_speed', 'fg', 'right', rate=FAST, own=True)
-    text('speed_u', 1166, 320 + 7, 80, '{{u:speedLc}}', 'vt_unit', 'dim', 'left')
-    text('gear', CX + 0.30 * R, 428 + 0.36 * cell('vt_gear'), 120, '{{gearnum}}', 'vt_gear', 'fg', 'center', rate=FAST, own=True)
-    text('prog', CX + 0.30 * R - 32, 484, 140, '{{progWord}}', 'vt_word', 'dim', 'left')
+    text('speed', CX + 0.66 * R, CY - 0.08 * R + 0.36 * cell('vt_speed'), 220, '{{speed}}', 'vt_speed', 'fg', 'right', rate=FAST, own=True)
+    text('speed_u', CX + 0.687 * R, CY - 0.033 * R + 7, 80, '{{u:speedLc}}', 'vt_unit', 'dim', 'left')
+    text('gear', CX + 0.30 * R, CY + 0.327 * R + 0.36 * cell('vt_gear'), 120, '{{gearnum}}', 'vt_gear', 'fg', 'center', rate=FAST, own=True)
+    text('prog', CX + 0.30 * R - 32, CY + 0.513 * R, 140, '{{progWord}}', 'vt_word', 'dim', 'left')
 
     # --- the bars: the reading over the right end (the number, the unit small after it), the icon before the track; in
     #     the left panel, or the first two under the car while the map shows
@@ -228,7 +244,7 @@ def build(fonts):
     ]
     # connections (8 layers each): the right panel on 1, the left side on 2, the dial and the strip on 0
     for w in widgets:
-        if w['id'] in ('dash', 'needle') or w['id'].startswith('strip'):
+        if w['id'] in ('dash', 'dash_low', 'needle') or w['id'].startswith('strip'):
             continue
         if w['x'] >= 1250:
             w['conn'] = 1

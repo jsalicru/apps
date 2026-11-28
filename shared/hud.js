@@ -3247,7 +3247,7 @@ class HudApp {
      * (LOOK_KEYS): no rebuild for them (a rebuild re-sends every layer, seconds on the car).
      */
     _dashLook(x) {
-        x.c.uniform(x.ref, 'u_plain', [this.setting('backdrops') === false ? 1 : 0]);
+        x.c.uniform(x.ref, 'u_plain', [x.w.plain || this.setting('backdrops') === false ? 1 : 0]);   // "plain": a piece in BMW's strip (Vetro's dial foot), black round it as the strip
         if (x.w.type === 'cdash') {
             x.c.uniform(x.ref, 'u_bgStyle', [this.setting('apexBackdrop') === 'carbon' ? 1 : 0]);
             if (this._apexNew()) x.c.uniform(x.ref, 'u_tachStyle', [{ machined: 1, segments: 2, layered: 3, segLayered: 4 }[this.setting('tachStyle')] || 0]);

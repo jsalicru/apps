@@ -2,6 +2,10 @@
 
 Newest first. Dates are when the build was pushed.
 
+## Nov 28 2026
+
+- **P3 Clusters 0.25.0 (Vetro):** the tach about 13% bigger (radius 340, from 300) and lower, its foot running on into BMW's bottom strip left of the gear and drive mode gap (x 1214 to 1525 still clear), drawn there by a small second dash layer; the speed and gear boxes grow with it. With the map up, the map's window starts at the screen's left edge (x 0, from 48) and the boost bar on the right is 90 px shorter, so its reading clears the cluster's top right corner.
+
 ## Nov 27 2026
 
 - **P3 Clusters 0.24.4 (Vetro):** both panels as tall as the screen allows (y 36 to 646) and the left one out to the edge, map or not: the bars longer (440 px on the left, 420 on the right) and spaced further apart, the fuel a row of its own inside the panel, now playing and the tires centred in the taller right panel.
