@@ -55,7 +55,14 @@ ROW_Y, ROW_DY = 130, 110                                # the left bars' rows; t
 # middle of the part that shows (the window runs on under the dial, where it fades out)
 # (jsalicru, Nov 28 2026: the top one shorter, its reading ran under the cluster's top right corner on the car)
 RBAR_CUT = [90, 0, 0, 0]
-MAP_BARS = [{'of': i, 'x': RBAR_X, 'y': RBAR_Y + i * RBAR_DY, 'w': RBAR_W - RBAR_CUT[i]} for i in range(4)]
+# (jsalicru, Nov 28 2026: the gauges' left ends follow the curve of the panel's left edge, round the dial; the right
+# ends stay put) - each row starts RCURVE_GAP px right of a circle RCURVE_R round the dial's centre, at the track's height
+RCURVE_R, RCURVE_GAP, RBAR_END = R + 40, 60, RBAR_X + RBAR_W
+def rcurve_x(y):
+    dy = y + 15 - CY
+    return int(round(CX + math.sqrt(max(RCURVE_R ** 2 - dy * dy, 0)) + RCURVE_GAP))
+MAP_BARS = [{'of': i, 'x': rcurve_x(RBAR_Y + i * RBAR_DY), 'y': RBAR_Y + i * RBAR_DY,
+             'w': RBAR_END - RBAR_CUT[i] - rcurve_x(RBAR_Y + i * RBAR_DY)} for i in range(4)]
 FACES = {                                                # the numbers' colours per face: (0..7, 8)
     'black': (('num', 'numLow'), ('numRed', 'numRedLow')),
     'red': (('num', 'numLow'), ('numBlack', 'numBlackLow')),
@@ -121,8 +128,8 @@ def build(fonts):
         if sig == 'boost':
             b.update({'alt': 'intake', 'altMin': 0, 'altMax': 100, 'altWhen': 'showBoost', 'altZones': ZONES['intake']})
         bars.append(b)
-    F = [BAR_R - BAR_W, ROW_Y + 4 * ROW_DY - 4, BAR_W - 150]
-    MF = [RBAR_X, RBAR_Y + 4 * RBAR_DY - 4, RBAR_W - 150]                    # the fuel under the gauges on the right while the map shows
+    F = [BAR_R - BAR_W, ROW_Y + 4 * ROW_DY, BAR_W]                             # (Nov 28) a bar as the others, its reading over its right end
+    MF = [rcurve_x(RBAR_Y + 4 * RBAR_DY), RBAR_Y + 4 * RBAR_DY, RBAR_END - rcurve_x(RBAR_Y + 4 * RBAR_DY)]                    # the fuel under the gauges on the right while the map shows
     widgets.append({'id': 'dash', 'type': 'rdash', 'class': 'content', 'z': 1, 'x': 0, 'y': 0, 'w': W, 'h': H,
                     'tach': [CX, CY, R, START, SWEEP, THOUSANDS], 'red': RED, 'left': [round(v, 1) for v in LEFT],
                     'right': [round(v, 1) for v in RIGHT], 'bars': bars, 'fuel': F, 'mapFuel': MF, 'fuelLow': FUEL_LOW, 'car': CAR, 'tyresIf': 'vetroRight=tires',
@@ -203,10 +210,11 @@ def build(fonts):
     #     range after them, white, amber under 50 miles as the cells (jsalicru)
     low = {'signal': 'range', 'below': FUEL_LOW, 'color': 'accent'}
     for (fx, fy, fw), mt, sfx in ((F, '!mapUp', ''), (MF, 'mapUp', '_m')):
-        widgets.append({'id': 'fuel_icon' + sfx, 'type': 'icon', 'icon': 'fuel', 'z': 5, 'x': fx - 42, 'y': fy - 4, 'w': 32, 'h': 32,
+        widgets.append({'id': 'fuel_icon' + sfx, 'type': 'icon', 'icon': 'fuel', 'z': 5, 'x': fx - 44, 'y': fy - 4, 'w': 32, 'h': 32,
                         'color': 'fg', 'toggle': mt})
-        text('range' + sfx, fx + fw + 104, fy + 22, 110, '{{range}}', 'vt_range', 'fg', 'right', toggle=mt, lowWhen=low)
-        text('range_u' + sfx, fx + fw + 110, fy + 22, 50, '{{u:distLc}}', 'vt_small', 'dim', 'left', toggle=mt, lowWhen=low)
+        # the range over the bar's right end, as the gauges' readings (jsalicru, Nov 28 2026)
+        text('range' + sfx, fx + fw - 44, fy - 8, 160, '{{range}}', 'vt_val', 'fg', 'right', toggle=mt, lowWhen=low)
+        text('range_u' + sfx, fx + fw - 38, fy - 8, 50, '{{u:distLc}}', 'vt_small', 'dim', 'left', toggle=mt, lowWhen=low)
 
     # --- the right panel: the drive mode by its stroke, the heading, the car, the tyres' readings in their boxes
     text('mode', tx + 30, RIGHT[0] + 24, 400, '{{mode}}', 'vt_mode', 'accent', 'left')

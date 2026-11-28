@@ -3973,22 +3973,11 @@ void main() {
         }
     }
 
-    // --- the fuel: slanted cells filled silver (amber with the range low), a dark track
+    // --- the fuel: a bar as the others (jsalicru, Nov 28 2026: it matches them now; the slanted cells are gone), drawn in
+    //     the bars' loop below as a fifth; amber with the range low (the level sent 2 over)
     vec4 F = u_fuel;
     float lowF = step(1.5, F.w);
     F.w -= 2.0 * lowF;
-    float fy = (p.y - F.y) / 24.0;                      // the track 24 px tall
-    if (fy > -0.4 && fy < 1.4 && p.x > F.x - 10.0 && p.x < F.x + F.z + 10.0) {
-        float rel = p.x - F.x - 7.0 * (1.0 - fy);
-        float inT = step(0.0, rel) * step(rel, F.z) * step(0.0, fy) * step(fy, 1.0);
-        c = put(c, vec3(0.10, 0.14, 0.21), inT * 0.9);
-        c = put(c, vec3(0.45, 0.52, 0.64), inT * (1.0 - step(1.3, rel) * step(rel, F.z - 1.3) * step(1.3 / 24.0, fy) * step(fy, 1.0 - 1.3 / 24.0)) * 0.7);
-        float cell = inT * step(2.6, mod(rel, F.z / 10.0)) * step(rel, F.w * F.z + 0.01) * step(2.5 / 24.0, fy) * step(fy, 21.5 / 24.0);
-        // silver as the bars; amber with the range low (the level sent 2 over: jsalicru)
-        vec3 amb = lowF > 0.5 ? vec3(0.98, 0.42 + 0.30 * fy, 0.05 + 0.05 * fy) : vec3(0.86, 0.91, 1.0) * (0.8 + 0.2 * fy);
-        c = put(c, amb, cell);
-        c = put(c, lowF > 0.5 ? vec3(1.0, 0.85, 0.2) : vec3(0.30, 0.50, 1.0), cell * step(18.0 / 24.0, fy) * 0.8);
-    }
 
     // --- now playing's progress: a fine recessed track, filled light to the song's position, a small round head there
     vec4 M = u_media;
@@ -4002,8 +3991,9 @@ void main() {
     }
     // --- the bars (in the left panel; two under the car while the map shows): recessed tracks (an inset shadow along their top and left, a light lip along the foot and the
     //     right end), a crisp light fill from the left, a blue start, a small red mark at the end
-    for (int i = 0; i < 4; i++) {
-        vec4 B = u_bars[i];
+    for (int i = 0; i < 5; i++) {
+        vec4 B = i < 4 ? u_bars[i] : vec4(F.x, F.y, F.z, F.w + 4.0 * lowF);     // the fifth: the fuel (amber: band 2)
+        if (i == 4 && F.z < 1.0) continue;
         // the value's whole part above 1 carries its band (jsalicru, Sweep's colours): 2 cold (blue), 4 warm (orange), 6 hot (red)
         float zn = floor(B.w * 0.5);
         B.w -= zn * 2.0;
@@ -4015,9 +4005,15 @@ void main() {
         vec3 bcol = vec3(0.008, 0.012, 0.02);
         float pos = (p.x - B.x) / B.z;
         float fl = step(pos, B.w) * step(B.y + 4.0, p.y) * step(p.y, B.y + 23.0) * step(B.x + 3.0, p.x);
-        bcol = mix(bcol, fc_ * (0.95 - 0.2 * clamp((B.y + 9.0 - p.y) / 5.0, 0.0, 1.0)) * clamp(1.0 - (B.w - pos) * 1.2, 0.82, 1.0), fl);
+        // (jsalicru, Nov 28 2026: a little texture) the track a fine dark weave, the fill brushed along its length with a
+        // fine diagonal grain over it
+        vec2 wv = floor(p / 3.0);
+        bcol += vec3(0.010, 0.014, 0.022) * mod(wv.x + wv.y, 2.0) * (0.6 + 0.4 * mod(wv.x, 2.0));
+        float brush = 0.93 + 0.07 * sin(p.y * 2.3 + sin(p.x * 0.05 + float(i) * 1.7) * 2.0);
+        float grain = 1.0 - 0.10 * smoothstep(0.35, 0.5, abs(fract((p.x - p.y) / 6.0) - 0.5));
+        bcol = mix(bcol, fc_ * (0.95 - 0.2 * clamp((B.y + 9.0 - p.y) / 5.0, 0.0, 1.0)) * clamp(1.0 - (B.w - pos) * 1.2, 0.82, 1.0) * brush * grain, fl);
         bcol = mix(bcol, vec3(0.30, 0.50, 1.0), clamp(1.0 - (p.x - B.x) / 40.0, 0.0, 1.0) * 0.55);
-        bcol = mix(bcol, vec3(0.85, 0.12, 0.10), step(B.x + B.z - 18.0, p.x) * step(p.x, B.x + B.z - 4.0) * step(B.y + 19.0, p.y) * step(p.y, B.y + 22.0));
+        bcol = mix(bcol, vec3(0.85, 0.12, 0.10), step(float(i), 3.5) * step(B.x + B.z - 18.0, p.x) * step(p.x, B.x + B.z - 4.0) * step(B.y + 19.0, p.y) * step(p.y, B.y + 22.0));
         bcol *= 1.0 - 0.75 * clamp(1.0 - min(p.y - B.y - 3.0, p.x - B.x - 2.0) / 4.0, 0.0, 1.0);
         c = put(c, bcol, m);
         c = put(c, BLUE * 0.85, cov(abs(p.y - B.y - 26.0) - 0.7) * step(B.x + 4.0, p.x) * step(p.x, B.x + B.z - 4.0) * 0.75);
