@@ -36,8 +36,9 @@ BAR_R, BAR_W = 602, 320                                # the left bars: one colu
 # the car a bit smaller and higher, two of the bars (boost or intake, oil) side by side under it
 # jsalicru (Nov 26 2026): while the map shows, the left panel reaches further left (MAP_LEFT) and the window with it, for
 # a bigger map (about 600 px of it in view instead of 460; Waze's picture enlarged ~1.15x)
-MAP_LEFT = [70, LEFT[1], LEFT[2], 26]
-MAP = [48, LEFT[1] + 14, CX - 40 - 48, LEFT[2] - 14 - (LEFT[1] + 14)]   # its left end is cut along the panel's bow
+# (Nov 27) and taller, near the screen's top to just over the strip: about 570 px of map high instead of 380
+MAP_LEFT = [70, 36, 646, 26]
+MAP = [48, MAP_LEFT[1] + 14, CX - 40 - 48, MAP_LEFT[2] - 14 - (MAP_LEFT[1] + 14)]   # its left end is cut along the panel's bow
 # the car's arrow where jsbaughman's 0.26 from 178 put it relative to the part in view (its right end ~564, where the map
 # fades into the dial): the middle of x 48..564 now
 MAP_AIM = round((564 - MAP[0]) / 2.0 / MAP[2], 3)
