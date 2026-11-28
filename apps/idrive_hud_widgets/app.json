@@ -2,7 +2,7 @@
   "id": "idrive_hud_widgets",
   "title": "HUD Widgets",
   "description": "Gear, shift lights, boost, oil, coolant and intake temperatures, a G-meter and trip figures on the windshield HUD, in Classic, M or Night themes",
-  "version": "0.14.13",
+  "version": "0.14.14",
   "vendor": "custom",
   "loggingId": "OAH1",
   "iconGlyph": "HUD",
@@ -24,6 +24,7 @@
     "previews.js",
     "sensors.js",
     "waze.js",
+    "art_probe.js",
     "badges.js",
     "screen.js",
     "runs.js",
@@ -846,38 +847,6 @@
       "label": "Show boost (Sport layout)",
       "type": "bool",
       "default": true
-    },
-    {
-      "key": "holiday",
-      "label": "Holiday editions",
-      "type": "choice",
-      "default": "auto",
-      "options": [
-        [
-          "auto",
-          "Auto, by the date"
-        ],
-        [
-          "off",
-          "Off"
-        ],
-        [
-          "xmas",
-          "Christmas"
-        ],
-        [
-          "thanks",
-          "Thanksgiving"
-        ],
-        [
-          "newyear",
-          "New Year"
-        ],
-        [
-          "july4",
-          "Fourth of July"
-        ]
-      ]
     },
     {
       "key": "warnOil",

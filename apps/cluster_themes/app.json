@@ -1,8 +1,8 @@
 {
   "id": "cluster_themes",
   "title": "P3 Clusters",
-  "description": "Redraws the instrument cluster: E46 M3, E36 (a 90s E36 M3 cluster), Sweep, Dyno (BMW-coloured readout tiles), Ribbon (with holiday editions) Apex (a needle dash with a G-meter) or Vetro (an Italian GT dial under glass with the Waze map at its side), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
-  "version": "0.26.0",
+  "description": "Redraws the instrument cluster: E46 M3, E36 (a 90s E36 M3 cluster), Sweep, Dyno (BMW-coloured readout tiles), Ribbon, Apex (a needle dash with a G-meter) or Vetro (an Italian GT dial under glass with the Waze map at its side), with shift lights, boost, temps, tyres, a G-meter and a 0-60 timer",
+  "version": "0.27.0",
   "vendor": "custom",
   "loggingId": "OAC1",
   "iconGlyph": "CLU",
@@ -22,6 +22,7 @@
     "visible.js",
     "page.js",
     "waze.js",
+    "art_probe.js",
     "previews.js",
     "sensors.js",
     "badges.js",
@@ -756,38 +757,6 @@
       "label": "Leave room for the driver camera",
       "type": "bool",
       "default": false
-    },
-    {
-      "key": "holiday",
-      "label": "Holiday editions",
-      "type": "choice",
-      "default": "auto",
-      "options": [
-        [
-          "auto",
-          "Auto, by the date"
-        ],
-        [
-          "off",
-          "Off"
-        ],
-        [
-          "xmas",
-          "Christmas"
-        ],
-        [
-          "thanks",
-          "Thanksgiving"
-        ],
-        [
-          "newyear",
-          "New Year"
-        ],
-        [
-          "july4",
-          "Fourth of July"
-        ]
-      ]
     },
     {
       "key": "warnOil",

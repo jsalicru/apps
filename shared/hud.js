@@ -331,6 +331,7 @@ const shaders = require('./shaders');
 const calibration = require('./calibration');
 const Car = require('./kit/car');
 const Waze = require('./waze');
+const ArtProbe = require('./art_probe');          // where the head unit keeps album art (read-only discovery, art-probe.txt)
 const Screen = require('./screen');
 const badges = require('./badges');
 const Runs = require('./runs');
@@ -1017,6 +1018,8 @@ class HudApp {
         // one-at-a-time SOME/IP setup (signals.js) reaches every vehicle signal before it, whatever this one does
         // The instance is HMI_CID (the front screen; HMI_FoMo_Left / _Right are the rear screens): asking for "1" in the
         // manifest made the app manager refuse the whole app (issues #17 to #20); app.json allows any instance ("*")
+        // the album art probe on the cluster app only (Vetro's now playing)
+        this.artProbe = this.ctx.spec && this.ctx.spec.id === 'cluster_themes' ? new ArtProbe(this.log, this.ctx.dataDir) : null;
         extra[MEDIA_IF] = {
             $instance: MEDIA_INST,
             playerMetadata: (v) => this._mediaFeed('meta', v),
@@ -3299,6 +3302,7 @@ class HudApp {
         const m = this.media || (this.media = { title: '', artist: '', elapsed: 0, total: 0, at: 0, moved: 0 });
         this.mediaLogged = (this.mediaLogged || 0) + 1;
         if (this.mediaLogged <= 6) this.log.info('media ' + kind + ': ' + JSON.stringify(v).slice(0, 300));
+        if (this.artProbe) this.artProbe.raw(kind, v);
         if (kind === 'meta') {
             const type = (t) => MEDIA_TYPES[t] || String(t || '').toUpperCase();
             const lines = [[mediaText(v.firstLineText), type(v.firstLineType)], [mediaText(v.secondLineText), type(v.secondLineType)]];
@@ -3312,6 +3316,7 @@ class HudApp {
             }
             if (title !== m.title || artist !== m.artist) { m.elapsed = 0; m.total = 0; m.moved = 0; }
             m.title = title; m.artist = artist;
+            if (this.artProbe && title) this.artProbe.track(title, artist);
         } else {
             const e = Number(v.elapsed), t = Number(v.total);
             if (!isFinite(e) || !isFinite(t) || v.hasProgress === false) { m.total = 0; return; }
